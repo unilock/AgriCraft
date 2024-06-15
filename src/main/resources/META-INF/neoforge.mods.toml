@@ -1,0 +1,31 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+issueTrackerURL="https://github.com/AgriCraft/AgriCraft/issues/"
+
+[[mods]]
+modId="agricraft"
+version="${version}"
+displayName="AgriCraft"
+displayURL="https://www.curseforge.com/minecraft/mc-mods/agricraft"
+updateJSONURL = "https://raw.githubusercontent.com/AgriCraft/AgriCraft/master/version.json"
+logoFile="logo.png"
+authors="InfinityRaider, Ketheroth"
+description='''
+Agricultural farming extended
+'''
+
+[[dependencies.agricraft]]
+modId="neoforge"
+type="required"
+versionRange="[21.0.0-beta,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.agricraft]]
+modId = "minecraft"
+type="required"
+versionRange = "[1.21,)"
+ordering = "NONE"
+side = "BOTH"
+

@@ -1,9 +1,5 @@
 .idea/
 .gradle/
 build/
-**/build/
-**/run/
-out/
-forge/src/generated/
-neoforge/src/generated/
-.architectury-transformer/
+runs/
+src/generated/
