@@ -31,7 +31,7 @@ public class CropBlockEntityRenderer implements BlockEntityRenderer<CropBlockEnt
 			if (blockEntity.isCrossCropSticks()) {
 				modelId = modelId.replace("crop", "cross_crop");
 			}
-			BakedModel model = Minecraft.getInstance().getModelManager().bakedRegistry.get(new ResourceLocation(modelId));
+			BakedModel model = Minecraft.getInstance().getModelManager().getModel(ModelResourceLocation.standalone(ResourceLocation.parse(modelId)));
 			// render the stick model
 			Minecraft.getInstance().getBlockRenderer().getModelRenderer().renderModel(poseStack.last(),
 					buffer.getBuffer(RenderType.cutoutMipped()),
@@ -39,21 +39,25 @@ public class CropBlockEntityRenderer implements BlockEntityRenderer<CropBlockEnt
 		}
 		if (blockEntity.hasPlant()) {
 			AgriGrowthStage stage = blockEntity.getGrowthStage();
-			String plantId = blockEntity.getPlantId();
+			String plantId = blockEntity.getPlantId().toString();
 			BakedModel plantModel = AgriClientApi.getPlantModel(plantId, stage.index());
-			// render the computed plant model
-			Minecraft.getInstance().getBlockRenderer().getModelRenderer().renderModel(poseStack.last(),
-					buffer.getBuffer(RenderType.cutoutMipped()),
-					blockEntity.getBlockState(), plantModel, 1, 1, 1, packedLight, packedOverlay);
+			if (plantModel != null) {
+				// render the computed plant model
+				Minecraft.getInstance().getBlockRenderer().getModelRenderer().renderModel(poseStack.last(),
+						buffer.getBuffer(RenderType.cutoutMipped()),
+						blockEntity.getBlockState(), plantModel, 1, 1, 1, packedLight, packedOverlay);
+			}
 		}
 		if (blockEntity.hasWeeds()) {
 			AgriGrowthStage weedStage = blockEntity.getWeedGrowthStage();
-			String weedId = blockEntity.getWeedId();
+			String weedId = blockEntity.getWeedId().toString();
 			BakedModel weedModel = AgriClientApi.getWeedModel(weedId, weedStage.index());
-			// render the computed plant model
-			Minecraft.getInstance().getBlockRenderer().getModelRenderer().renderModel(poseStack.last(),
-					buffer.getBuffer(RenderType.cutoutMipped()),
-					blockEntity.getBlockState(), weedModel, 1, 1, 1, packedLight, packedOverlay);
+			if (weedModel != null) {
+				// render the computed plant model
+				Minecraft.getInstance().getBlockRenderer().getModelRenderer().renderModel(poseStack.last(),
+						buffer.getBuffer(RenderType.cutoutMipped()),
+						blockEntity.getBlockState(), weedModel, 1, 1, 1, packedLight, packedOverlay);
+			}
 		}
 
 	}

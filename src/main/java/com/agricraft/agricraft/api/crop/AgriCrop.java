@@ -1,14 +1,16 @@
 package com.agricraft.agricraft.api.crop;
 
 import com.agricraft.agricraft.api.codecs.AgriSoil;
-import com.agricraft.agricraft.api.config.CoreConfig;
+import com.agricraft.agricraft.api.config.AgriCraftConfig;
 import com.agricraft.agricraft.api.fertilizer.IAgriFertilizable;
 import com.agricraft.agricraft.api.genetic.AgriGenomeProvider;
 import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.plant.AgriWeed;
 import com.agricraft.agricraft.api.requirement.AgriGrowthResponse;
-import com.agricraft.agricraft.api.stat.AgriStatRegistry;
+import com.agricraft.agricraft.api.stat.AgriStats;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -42,7 +44,7 @@ public interface AgriCrop extends AgriGenomeProvider, IAgriFertilizable {
 	/**
 	 * @return the id of the plant or an empty string if there is no plant
 	 */
-	String getPlantId();
+	ResourceLocation getPlantId();
 
 	/**
 	 * @return the plant associated to this crop or {@link AgriPlant#NO_PLANT} if there is no plant
@@ -57,7 +59,7 @@ public interface AgriCrop extends AgriGenomeProvider, IAgriFertilizable {
 	/**
 	 * @return the id of the weed or an empty string if there is no weed
 	 */
-	String getWeedId();
+	ResourceLocation getWeedId();
 
 	/**
 	 * @return the weed associated to this crop or null if there is no weed
@@ -142,12 +144,12 @@ public interface AgriCrop extends AgriGenomeProvider, IAgriFertilizable {
 	 * @return true if the weed should activate on this crop
 	 */
 	default boolean shouldWeedsActivate() {
-		if (CoreConfig.disableWeeds || this.getLevel() == null) {
+		if (AgriCraftConfig.DISABLE_WEEDS.get() || this.getLevel() == null) {
 			return false;
 		}
 		if (this.hasPlant()) {
-			int resistance = this.getGenome().getResistance();
-			int max = AgriStatRegistry.getInstance().resistanceStat().getMax();
+			int resistance = this.getGenome().getResistance().trait();
+			int max = AgriStats.RESISTANCE.get().getMax();
 			// At 1 resistance, 45% chance for weed growth tick
 			// At 10 resistance, 0% chance
 			return this.getLevel().getRandom().nextInt(max) >= (max + resistance) / 2;
@@ -156,11 +158,9 @@ public interface AgriCrop extends AgriGenomeProvider, IAgriFertilizable {
 	}
 
 	/**
-	 *
-	 * @param weedId the id of the inserted weed
-	 * @param weed the weed to insert on the crop
+	 * @param weed the id of the inserted weed
 	 */
-	void setWeed(String weedId, AgriWeed weed);
+	void setWeed(ResourceKey<AgriWeed> weed);
 
 	//#region block helper methods
 

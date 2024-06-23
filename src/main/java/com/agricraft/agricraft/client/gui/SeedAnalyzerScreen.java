@@ -1,9 +1,10 @@
 package com.agricraft.agricraft.client.gui;
 
 import com.agricraft.agricraft.api.AgriApi;
-import com.agricraft.agricraft.api.genetic.AgriGenePair;
+import com.agricraft.agricraft.api.genetic.Chromosome;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
-import com.agricraft.agricraft.api.stat.AgriStatRegistry;
+import com.agricraft.agricraft.api.genetic.AgriGenes;
+import com.agricraft.agricraft.api.stat.AgriStats;
 import com.agricraft.agricraft.common.inventory.container.SeedAnalyzerMenu;
 import com.agricraft.agricraft.common.util.LangUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -18,7 +19,7 @@ import java.util.Optional;
 
 public class SeedAnalyzerScreen extends AbstractContainerScreen<SeedAnalyzerMenu> {
 
-	private final ResourceLocation GUI = new ResourceLocation(AgriApi.MOD_ID, "textures/gui/seed_analyzer.png");
+	private final ResourceLocation GUI = ResourceLocation.fromNamespaceAndPath(AgriApi.MOD_ID, "textures/gui/seed_analyzer.png");
 	private final Component TEXT_SEPARATOR = Component.literal("-");
 
 	private int geneIndex;
@@ -41,7 +42,6 @@ public class SeedAnalyzerScreen extends AbstractContainerScreen<SeedAnalyzerMenu
 
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-		this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
 		super.render(guiGraphics, mouseX, mouseY, partialTick);
 		this.renderTooltip(guiGraphics, mouseX, mouseY);
 	}
@@ -66,7 +66,7 @@ public class SeedAnalyzerScreen extends AbstractContainerScreen<SeedAnalyzerMenu
 		AgriGenome genome = optionalGenome.get();
 
 		// up/down buttons if there are more than 6 stats genes
-		if (genome.getStatGenes().size() > 6) {
+		if (genome.getStatChromosomes().size() > 6) {
 			int upXOffset = hoverUpButton(leftPos, topPos, mouseX, mouseY) ? 195 : 186;
 			guiGraphics.blit(GUI, leftPos + 67, topPos + 26, upXOffset, 91, 9, 9);
 			int downXOffset = hoverDownButton(leftPos, topPos, mouseX, mouseY) ? 195 : 186;
@@ -74,9 +74,9 @@ public class SeedAnalyzerScreen extends AbstractContainerScreen<SeedAnalyzerMenu
 		}
 
 		// species gene
-		AgriGenePair<String> species = genome.getSpeciesGene();
-		Component speciesDomText = LangUtils.plantName(species.getDominant().trait());
-		Component speciesRecText = LangUtils.plantName(species.getRecessive().trait());
+		Chromosome<String> species = genome.species();
+		Component speciesDomText = LangUtils.plantName(species.dominant());
+		Component speciesRecText = LangUtils.plantName(species.recessive());
 		int domw = this.font.width(speciesDomText.getString());
 		int middle = leftPos + this.imageWidth / 2;
 		int sepLength = this.font.width(TEXT_SEPARATOR.getString());
@@ -88,18 +88,19 @@ public class SeedAnalyzerScreen extends AbstractContainerScreen<SeedAnalyzerMenu
 		int yy = topPos + 26;
 		int[] lineAmount = {3, 2, 2, 3, 2, 3};
 		int[] lineStart = {0, 15, 25, 35, 50, 60};
-		List<AgriGenePair<Integer>> statGenes = genome.getStatGenes().stream().toList();
+		List<Chromosome<Integer>> statGenes = genome.getStatChromosomes().stream().toList();
 		for (int i = geneIndex, lineIndex = 0; i < geneIndex + 6; i++, lineIndex++) {
-			AgriGenePair<Integer> pair = statGenes.get(i);
+			Chromosome<Integer> chromosome = statGenes.get(i);
 			// color lines of the gene
 			for (int k = 0; k < lineAmount[lineIndex]; k++) {
-				guiGraphics.hLine(DNA_X, DNA_X + 9, topPos + 26 + lineStart[lineIndex] + k * 5, pair.getGene().getDominantColor());
-				guiGraphics.hLine(DNA_X + 9, DNA_X + 9 + 8, topPos + 26 + lineStart[lineIndex] + k * 5, pair.getGene().getRecessiveColor());
+				guiGraphics.hLine(DNA_X, DNA_X + 9, topPos + 26 + lineStart[lineIndex] + k * 5, chromosome.gene().getDominantColor());
+				guiGraphics.hLine(DNA_X + 9, DNA_X + 9 + 8, topPos + 26 + lineStart[lineIndex] + k * 5, chromosome.gene().getRecessiveColor());
 			}
 			// text of the gene
-			Component geneText = AgriStatRegistry.getInstance().get(pair.getGene().getId()).map(LangUtils::statName).orElse(Component.empty());
-			Component domText = Component.literal("" + pair.getDominant().trait());
-			Component recText = Component.literal("" + pair.getRecessive().trait());
+			ResourceLocation key = AgriGenes.GENES.getRegistry().get().getKey(chromosome.gene());
+			Component geneText = AgriStats.STATS.getRegistry().get().getOptional(key).map(LangUtils::statName).orElse(Component.empty());
+			Component domText = Component.literal("" + chromosome.dominant());
+			Component recText = Component.literal("" + chromosome.recessive());
 			int w = this.font.width(domText.getString());
 			guiGraphics.drawString(this.font, geneText, DNA_X + 36, yy, 0, false);
 			guiGraphics.drawString(this.font, domText, DNA_X - w - 1, yy, 0, false);
@@ -122,8 +123,8 @@ public class SeedAnalyzerScreen extends AbstractContainerScreen<SeedAnalyzerMenu
 		if (opt.isEmpty()) {
 			return super.mouseClicked(mouseX, mouseY, button);
 		}
-		int maxIndex = opt.get().getStatGenes().size() - 1;
-		if (opt.map(agriGenome -> agriGenome.getStatGenes().size()).orElse(0) > 6) {
+		int maxIndex = opt.get().getStatChromosomes().size() - 1;
+		if (opt.map(agriGenome -> agriGenome.getStatChromosomes().size()).orElse(0) > 6) {
 			int startX = (this.width - this.imageWidth) / 2;
 			int startY = (this.height - this.imageHeight) / 2;
 			if (hoverUpButton(startX, startY, (int) mouseX, (int) mouseY)) {
@@ -146,7 +147,7 @@ public class SeedAnalyzerScreen extends AbstractContainerScreen<SeedAnalyzerMenu
 		if (opt.isEmpty()) {
 			return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
 		}
-		int maxIndex = opt.get().getStatGenes().size() - 1;
+		int maxIndex = opt.get().getStatChromosomes().size() - 1;
 		if (maxIndex > 6) {
 			if (scrollY < 0) {
 				if (maxIndex - geneIndex > 6) {

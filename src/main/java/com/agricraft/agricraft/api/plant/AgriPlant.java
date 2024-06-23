@@ -7,12 +7,13 @@ import com.agricraft.agricraft.api.codecs.AgriSeed;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.crop.AgriGrowthStage;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
-import com.agricraft.agricraft.common.util.Platform;
+import com.agricraft.agricraft.common.util.TagUtils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
@@ -31,6 +32,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+// TODO: @Ketheroth convert nbt to component ?
 // TODO: @Ketheroth add javadoc to all methods
 public class AgriPlant {
 
@@ -51,7 +53,7 @@ public class AgriPlant {
 	).apply(instance, AgriPlant::new));
 
 	public static final AgriPlant NO_PLANT = new AgriPlant.Builder().harvest(0).chances(0, 0, 0).build();
-	public static final ResourceLocation UNKNOWN = new ResourceLocation("agricraft:unknown");
+	public static final ResourceLocation UNKNOWN = ResourceLocation.fromNamespaceAndPath("agricraft", "unknown");
 
 	private final List<String> mods;
 	private final List<AgriSeed> seeds;
@@ -142,9 +144,9 @@ public class AgriPlant {
 
 	public void getAllPossibleProducts(Consumer<ItemStack> products) {
 		this.products.forEach(product -> {
-			Platform.get().getItemsFromLocation(product.item()).forEach(item -> {
+			TagUtils.getItemsFromLocation(product.item()).forEach(item -> {
 				ItemStack itemStack = new ItemStack(item, product.min());
-				itemStack.getOrCreateTag().merge(product.nbt());
+//				itemStack.getOrCreateTag().merge(product.nbt());
 				products.accept(itemStack);
 			});
 		});
@@ -154,10 +156,10 @@ public class AgriPlant {
 		if (growthStage.isMature()) {
 			this.products.stream().filter(product -> product.shouldDrop(random))
 					.forEach(product -> {
-						List<Item> possible = Platform.get().getItemsFromLocation(product.item());
+						List<Item> possible = TagUtils.getItemsFromLocation(product.item());
 						Item item = possible.get(random.nextInt(possible.size()));
 						ItemStack itemStack = new ItemStack(item, product.getAmount(random));
-						itemStack.getOrCreateTag().merge(product.nbt());
+//						itemStack.getOrCreateTag().merge(product.nbt());
 						products.accept(itemStack);
 					});
 		}
@@ -166,7 +168,7 @@ public class AgriPlant {
 
 	public void getAllPossibleClipProducts(Consumer<ItemStack> products) {
 		this.clipProducts.forEach(product -> {
-			Platform.get().getItemsFromLocation(product.item()).forEach(item -> products.accept(new ItemStack(item)));
+			TagUtils.getItemsFromLocation(product.item()).forEach(item -> products.accept(new ItemStack(item)));
 		});
 	}
 
@@ -174,10 +176,10 @@ public class AgriPlant {
 		if (growthStage.isMature()) {
 			this.clipProducts.stream().filter(product -> product.shouldDrop(random))
 					.forEach(product -> {
-						List<Item> possible = Platform.get().getItemsFromLocation(product.item());
+						List<Item> possible = TagUtils.getItemsFromLocation(product.item());
 						Item item = possible.get(random.nextInt(possible.size()));
 						ItemStack itemStack = new ItemStack(item, product.getAmount(random));
-						itemStack.getOrCreateTag().merge(product.nbt());
+//						itemStack.getOrCreateTag().merge(product.nbt());
 						products.accept(itemStack);
 					});
 		}
@@ -196,7 +198,7 @@ public class AgriPlant {
 		this.particleEffects.stream()
 				.filter(effect -> effect.allowParticles(stage.index()))
 				.forEach(effect -> {
-					ParticleType<?> particle = Platform.get().getParticleType(new ResourceLocation(effect.particle()));
+					ParticleType<?> particle = BuiltInRegistries.PARTICLE_TYPE.get(ResourceLocation.parse(effect.particle()));
 					if (!(particle instanceof ParticleOptions)) {
 						return;
 					}

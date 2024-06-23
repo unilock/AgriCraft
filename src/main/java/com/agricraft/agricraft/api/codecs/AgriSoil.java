@@ -3,13 +3,12 @@ package com.agricraft.agricraft.api.codecs;
 import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.tools.magnifying.MagnifyingInspectable;
 import com.agricraft.agricraft.common.util.LangUtils;
-import com.agricraft.agricraft.common.util.Platform;
+import com.agricraft.agricraft.common.util.TagUtils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateHolder;
@@ -40,7 +39,7 @@ public record AgriSoil(List<String> mods, List<AgriSoilVariant> variants,
 
 	public boolean isVariant(BlockState blockState) {
 		for (AgriSoilVariant variant : this.variants) {
-			List<Block> blocks = Platform.get().getBlocksFromLocation(variant.block());
+			List<Block> blocks = TagUtils.getBlocksFromLocation(variant.block());
 			if (blocks.contains(blockState.getBlock())) {
 				if (variant.states().isEmpty()) {
 					return true;
@@ -56,7 +55,7 @@ public record AgriSoil(List<String> mods, List<AgriSoilVariant> variants,
 
 	public boolean isVariant(Item item) {
 		return this.variants.stream()
-				.flatMap(variant -> Platform.get().getBlocksFromLocation(variant.block()).stream())
+				.flatMap(variant -> TagUtils.getBlocksFromLocation(variant.block()).stream())
 				.map(Block::asItem)
 				.anyMatch(it -> it == item);
 	}

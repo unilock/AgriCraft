@@ -2,12 +2,11 @@ package com.agricraft.agricraft.common.block;
 
 import com.agricraft.agricraft.common.block.entity.SeedAnalyzerBlockEntity;
 import com.agricraft.agricraft.common.registry.ModBlocks;
-import com.agricraft.agricraft.common.util.Platform;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -62,12 +61,8 @@ public class SeedAnalyzerBlock extends Block implements EntityBlock {
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-		if (hand == InteractionHand.OFF_HAND) {
-			return InteractionResult.FAIL;
-		}
+	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
 		BlockEntity blockEntity = level.getBlockEntity(pos);
-		ItemStack heldItem = player.getItemInHand(hand);
 		if (!(blockEntity instanceof SeedAnalyzerBlockEntity analyzer)) {
 			return InteractionResult.FAIL;
 		}
@@ -78,26 +73,36 @@ public class SeedAnalyzerBlock extends Block implements EntityBlock {
 				if (!player.addItem(seed)) {
 					level.addFreshEntity(new ItemEntity(level, pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5, seed));
 				}
-
-				return InteractionResult.CONSUME;
+				return InteractionResult.sidedSuccess(level.isClientSide);
 			}
 			// extract journal
-			if (analyzer.hasJournal()) {
-				if (heldItem.isEmpty()) {
-					ItemStack journal = analyzer.extractJournal();
-					player.setItemInHand(hand, journal);
-					return InteractionResult.CONSUME;
-				} else {
-					return InteractionResult.FAIL;
-				}
+			if (analyzer.hasJournal() && player.getMainHandItem().isEmpty()) {
+				ItemStack journal = analyzer.extractJournal();
+				player.setItemInHand(InteractionHand.MAIN_HAND, journal);
+				return InteractionResult.sidedSuccess(level.isClientSide);
 			}
-			return InteractionResult.FAIL;
-		} else {
-			if (!level.isClientSide) {
-				Platform.get().openMenu((ServerPlayer) player, analyzer);
-			}
-			return InteractionResult.CONSUME;
 		}
+		return InteractionResult.FAIL;
+	}
+
+	@Override
+	protected ItemInteractionResult useItemOn(ItemStack heldItem, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+		if (hand == InteractionHand.OFF_HAND/* || heldItem.isEmpty()*/) {
+			return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+		}
+
+		BlockEntity blockEntity = level.getBlockEntity(pos);
+		if (!(blockEntity instanceof SeedAnalyzerBlockEntity analyzer)) {
+			return ItemInteractionResult.FAIL;
+		}
+		if (!player.isShiftKeyDown()) {
+			if (!level.isClientSide) {
+				player.openMenu(analyzer, pos);
+			}
+			return ItemInteractionResult.CONSUME;
+		}
+
+		return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 	}
 
 	@Override

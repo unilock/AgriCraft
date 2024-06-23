@@ -1,22 +1,25 @@
 package com.agricraft.agricraft.common.item;
 
 import com.agricraft.agricraft.api.AgriApi;
-import com.agricraft.agricraft.api.config.CoreConfig;
+import com.agricraft.agricraft.api.config.AgriCraftConfig;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
-import com.agricraft.agricraft.api.genetic.AgriGenomeProviderItem;
 import com.agricraft.agricraft.api.stat.AgriStat;
-import com.agricraft.agricraft.api.stat.AgriStatRegistry;
+import com.agricraft.agricraft.api.stat.AgriStats;
 import com.agricraft.agricraft.common.block.CropBlock;
 import com.agricraft.agricraft.common.block.CropState;
 import com.agricraft.agricraft.common.registry.ModBlocks;
+import com.agricraft.agricraft.common.registry.ModDataComponentTypes;
 import com.agricraft.agricraft.common.util.LangUtils;
+import com.google.common.collect.ImmutableList;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
@@ -32,12 +35,12 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class SeedBagItem extends Item {
 
@@ -45,21 +48,21 @@ public class SeedBagItem extends Item {
 	public static final BagSorter DEFAULT_SORTER = new BagSorter() {
 		@Override
 		public ResourceLocation getId() {
-			return new ResourceLocation("agricraft", "default");
+			return ResourceLocation.fromNamespaceAndPath("agricraft", "default");
 		}
 
 		@Override
 		public int compare(BagEntry entry1, BagEntry entry2) {
-			int s1 = AgriStatRegistry.getInstance().stream().mapToInt(stat -> entry1.genome.getStatGene(stat).getTrait()).sum();
-			int s2 = AgriStatRegistry.getInstance().stream().mapToInt(stat -> entry2.genome.getStatGene(stat).getTrait()).sum();
+			int s1 = AgriStats.STATS.getEntries().stream().mapToInt(stat -> entry1.genome.getStatGene(stat.get()).trait()).sum();
+			int s2 = AgriStats.STATS.getEntries().stream().mapToInt(stat -> entry2.genome.getStatGene(stat.get()).trait()).sum();
 			if (s1 != s2) {
 				return s2 - s1;
 			}
-			return AgriStatRegistry.getInstance().stream().mapToInt(stat -> {
-				Integer d1 = entry1.genome.getStatGene(stat).getDominant().trait();
-				Integer r1 = entry1.genome.getStatGene(stat).getRecessive().trait();
-				Integer d2 = entry2.genome.getStatGene(stat).getDominant().trait();
-				Integer r2 = entry2.genome.getStatGene(stat).getRecessive().trait();
+			return AgriStats.STATS.getEntries().stream().mapToInt(stat -> {
+				Integer d1 = entry1.genome.getStatGene(stat.get()).dominant();
+				Integer r1 = entry1.genome.getStatGene(stat.get()).recessive();
+				Integer d2 = entry2.genome.getStatGene(stat.get()).dominant();
+				Integer r2 = entry2.genome.getStatGene(stat.get()).recessive();
 				return (d2 + r2) - (d1 + r1);
 			}).sum();
 		}
@@ -67,6 +70,7 @@ public class SeedBagItem extends Item {
 
 	static {
 		SORTERS.add(DEFAULT_SORTER);
+		// TODO: @Ketheroth add stat sorters in non static block
 	}
 
 	public SeedBagItem(Properties properties) {
@@ -81,74 +85,67 @@ public class SeedBagItem extends Item {
 		if (crop.hasPlant() || crop.isCrossCropSticks()) {
 			return false;
 		}
-		crop.plantGenome(AgriGenome.fromNBT(seed.getTag()));
+		AgriGenome genome = seed.get(ModDataComponentTypes.GENOME);
+		if (genome == null) {
+			return false;
+		}
+		crop.plantGenome(genome);
 		return true;
 	}
 
 	public static int add(ItemStack seedBag, ItemStack insertedStack) {
-		if (insertedStack.isEmpty() || !(insertedStack.getItem() instanceof AgriGenomeProviderItem seed)) {
+		AgriGenome genome = insertedStack.get(ModDataComponentTypes.GENOME);
+		Data data = seedBag.get(ModDataComponentTypes.SEED_BAG_DATA);
+		if (insertedStack.isEmpty() || genome == null || data == null) {
 			return 0;
 		}
-		CompoundTag tag = seedBag.getOrCreateTag();
-		Optional<AgriGenome> opt = seed.getGenome(insertedStack);
-		if (opt.isEmpty()) {
-			return 0;
-		}
-		AgriGenome genome = opt.get();
-		if (tag.contains("species")) {
+		if (!data.plants().isEmpty() && !data.plants().getFirst().genome.species().trait().equals(genome.species().trait())) {
 			// bag already has seeds, we can add seeds only if they have the same species
-			if (!genome.getSpeciesGene().getTrait().equals(tag.getString("species"))) {
-				return 0;
-			}
+			return 0;
 		}
 		// at this point, either there are no seeds in the bag, or the seed to be inserted has the same species as the ones inside
-		if (!tag.contains("seeds")) {
-			tag.put("seeds", new ListTag());
-			tag.putString("species", genome.getSpeciesGene().getTrait());
-		}
-		ListTag seeds = tag.getList("seeds", Tag.TAG_COMPOUND);
 		int size = size(seedBag);
-		if (size >= CoreConfig.seedBagCapacity) {
+		if (size >= AgriCraftConfig.SEED_BAG_CAPACTITY.get()) {
 			return 0;
 		}
-		// we should try to merge the genome to another one by increasing its count if they are the same
-		CompoundTag seedTag = new CompoundTag();
-		int insertedCount = Math.min(CoreConfig.seedBagCapacity - size, insertedStack.getCount());
-		seedTag.putInt("count", insertedCount);
-		genome.writeToNBT(seedTag);
-		seeds.add(seedTag);
-		sort(seedBag);
+		int insertedCount = Math.min(AgriCraftConfig.SEED_BAG_CAPACTITY.get() - size, insertedStack.getCount());
+		ImmutableList.Builder<BagEntry> builder = ImmutableList.builder();
+		Stream.concat(data.plants().stream(), Stream.of(new BagEntry(insertedCount, genome))).sorted(SORTERS.get(data.sorter())).forEach(builder::add);
+		Data newData = new Data(builder.build(), data.sorter());
+
+		seedBag.set(ModDataComponentTypes.SEED_BAG_DATA, newData);
 		return insertedCount;
 	}
 
 	public static ItemStack extractFirstStack(ItemStack seedBag) {
-		ListTag seeds = seedBag.getTag().getList("seeds", Tag.TAG_COMPOUND);
-		BagEntry entry = BagEntry.fromNBT(seeds.getCompound(0));
+		Data data = seedBag.get(ModDataComponentTypes.SEED_BAG_DATA);
+		if (data == null || data.plants().isEmpty()) {
+			return ItemStack.EMPTY;
+		}
+		BagEntry entry = data.plants().getFirst();
 		ItemStack seed = AgriSeedItem.toStack(entry.genome);
 		seed.setCount(entry.count);
-		seeds.remove(0);
-		if (seeds.isEmpty()) {
-			seedBag.getTag().remove("seeds");
-			seedBag.getTag().remove("species");
-		}
+		seedBag.set(ModDataComponentTypes.SEED_BAG_DATA, new Data(data.plants().stream().skip(1).collect(ImmutableList.toImmutableList()), data.sorter()));
 		return seed;
 	}
 
 	public static ItemStack extractFirstItem(ItemStack seedBag, boolean simulate) {
-		ListTag seeds = seedBag.getTag().getList("seeds", Tag.TAG_COMPOUND);
-		CompoundTag seedTag = seeds.getCompound(0);
-		AgriGenome genome = AgriGenome.fromNBT(seedTag);
-		ItemStack seed = AgriSeedItem.toStack(genome);
+		Data data = seedBag.get(ModDataComponentTypes.SEED_BAG_DATA);
+		if (data == null || data.plants().isEmpty()) {
+			return ItemStack.EMPTY;
+		}
+		BagEntry entry = data.plants().getFirst();
+		ItemStack seed = AgriSeedItem.toStack(entry.genome);
 		if (!simulate) {
-			int count = seedTag.getInt("count") - 1;
-			seedTag.putInt("count", count);
-			if (count <= 0) {
-				seeds.remove(0);
+			ImmutableList.Builder<BagEntry> builder = ImmutableList.builder();
+			if (entry.count <= 1) {
+				data.plants().stream().skip(1).forEach(builder::add);
+			} else {
+				BagEntry newEntry = new BagEntry(entry.count - 1, entry.genome);
+				builder.add(newEntry);
 			}
-			if (seeds.isEmpty()) {
-				seedBag.getTag().remove("seeds");
-				seedBag.getTag().remove("species");
-			}
+			data.plants().stream().skip(1).forEach(builder::add);
+			seedBag.set(ModDataComponentTypes.SEED_BAG_DATA, new Data(builder.build(), data.sorter()));
 		}
 		return seed;
 	}
@@ -157,62 +154,28 @@ public class SeedBagItem extends Item {
 		if (delta == 0) {
 			return;
 		}
-		CompoundTag tag = seedBag.getOrCreateTag();
-		int sorterIndex = 0;
-		if (tag.contains("sorter")) {
-			sorterIndex = tag.getInt("sorter");
-		}
-		sorterIndex += delta;
+		Data data = seedBag.get(ModDataComponentTypes.SEED_BAG_DATA);
+		int sorterIndex = data.sorter + delta;
 		if (sorterIndex < 0) {
 			sorterIndex += SORTERS.size();
 		}
 		sorterIndex %= SORTERS.size();
-		tag.putInt("sorter", sorterIndex);
-		sort(seedBag);
-	}
-
-	private static void sort(ItemStack seedBag) {
-		CompoundTag tag = seedBag.getOrCreateTag();
-		int sorterIndex = 0;
-		if (tag.contains("sorter")) {
-			sorterIndex = tag.getInt("sorter");
-		}
-		ListTag listTag = tag.getList("seeds", Tag.TAG_COMPOUND);
-		List<BagEntry> entries = new ArrayList<>();
-		for (int i = 0; i < listTag.size(); i++) {
-			entries.add(BagEntry.fromNBT(listTag.getCompound(i)));
-		}
-		BagSorter sorter = SORTERS.get(sorterIndex);
-		entries.sort(sorter);
-		listTag.clear();
-		for (BagEntry entry : entries) {
-			CompoundTag t = new CompoundTag();
-			entry.writeToNBT(t);
-			listTag.add(t);
-		}
+		seedBag.set(ModDataComponentTypes.SEED_BAG_DATA, data.sortedBy(sorterIndex));
 	}
 
 	public static int size(ItemStack seedBag) {
-		CompoundTag tag = seedBag.getTag();
-		if (tag == null || !tag.contains("seeds")) {
-			return 0;
-		}
-		ListTag seeds = tag.getList("seeds", Tag.TAG_COMPOUND);
-		int count = 0;
-		for (int i = 0; i < seeds.size(); i++) {
-			count += seeds.getCompound(i).getInt("count");
-		}
-		return count;
+		Data data = seedBag.get(ModDataComponentTypes.SEED_BAG_DATA);
+		return data == null ? 0 : data.size();
 	}
 
 	public static boolean isEmpty(ItemStack stack) {
-		CompoundTag tag = stack.getTag();
-		return tag == null || !tag.contains("species");
+		Data data = stack.get(ModDataComponentTypes.SEED_BAG_DATA);
+		return data == null || data.plants().isEmpty();
 	}
 
 	public static boolean isFilled(ItemStack stack) {
-		CompoundTag tag = stack.getTag();
-		return tag != null && tag.contains("seeds") && size(stack) == CoreConfig.seedBagCapacity;
+		Data data = stack.get(ModDataComponentTypes.SEED_BAG_DATA);
+		return data != null && data.size() == AgriCraftConfig.SEED_BAG_CAPACTITY.get();
 	}
 
 	private static void playRemoveOneSound(Entity entity) {
@@ -253,15 +216,18 @@ public class SeedBagItem extends Item {
 				return InteractionResult.SUCCESS;
 			}
 			return InteractionResult.PASS;
-		} else if (CoreConfig.plantOffCropSticks) {
+		} else if (AgriCraftConfig.PLANT_OFF_CROP_STICKS.get()) {
 			// if there is nothing above
 			if (AgriApi.getSoil(level, pos).isPresent() && level.getBlockState(pos.above()).isAir()) {
 				level.setBlock(pos.above(), ModBlocks.CROP.get().defaultBlockState().setValue(CropBlock.CROP_STATE, CropState.PLANT), Block.UPDATE_ALL_IMMEDIATE);
 				optional = AgriApi.getCrop(level, pos.above());
 				if (optional.isPresent()) {
-					optional.get().plantGenome(AgriGenome.fromNBT(seed.getTag()), context.getPlayer());
-					extractFirstItem(seedBag, false);
-					return InteractionResult.SUCCESS;
+					AgriGenome genome = seed.get(ModDataComponentTypes.GENOME);
+					if (genome != null) {
+						optional.get().plantGenome(genome, context.getPlayer());
+						extractFirstItem(seedBag, false);
+						return InteractionResult.SUCCESS;
+					}
 				}
 				return InteractionResult.PASS;
 			}
@@ -316,14 +282,14 @@ public class SeedBagItem extends Item {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
-		if (isEmpty(stack)) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
+		Data data = stack.get(ModDataComponentTypes.SEED_BAG_DATA);
+		if (isEmpty(stack) || data == null) {
 			tooltipComponents.add(Component.translatable("agricraft.tooltip.bag.empty").withStyle(ChatFormatting.DARK_GRAY));
 		} else {
-			tooltipComponents.add(Component.translatable("agricraft.tooltip.bag.content", size(stack)).append(LangUtils.seedName(stack.getTag().getString("species"))).withStyle(ChatFormatting.DARK_GRAY));
+			tooltipComponents.add(Component.translatable("agricraft.tooltip.bag.content", size(stack)).append(LangUtils.seedName(data.plants().getFirst().genome.species().trait())).withStyle(ChatFormatting.DARK_GRAY));
 		}
-		int i = stack.getOrCreateTag().getInt("sorter");
-		String id = SORTERS.get(i).getId().toString().replace(":", ".");
+		String id = SORTERS.get(data.sorter).getId().toString().replace(":", ".");
 		tooltipComponents.add(Component.translatable("agricraft.tooltip.bag.sorter")
 				.append(Component.translatable("agricraft.tooltip.bag.sorter." + id))
 				.withStyle(ChatFormatting.DARK_GRAY));
@@ -338,16 +304,51 @@ public class SeedBagItem extends Item {
 
 	}
 
+	public record Data(ImmutableList<BagEntry> plants, int sorter) {
+
+		public static final Codec<Data> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+				BagEntry.CODEC.listOf().fieldOf("plants").forGetter(data -> data.plants),
+				Codec.INT.fieldOf("sorter").forGetter(data -> data.sorter)
+		).apply(instance, Data::new));
+		public static StreamCodec<RegistryFriendlyByteBuf, Data> STREAM_CODEC = StreamCodec.composite(
+				BagEntry.STREAM_CODEC.apply(ByteBufCodecs.list()), data -> data.plants,
+				ByteBufCodecs.INT, data -> data.sorter,
+				Data::new
+		);
+
+		public Data() {
+			this(ImmutableList.of(), 0);
+		}
+
+		private Data(List<BagEntry> entries, int sorterId) {
+			this(ImmutableList.copyOf(entries), sorterId);
+		}
+
+		public Data sorted() {
+			return new Data(ImmutableList.sortedCopyOf(SORTERS.get(this.sorter), this.plants), this.sorter);
+		}
+
+		public Data sortedBy(int sorter) {
+			return new Data(ImmutableList.sortedCopyOf(SORTERS.get(sorter), this.plants), sorter);
+		}
+
+		public int size() {
+			return plants.stream().mapToInt(BagEntry::count).sum();
+		}
+
+	}
+
 	public record BagEntry(int count, AgriGenome genome) {
 
-		public static BagEntry fromNBT(CompoundTag tag) {
-			return new BagEntry(tag.getInt("count"), AgriGenome.fromNBT(tag));
-		}
-
-		public void writeToNBT(CompoundTag tag) {
-			tag.putInt("count", this.count);
-			this.genome.writeToNBT(tag);
-		}
+		public static final Codec<BagEntry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+				Codec.INT.fieldOf("count").forGetter(data -> data.count),
+				AgriGenome.CODEC.fieldOf("genome").forGetter(data -> data.genome)
+		).apply(instance, BagEntry::new));
+		public static StreamCodec<RegistryFriendlyByteBuf, BagEntry> STREAM_CODEC = StreamCodec.composite(
+				ByteBufCodecs.INT, data -> data.count,
+				AgriGenome.STREAM_CODEC, data -> data.genome,
+				BagEntry::new
+		);
 
 	}
 
@@ -358,7 +359,7 @@ public class SeedBagItem extends Item {
 
 		public StatSorter(AgriStat stat) {
 			this.stat = stat;
-			this.id = new ResourceLocation("agricraft", stat.getId());
+			this.id = ResourceLocation.fromNamespaceAndPath("agricraft", stat.getId());
 		}
 
 		@Override
@@ -368,8 +369,8 @@ public class SeedBagItem extends Item {
 
 		@Override
 		public int compare(BagEntry entry1, BagEntry entry2) {
-			int s1 = entry1.genome.getStatGene(this.stat).getTrait();
-			int s2 = entry2.genome.getStatGene(this.stat).getTrait();
+			int s1 = entry1.genome.getStatGene(this.stat).trait();
+			int s2 = entry2.genome.getStatGene(this.stat).trait();
 			if (s1 == s2) {
 				return DEFAULT_SORTER.compare(entry1, entry2);
 			}

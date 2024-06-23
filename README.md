@@ -8,14 +8,16 @@ We also have a [Discord server](https://discord.gg/vyrdwWc) where you can ask fo
 
 ## Available versions
 
-| Version | Support     |
-|---------|-------------|
-| 1.7.10  | Unsupported |
-| 1.8.9   | Unsupported |
-| 1.9     | Unsupported |
-| 1.10    | Unsupported |
-| 1.11    | Unsupported |
-| 1.12    | Unsupported |
-| 1.16    | Unsupported |
-| 1.18    | Supported   |
+| Version | Support           |
+|---------|-------------------|
+| 1.21    | Supported         |
+| 1.20.4  | Supported         |
+| 1.18    | Major issues only |
+| 1.16    | Unsupported       |
+| 1.12    | Unsupported       |
+| 1.11    | Unsupported       |
+| 1.10    | Unsupported       |
+| 1.9     | Unsupported       |
+| 1.8.9   | Unsupported       |
+| 1.7.10  | Unsupported       |
 

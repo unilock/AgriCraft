@@ -22,6 +22,6 @@ public interface AgriGeneMutator<T> {
 	 * @param random  pseudo-random generator to take decisions
 	 * @return a new gene pair for the offspring
 	 */
-	AgriGenePair<T> pickOrMutate(AgriCrop crop, AgriGene<T> gene, AgriAllele<T> first, AgriAllele<T> second, AgriGenome parent1, AgriGenome parent2, RandomSource random);
+	Chromosome<T> pickOrMutate(AgriCrop crop, AgriGene<T> gene, T first, T second, AgriGenome parent1, AgriGenome parent2, RandomSource random);
 
 }

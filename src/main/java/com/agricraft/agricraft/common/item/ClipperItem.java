@@ -49,7 +49,7 @@ public class ClipperItem extends Item {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
 		tooltipComponents.add(Component.translatable("agricraft.tooltip.clipper").withStyle(ChatFormatting.DARK_GRAY));
 	}
 

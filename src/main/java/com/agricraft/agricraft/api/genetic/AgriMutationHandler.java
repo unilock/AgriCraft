@@ -4,7 +4,7 @@ import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.codecs.AgriMutation;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.stat.AgriStat;
-import com.agricraft.agricraft.api.stat.AgriStatRegistry;
+import com.agricraft.agricraft.api.stat.AgriStats;
 import com.google.common.collect.Sets;
 import net.minecraft.core.Registry;
 import net.minecraft.util.RandomSource;
@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Random;
 import java.util.Set;
 
 /**
@@ -180,19 +179,19 @@ public class AgriMutationHandler {
 	public static class DefaultPlantMutator implements AgriGeneMutator<String> {
 
 		@Override
-		public AgriGenePair<String> pickOrMutate(AgriCrop crop, AgriGene<String> gene, AgriAllele<String> first, AgriAllele<String> second, AgriGenome parent1, AgriGenome parent2, RandomSource random) {
+		public Chromosome<String> pickOrMutate(AgriCrop crop, AgriGene<String> gene, String first, String second, AgriGenome parent1, AgriGenome parent2, RandomSource random) {
 			// Search for matching mutations
 			// order them randomly
 			// fetch the first
-			return AgriApi.getMutationsFromParents(first.trait(), second.trait())
+			return AgriApi.getMutationsFromParents(first, second)
 					// Find the first result, sorted by trigger result, but shuffled by mutation
 					.min((a, b) -> this.sortAndShuffle(a, b, random))
 					// map it to its child, or to nothing based on the mutation success rate
 					.flatMap(m -> this.evaluate(m, random))
 					// map the result to a new gene pair with either of its parents as second gene
-					.map(plant -> new AgriGenePair<>(gene, gene.getAllele(plant), random.nextBoolean() ? first : second))
+					.map(plant -> new Chromosome<>(gene, plant, random.nextBoolean() ? first : second))
 					// if no mutation was found or if the mutation was unsuccessful, return a gene pair of the parents
-					.orElse(new AgriGenePair<>(gene, first, second));
+					.orElse(new Chromosome<>(gene, first, second));
 		}
 
 
@@ -215,23 +214,23 @@ public class AgriMutationHandler {
 	public static class DefaultStatMutator implements AgriGeneMutator<Integer> {
 
 		@Override
-		public AgriGenePair<Integer> pickOrMutate(AgriCrop crop, AgriGene<Integer> gene, AgriAllele<Integer> first, AgriAllele<Integer> second, AgriGenome parent1, AgriGenome parent2, RandomSource random) {
+		public Chromosome<Integer> pickOrMutate(AgriCrop crop, AgriGene<Integer> gene, Integer first, Integer second, AgriGenome parent1, AgriGenome parent2, RandomSource random) {
 			// return new gene pair with or without mutations, based on mutativity stat
-			AgriStat mutativity = AgriStatRegistry.getInstance().mutativityStat();
-			return new AgriGenePair<>(
+			AgriStat mutativity = AgriStats.MUTATIVITY.get();
+			return new Chromosome<>(
 					gene,
-					this.rollAndExecuteMutation(gene, first, mutativity, parent1.getMutativity(), random),
-					this.rollAndExecuteMutation(gene, second, mutativity, parent2.getMutativity(), random)
+					this.rollAndExecuteMutation(first, mutativity, parent1.getMutativity().trait(), random),
+					this.rollAndExecuteMutation(second, mutativity, parent2.getMutativity().trait(), random)
 			);
 		}
 
-		protected AgriAllele<Integer> rollAndExecuteMutation(AgriGene<Integer> gene, AgriAllele<Integer> allele, AgriStat mutativity, int statValue, RandomSource random) {
+		protected Integer rollAndExecuteMutation(Integer allele, AgriStat mutativity, int statValue, RandomSource random) {
 			// Mutativity stat of 1 results in 30.25/45/24.75 probability of positive/no/negative mutation
 			// Mutativity stat of 10 results in 100/0/0 probability of positive/no/negative mutation
 			int max = mutativity.getMax();
 			if (random.nextFloat() >= (1.0 - (double) statValue /max) / 2.0) {
 				int delta = random.nextInt(max) < (max + statValue) / 2 ? 1 : -1;
-				return gene.getAllele(allele.trait() + delta);
+				return allele + delta;
 			} else {
 				return allele;
 			}

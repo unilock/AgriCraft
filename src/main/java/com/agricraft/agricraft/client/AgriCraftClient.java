@@ -1,6 +1,11 @@
 package com.agricraft.agricraft.client;
 
+import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.AgriClientApi;
+import com.agricraft.agricraft.client.ber.CropBlockEntityRenderer;
+import com.agricraft.agricraft.client.ber.SeedAnalyzerEntityRenderer;
+import com.agricraft.agricraft.client.gui.MagnifyingGlassOverlay;
+import com.agricraft.agricraft.client.gui.SeedAnalyzerScreen;
 import com.agricraft.agricraft.client.tools.journal.drawers.FrontPageDrawer;
 import com.agricraft.agricraft.client.tools.journal.drawers.GeneticsPageDrawer;
 import com.agricraft.agricraft.client.tools.journal.drawers.GrowthReqsPageDrawer;
@@ -15,27 +20,49 @@ import com.agricraft.agricraft.common.item.journal.GrowthReqsPage;
 import com.agricraft.agricraft.common.item.journal.IntroductionPage;
 import com.agricraft.agricraft.common.item.journal.MutationsPage;
 import com.agricraft.agricraft.common.item.journal.PlantPage;
+import com.agricraft.agricraft.common.registry.ModBlockEntityTypes;
+import com.agricraft.agricraft.common.registry.ModBlocks;
 import com.agricraft.agricraft.common.registry.ModItems;
+import com.agricraft.agricraft.common.registry.ModMenus;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 
+import java.util.Map;
+
+@EventBusSubscriber(modid = AgriApi.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class AgriCraftClient {
 
-	public static void init() {
+	@SubscribeEvent
+	public static void onClientSetup(FMLClientSetupEvent event) {
 		AgriClientApi.registerPageDrawer(FrontPage.ID, new FrontPageDrawer());
 		AgriClientApi.registerPageDrawer(IntroductionPage.ID, new IntroductionPageDrawer());
 		AgriClientApi.registerPageDrawer(GrowthReqsPage.ID, new GrowthReqsPageDrawer());
 		AgriClientApi.registerPageDrawer(GeneticsPage.ID, new GeneticsPageDrawer());
 		AgriClientApi.registerPageDrawer(PlantPage.ID, new PlantPageDrawer());
 		AgriClientApi.registerPageDrawer(MutationsPage.ID, new MutationPageDrawer());
-		ItemProperties.register(ModItems.TROWEL.get(), new ResourceLocation("agricraft:plant"), (itemStack, clientLevel, livingEntity, i) -> {
+		ItemProperties.register(ModItems.TROWEL.get(), ResourceLocation.fromNamespaceAndPath("agricraft", "plant"), (itemStack, clientLevel, livingEntity, i) -> {
 			if (!itemStack.isEmpty() && itemStack.getItem() instanceof TrowelItem trowel && trowel.hasPlant(itemStack)) {
 				return 1;
 			} else {
 				return 0;
 			}
 		});
-		ItemProperties.register(ModItems.SEED_BAG.get(), new ResourceLocation("agricraft:seed_bag"), (itemStack, clientLevel, livingEntity, i) -> {
+		ItemProperties.register(ModItems.SEED_BAG.get(), ResourceLocation.fromNamespaceAndPath("agricraft", "seed_bag"), (itemStack, clientLevel, livingEntity, i) -> {
 			if (!itemStack.isEmpty() && itemStack.getItem() instanceof SeedBagItem) {
 				if (SeedBagItem.isFilled(itemStack)) {
 					return 1;
@@ -47,6 +74,47 @@ public class AgriCraftClient {
 				return 0.5F;
 			}
 		});
+		ItemBlockRenderTypes.setRenderLayer(ModBlocks.SEED_ANALYZER.get(), RenderType.cutout());
+	}
+
+	@SubscribeEvent
+	public static void registerMenuScreen(RegisterMenuScreensEvent event) {
+		event.register(ModMenus.SEED_ANALYZER_MENU.get(), SeedAnalyzerScreen::new);
+	}
+
+	@SubscribeEvent
+	public static void loadModels(ModelEvent.RegisterAdditional event) {
+		// https://discord.com/channels/313125603924639766/983834532904042537/1104441106248253592
+		for (Map.Entry<ResourceLocation, Resource> entry : FileToIdConverter.json("models/seed").listMatchingResources(Minecraft.getInstance().getResourceManager()).entrySet()) {
+			ResourceLocation seed = ResourceLocation.parse(entry.getKey().toString().replace("models/seed", "seed").replace(".json", ""));
+			event.register(ModelResourceLocation.standalone(seed));
+		}
+		for (Map.Entry<ResourceLocation, Resource> entry : FileToIdConverter.json("models/crop").listMatchingResources(Minecraft.getInstance().getResourceManager()).entrySet()) {
+			ResourceLocation crop = ResourceLocation.parse(entry.getKey().toString().replace("models/crop", "crop").replace(".json", ""));
+			event.register(ModelResourceLocation.standalone(crop));
+		}
+		for (Map.Entry<ResourceLocation, Resource> entry : FileToIdConverter.json("models/weed").listMatchingResources(Minecraft.getInstance().getResourceManager()).entrySet()) {
+			ResourceLocation weed = ResourceLocation.parse(entry.getKey().toString().replace("models/weed", "weed").replace(".json", ""));
+			event.register(ModelResourceLocation.standalone(weed));
+		}
+		// add the crop sticks models else they're not loaded
+		event.register(ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath("agricraft", "block/wooden_crop_sticks")));
+		event.register(ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath("agricraft", "block/iron_crop_sticks")));
+		event.register(ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath("agricraft", "block/obsidian_crop_sticks")));
+		event.register(ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath("agricraft", "block/wooden_cross_crop_sticks")));
+		event.register(ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath("agricraft", "block/iron_cross_crop_sticks")));
+		event.register(ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath("agricraft", "block/obsidian_cross_crop_sticks")));
+	}
+
+	@SubscribeEvent
+	public static void registerBer(EntityRenderersEvent.RegisterRenderers event) {
+		event.registerBlockEntityRenderer(ModBlockEntityTypes.CROP.get(), CropBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntityTypes.SEED_ANALYZER.get(), SeedAnalyzerEntityRenderer::new);
+	}
+
+	@SubscribeEvent
+	public static void registerGuiOverlays(RegisterGuiLayersEvent event) {
+		event.registerAbove(VanillaGuiLayers.HOTBAR, ResourceLocation.fromNamespaceAndPath(AgriApi.MOD_ID, "magnifying_glass_info"), (guiGraphics, deltaTracker) -> MagnifyingGlassOverlay.renderOverlay(guiGraphics, deltaTracker));
 	}
 
 }

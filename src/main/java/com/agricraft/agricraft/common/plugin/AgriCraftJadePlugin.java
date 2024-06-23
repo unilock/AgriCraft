@@ -4,13 +4,14 @@ import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.codecs.AgriSoil;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.requirement.AgriGrowthResponse;
-import com.agricraft.agricraft.api.stat.AgriStatRegistry;
+import com.agricraft.agricraft.api.stat.AgriStats;
 import com.agricraft.agricraft.common.block.CropBlock;
 import com.agricraft.agricraft.common.util.LangUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.ITooltip;
@@ -35,7 +36,7 @@ public class AgriCraftJadePlugin implements IWailaPlugin {
 
 		public static final CropBlockComponentProvider INSTANCE = new CropBlockComponentProvider();
 
-		private static final ResourceLocation ID = new ResourceLocation(AgriApi.MOD_ID, "crop_block");
+		private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(AgriApi.MOD_ID, "crop_block");
 
 		private CropBlockComponentProvider() {
 		}
@@ -50,13 +51,14 @@ public class AgriCraftJadePlugin implements IWailaPlugin {
 				iTooltip.add(Component.translatable("agricraft.tooltip.jade.growth", crop.getGrowthPercent() * 100));
 				if (Minecraft.getInstance().player.isShiftKeyDown()) {
 					iTooltip.add(Component.translatable("agricraft.tooltip.jade.species")
-							.append(LangUtils.plantName(crop.getGenome().getSpeciesGene().getTrait()))
+							.append(LangUtils.plantName(crop.getGenome().species().trait()))
 					);
-					AgriStatRegistry.getInstance().stream()
+					AgriStats.STATS.getEntries().stream()
+							.map(DeferredHolder::get)
 							.filter(stat -> !stat.isHidden())
 							.map(stat -> crop.getGenome().getStatGene(stat))
-							.sorted(Comparator.comparing(p -> p.getGene().getId()))
-							.map(genePair -> Component.translatable("agricraft.tooltip.jade.stat." + genePair.getGene().getId(), genePair.getTrait()))
+							.sorted(Comparator.comparing(p -> p.gene().getId()))
+							.map(genePair -> Component.translatable("agricraft.tooltip.jade.stat." + genePair.gene().getId(), genePair.trait()))
 							.forEach(iTooltip::add);
 					AgriGrowthResponse response = crop.getFertilityResponse();
 					iTooltip.add(Component.translatable("agricraft.tooltip.magnifying.requirement." + (response.isLethal() ? "lethal" : response.isFertile() ? "fertile" : "not_fertile")));
@@ -75,7 +77,7 @@ public class AgriCraftJadePlugin implements IWailaPlugin {
 
 		public static final SoilComponentProvider INSTANCE = new SoilComponentProvider();
 
-		private static final ResourceLocation ID = new ResourceLocation(AgriApi.MOD_ID, "soil");
+		private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(AgriApi.MOD_ID, "soil");
 
 		private SoilComponentProvider() {
 		}

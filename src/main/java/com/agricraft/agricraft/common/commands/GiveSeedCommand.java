@@ -1,14 +1,14 @@
 package com.agricraft.agricraft.common.commands;
 
 import com.agricraft.agricraft.api.AgriApi;
+import com.agricraft.agricraft.api.genetic.GeneStat;
 import com.agricraft.agricraft.api.plant.AgriPlant;
-import com.agricraft.agricraft.api.genetic.AgriAllele;
 import com.agricraft.agricraft.api.genetic.AgriGene;
-import com.agricraft.agricraft.api.genetic.AgriGenePair;
-import com.agricraft.agricraft.api.genetic.AgriGeneRegistry;
+import com.agricraft.agricraft.api.genetic.Chromosome;
+import com.agricraft.agricraft.api.genetic.AgriGenes;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
 import com.agricraft.agricraft.api.stat.AgriStat;
-import com.agricraft.agricraft.api.stat.AgriStatRegistry;
+import com.agricraft.agricraft.api.stat.AgriStats;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -29,6 +29,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,15 +86,17 @@ public class GiveSeedCommand {
 	}
 
 	public static int giveSeed(CommandSourceStack source, ResourceLocation plant, int value) {
-		AgriAllele<String> allele = AgriGeneRegistry.getInstance().getGeneSpecies().getAllele(plant.toString());
-		AgriGenome genome = new AgriGenome(new AgriGenePair<>(AgriGeneRegistry.getInstance().getGeneSpecies(), allele),
-				AgriStatRegistry.getInstance().stream()
-						.sorted(Comparator.comparing(AgriStat::getId))
-						.map(stat -> AgriGeneRegistry.getInstance().getGeneStat(stat))
-						.filter(Optional::isPresent)
-						.map(Optional::get)
-						.map(gene -> new AgriGenePair<>(gene, gene.getAllele(value)))
-						.toList());
+		List<Chromosome<?>> chromosomes = new ArrayList<>();
+		chromosomes.add(AgriGenes.SPECIES.get().chromosome(plant.toString()));
+		AgriStats.STATS.getEntries().stream()
+				.map(DeferredHolder::get)
+				.sorted(Comparator.comparing(AgriStat::getId))
+				.map(AgriGenes::getStatGene)
+				.filter(Optional::isPresent)
+				.map(Optional::get)
+				.map(gene -> gene.chromosome(value))
+				.forEach(chromosomes::add);
+		AgriGenome genome = new AgriGenome(chromosomes);
 		ItemStack itemStack = AgriSeedItem.toStack(genome);
 		if (giveItemStack(itemStack, source.getPlayer(), source.getLevel())) {
 			source.sendSuccess(() -> Component.translatable("agricraft.command.seed_all", plant, value), true);
@@ -103,17 +106,17 @@ public class GiveSeedCommand {
 	}
 
 	private static int giveSeed(CommandSourceStack source, ResourceLocation plant, String distincts) {
-		AgriAllele<String> allele = AgriGeneRegistry.getInstance().getGeneSpecies().getAllele(plant.toString());
-		List<AgriGene<Integer>> genes = AgriStatRegistry.getInstance().stream()
+		List<GeneStat> genes = AgriStats.STATS.getEntries().stream()
+				.map(DeferredHolder::get)
 				.sorted(Comparator.comparing(AgriStat::getId))
-				.map(stat -> AgriGeneRegistry.getInstance().getGeneStat(stat))
+				.map(AgriGenes::getStatGene)
 				.filter(Optional::isPresent)
 				.map(Optional::get)
 				.toList();
 
-		List<AgriGenePair<Integer>> genePairs = new ArrayList<>();
+		List<Chromosome<?>> chromosomes = new ArrayList<>();
 		String[] split = distincts.split("-");
-		int[] values = new int[AgriStatRegistry.getInstance().size()];
+		int[] values = new int[AgriStats.STATS.getEntries().size()];
 		Arrays.fill(values, 1);
 		for (int i = 0; i < split.length; i++) {
 			String s = split[i];
@@ -122,11 +125,12 @@ public class GiveSeedCommand {
 			} catch (NumberFormatException ignored) {
 			}
 		}
+		chromosomes.add(AgriGenes.SPECIES.get().chromosome(plant.toString()));
 		for (int i = 0; i < genes.size() && i < values.length; i++) {
 			AgriGene<Integer> gene = genes.get(i);
-			genePairs.add(new AgriGenePair<>(gene, gene.getAllele(values[i])));
+			chromosomes.add(gene.chromosome(values[i]));
 		}
-		AgriGenome genome = new AgriGenome(new AgriGenePair<>(AgriGeneRegistry.getInstance().getGeneSpecies(), allele), genePairs);
+		AgriGenome genome = new AgriGenome(chromosomes);
 		ItemStack itemStack = AgriSeedItem.toStack(genome);
 		if (giveItemStack(itemStack, source.getPlayer(), source.getLevel())) {
 			source.sendSuccess(() -> Component.translatable("agricraft.command.seed_distinct", plant, distincts), true);

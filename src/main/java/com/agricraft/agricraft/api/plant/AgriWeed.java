@@ -2,10 +2,10 @@ package com.agricraft.agricraft.api.plant;
 
 import com.agricraft.agricraft.api.codecs.AgriProduct;
 import com.agricraft.agricraft.api.codecs.AgriRequirement;
-import com.agricraft.agricraft.api.config.CoreConfig;
+import com.agricraft.agricraft.api.config.AgriCraftConfig;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.crop.AgriGrowthStage;
-import com.agricraft.agricraft.common.util.Platform;
+import com.agricraft.agricraft.common.util.TagUtils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.util.RandomSource;
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+// TODO: @Ketheroth convert nbt to component ?
 public class AgriWeed {
 
 	public static final Codec<AgriWeed> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -85,15 +86,15 @@ public class AgriWeed {
 		if (growthStage.index() < 0) {
 			return;
 		}
-		if (CoreConfig.rakingDropsItems) {
+		if (AgriCraftConfig.RAKING_DROPS_ITEMS.get()) {
 			double probability = growthStage.index() / (this.stages.size() - 1.0);
 			if (random.nextDouble() < probability) {
 				this.rakeProducts.stream().filter(product -> product.shouldDrop(random))
 						.forEach(product -> {
-							List<Item> possible = Platform.get().getItemsFromLocation(product.item());
+							List<Item> possible = TagUtils.getItemsFromLocation(product.item());
 							Item item = possible.get(random.nextInt(possible.size()));
 							ItemStack itemStack = new ItemStack(item, product.getAmount(random));
-							itemStack.getOrCreateTag().merge(product.nbt());
+//							itemStack.getOrCreateTag().merge(product.nbt());
 							consumer.accept(itemStack);
 						});
 			}

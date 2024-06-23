@@ -1,10 +1,9 @@
 package com.agricraft.agricraft.api.genetic;
 
+import com.agricraft.agricraft.api.config.AgriCraftConfig;
 import com.agricraft.agricraft.api.plant.AgriPlant;
-import com.agricraft.agricraft.api.config.CoreConfig;
 import com.agricraft.agricraft.api.crop.AgriCrop;
-import com.agricraft.agricraft.api.stat.AgriStat;
-import com.agricraft.agricraft.api.stat.AgriStatRegistry;
+import com.agricraft.agricraft.api.stat.AgriStats;
 import net.minecraft.util.RandomSource;
 
 import java.util.Comparator;
@@ -26,12 +25,8 @@ public class AgriCrossBreedEngine {
 
 	public AgriCrossBreedEngine() {
 		this.selector = this::selectAndSortCandidates;
-//		this.cloner = (crop, parent, random) -> new AgriGenome(AgriGeneRegistry.getInstance().stream().map(gene -> this.cloneGene(crop, gene, parent, random)).collect(Collectors.toList()));
-		this.cloner = (crop, parent, random) -> new AgriGenome(this.cloneGene(crop, parent.getSpeciesGene(), parent, random),
-				parent.getStatGenes().stream().map(genePair -> this.cloneGene(crop, genePair, parent, random)).collect(Collectors.toList()));
-//		this.combiner = (crop, parent1, parent2, random) -> new AgriGenome(AgriGeneRegistry.getInstance().stream().map(gene -> this.mutateGene(crop, gene, parent1, parent2, random)).collect(Collectors.toList()));
-		this.combiner = (crop, parent1, parent2, random) -> new AgriGenome(this.mutateGene(crop, parent1.getSpeciesGene(), parent2.getSpeciesGene(), parent1, parent2, random),
-				AgriStatRegistry.getInstance().stream().map(stat -> this.mutateGene(crop, parent1.getStatGene(stat), parent2.getStatGene(stat), parent1, parent2, random)).collect(Collectors.toList()));
+		this.cloner = (crop, parent, random) -> new AgriGenome(parent.chromosomes().stream().map(chromosome -> cloneChromosome(crop, chromosome, parent, random)).collect(Collectors.toList()));
+		this.combiner = (crop, parent1, parent2, random) -> new AgriGenome(AgriGenes.GENES.getEntries().stream().map(gene -> this.mutateChromosome(crop, gene.get(), parent1, parent2, random)).collect(Collectors.toList()));
 	}
 
 	protected ParentSelector getSelector() {
@@ -84,7 +79,7 @@ public class AgriCrossBreedEngine {
 				// Mature crops only
 				.filter(AgriCrop::canBeHarvested)
 				// Fertile crops only
-				.filter(crop -> (!CoreConfig.onlyFertileCropsSpread || crop.isFertile()))
+				.filter(crop -> (!AgriCraftConfig.ONLY_FERTILE_CROPS_SPREAD.get() || crop.isFertile()))
 				// Sort based on fertility stat
 				.sorted(Comparator.comparingInt(this::sorter))
 				// Roll for fertility stat
@@ -117,44 +112,41 @@ public class AgriCrossBreedEngine {
 	}
 
 	protected int sorter(AgriCrop crop) {
-		AgriStat fertility = AgriStatRegistry.getInstance().fertilityStat();
-		return fertility.getMax() - crop.getGenome().getStatGene(AgriStatRegistry.getInstance().fertilityStat()).getTrait();
+		return AgriStats.FERTILITY.get().getMax() - crop.getGenome().getFertility().trait();
 	}
 
 	protected boolean rollFertility(AgriCrop crop, RandomSource random) {
-		AgriStat fertility = AgriStatRegistry.getInstance().fertilityStat();
-		return random.nextInt(fertility.getMax()) < crop.getGenome().getStatGene(AgriStatRegistry.getInstance().fertilityStat()).getTrait();
+		return random.nextInt(AgriStats.FERTILITY.get().getMax()) < crop.getGenome().getFertility().trait();
 	}
 
-	protected <T> AgriGenePair<T> mutateGene(AgriCrop crop, AgriGenePair<T> genePair1, AgriGenePair<T> genePair2, AgriGenome parent1, AgriGenome parent2, RandomSource rand) {
-		// we're using genePair1 gene, but it doesn't matter as genePair1 and genePair2 should have the same gene
-		return genePair1.getGene().mutator().pickOrMutate(
+	protected <T> Chromosome<T> mutateChromosome(AgriCrop crop, AgriGene<T> gene, AgriGenome parent1, AgriGenome parent2, RandomSource rand) {
+		return gene.mutator().pickOrMutate(
 				crop,
-				genePair1.getGene(),
-				this.pickRandomAllele(genePair1, rand),
-				this.pickRandomAllele(genePair2, rand),
+				gene,
+				this.pickRandomAllele(parent1.getChromosome(gene), rand),
+				this.pickRandomAllele(parent1.getChromosome(gene), rand),
 				parent1, parent2,
 				rand
 		);
 	}
 
-	protected <T> AgriGenePair<T> cloneGene(AgriCrop crop, AgriGenePair<T> genePair, AgriGenome parent, RandomSource rand) {
-		if (CoreConfig.cloneMutations) {
-			return genePair.getGene().mutator().pickOrMutate(
+	protected <T> Chromosome<T> cloneChromosome(AgriCrop crop, Chromosome<T> chromosome, AgriGenome parent, RandomSource rand) {
+		if (AgriCraftConfig.CLONE_MUTATIONS.get()) {
+			return chromosome.gene().mutator().pickOrMutate(
 					crop,
-					genePair.getGene(),
-					genePair.getDominant(),
-					genePair.getRecessive(),
+					chromosome.gene(),
+					chromosome.dominant(),
+					chromosome.recessive(),
 					parent, parent,
 					rand
 			);
 		} else {
-			return genePair.copy();
+			return chromosome.copy();
 		}
 	}
 
-	protected <T> AgriAllele<T> pickRandomAllele(AgriGenePair<T> pair, RandomSource random) {
-		return random.nextBoolean() ? pair.getDominant() : pair.getRecessive();
+	protected <T> T pickRandomAllele(Chromosome<T> pair, RandomSource random) {
+		return random.nextBoolean() ? pair.dominant() : pair.recessive();
 	}
 
 	/**

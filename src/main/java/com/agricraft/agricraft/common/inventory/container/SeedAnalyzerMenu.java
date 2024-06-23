@@ -6,6 +6,7 @@ import com.agricraft.agricraft.common.block.SeedAnalyzerBlock;
 import com.agricraft.agricraft.common.block.entity.SeedAnalyzerBlockEntity;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
 import com.agricraft.agricraft.common.item.JournalItem;
+import com.agricraft.agricraft.common.registry.ModDataComponentTypes;
 import com.agricraft.agricraft.common.registry.ModMenus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
@@ -40,8 +41,9 @@ public class SeedAnalyzerMenu extends AbstractContainerMenu {
 				super.set(stack);
 				if (analyzer.hasJournal() && !stack.isEmpty()) {
 					ItemStack journal = analyzer.getJournal();
-					JournalItem.researchPlant(journal, new ResourceLocation(AgriSeedItem.getSpecies(stack)));
+					JournalItem.researchPlant(journal, ResourceLocation.parse(AgriSeedItem.getSpecies(stack)));
 				}
+//				analyzer.setChanged();
 			}
 
 			@Override
@@ -55,19 +57,22 @@ public class SeedAnalyzerMenu extends AbstractContainerMenu {
 				return stack.getItem() instanceof JournalItem;
 			}
 
-			@Override
-			public void set(ItemStack stack) {
-				BlockState state = analyzer.getBlockState().setValue(SeedAnalyzerBlock.JOURNAL, true);
-				analyzer.getLevel().setBlock(pos, state, Block.UPDATE_ALL);
-				super.set(stack);
-			}
+//			@Override
+//			public void set(ItemStack stack) {
+//				BlockState state = analyzer.getBlockState().setValue(SeedAnalyzerBlock.JOURNAL, true);
+//				analyzer.getLevel().setBlock(pos, state, Block.UPDATE_ALL);
+//				analyzer.setChanged();
+//				super.set(stack);
+//			}
 
-			@Override
-			public void onTake(Player player, ItemStack stack) {
-				BlockState state = analyzer.getBlockState().setValue(SeedAnalyzerBlock.JOURNAL, false);
-				analyzer.getLevel().setBlock(pos, state, Block.UPDATE_ALL);
-				super.onTake(player, stack);
-			}
+//			@Override
+//			public void onTake(Player player, ItemStack stack) {
+//				BlockState state = analyzer.getBlockState().setValue(SeedAnalyzerBlock.JOURNAL, false);
+//				analyzer.getLevel().setBlock(pos, state, Block.UPDATE_ALL);
+//				analyzer.setChanged();
+//				super.onTake(player, stack);
+//			}
+
 		});
 		//layout player inventory
 		for (int y = 0; y < 3; y++) {
@@ -120,13 +125,26 @@ public class SeedAnalyzerMenu extends AbstractContainerMenu {
 		if (seed.isEmpty()) {
 			return Optional.empty();
 		}
-		AgriGenome genome = AgriGenome.fromNBT(seed.getTag());
+		AgriGenome genome = seed.get(ModDataComponentTypes.GENOME);
 		return Optional.ofNullable(genome);
 	}
 
 	@Override
 	public boolean stillValid(Player player) {
 		return player.distanceToSqr(pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5) < 64.0F;
+	}
+
+	@Override
+	public void removed(Player pPlayer) {
+		super.removed(pPlayer);
+		// TODO: @ketheroth update blockstate when menu is closed
+//		if (this.analyzer.hasJournal()) {
+//
+//		}
+		System.out.println(this.analyzer.hasJournal());
+		BlockState state = analyzer.getBlockState().setValue(SeedAnalyzerBlock.JOURNAL, this.analyzer.hasJournal());
+		pPlayer.level().setBlock(pos, state, Block.UPDATE_ALL);
+		analyzer.setChanged();
 	}
 
 }

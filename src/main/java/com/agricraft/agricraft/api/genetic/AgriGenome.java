@@ -1,14 +1,20 @@
 package com.agricraft.agricraft.api.genetic;
 
-import com.agricraft.agricraft.api.stat.AgriStat;
-import com.agricraft.agricraft.api.stat.AgriStatRegistry;
+import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.plant.AgriPlant;
-import net.minecraft.nbt.CompoundTag;
+import com.agricraft.agricraft.api.stat.AgriStat;
+import com.agricraft.agricraft.api.stat.AgriStats;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,103 +23,132 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
+/**
+ * A genome is a list of chromosome. There is one chromosome per gene.
+ * Each chromosome has two alleles. The alleles are a form of the gene.
+ */
 public class AgriGenome {
 
-	private final AgriGenePair<String> species;
-	private final Map<String, AgriGenePair<Integer>> stats;
+	public static Codec<Chromosome<?>> CHROMOSOME_CODEC = AgriGenes.GENE_REGISTRY.byNameCodec().dispatch(Chromosome::gene, AgriGenome::createTypedCodec);
+	public static StreamCodec<RegistryFriendlyByteBuf, Chromosome<?>> CHROMOSOME_STREAM_CODEC = ByteBufCodecs.registry(AgriGenes.GENE_REGISTRY_KEY).dispatch(Chromosome::gene, AgriGenome::createTypedStreamCodec);
 
-	public AgriGenome(AgriGenePair<String> species, List<AgriGenePair<Integer>> stats) {
-		this.species = species;
-		this.stats = new HashMap<>();
-		for (AgriGenePair<Integer> gene : stats) {
-			this.stats.put(gene.getGene().getId(), gene);
-		}
+	public static Codec<AgriGenome> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+			CHROMOSOME_CODEC.listOf().fieldOf("chromosomes").forGetter(agriGenome -> agriGenome.chromosomes.values().stream().toList())
+	).apply(instance, AgriGenome::new));
+	public static StreamCodec<RegistryFriendlyByteBuf, AgriGenome> STREAM_CODEC = StreamCodec.composite(
+			CHROMOSOME_STREAM_CODEC.apply(ByteBufCodecs.list()), genome -> genome.chromosomes.values().stream().toList(),
+			AgriGenome::new
+	);
+
+	protected final Map<AgriGene<?>, Chromosome<?>> chromosomes;
+
+	public AgriGenome(List<Chromosome<?>> chromosomes) {
+		this.chromosomes = new HashMap<>();
+		chromosomes.forEach(ch -> this.chromosomes.put(ch.gene(), ch));
 	}
 
 	public AgriGenome(AgriPlant plant) {
-		GeneSpecies geneSpecies = AgriGeneRegistry.getInstance().getGeneSpecies();
-		this.species = new AgriGenePair<>(geneSpecies, geneSpecies.defaultAllele(plant));
-		this.stats = new HashMap<>();
-		for (AgriStat stat : AgriStatRegistry.getInstance()) {
-			AgriGeneRegistry.getInstance().getGeneStat(stat).ifPresent(gene -> this.stats.put(gene.getId(), new AgriGenePair<>(gene, gene.defaultAllele(plant))));
+		this.chromosomes = new HashMap<>();
+		GeneSpecies geneSpecies = AgriGenes.SPECIES.get();
+		String id = AgriApi.getPlantId(plant).map(ResourceLocation::toString).orElse("");
+		chromosomes.put(geneSpecies, geneSpecies.chromosome(id));
+		for (DeferredHolder<AgriStat, ? extends AgriStat> entry : AgriStats.STATS.getEntries()) {
+			AgriGenes.getStatGene(entry.get()).ifPresent(gene -> this.chromosomes.put(gene, gene.chromosome(entry.get().getMin())));
 		}
 	}
 
-	public static AgriGenome fromNBT(CompoundTag tag) {
-		if (tag == null || !tag.contains("genes")) {
-			return null;
-		}
-		CompoundTag genes = tag.getCompound("genes");
-		AgriGenePair<String> species = AgriGeneRegistry.getInstance().getGeneSpecies().readFromNBT(genes);
-		List<AgriGenePair<Integer>> stats = new ArrayList<>();
-		for (AgriStat stat : AgriStatRegistry.getInstance()) {
-			AgriGeneRegistry.getInstance().getGeneStat(stat).ifPresent(gene -> stats.add(gene.readFromNBT(genes)));
-		}
-		return new AgriGenome(species, stats);
+	private static <T> MapCodec<Chromosome<T>> createTypedCodec(AgriGene<T> gene) {
+		return RecordCodecBuilder.mapCodec(instance -> instance.group(
+				gene.getCodec().fieldOf("r").forGetter(Chromosome::recessive),
+				gene.getCodec().fieldOf("d").forGetter(Chromosome::dominant)
+		).apply(instance, (r, d) -> new Chromosome<>(gene, r, d)));
+	}
+	private static <T> StreamCodec<RegistryFriendlyByteBuf, Chromosome<T>> createTypedStreamCodec(AgriGene<T> gene) {
+		return StreamCodec.composite(
+				gene.getStreamCodec(), Chromosome::recessive,
+				gene.getStreamCodec(), Chromosome::dominant,
+				gene::chromosome
+		);
 	}
 
-	public static void removeFromNBT(CompoundTag tag) {
-		tag.remove("genes");
+	public <T> Chromosome<T> getChromosome(AgriGene<T> gene) {
+		return (Chromosome<T>) this.chromosomes.get(gene);
 	}
 
-	public AgriGenePair<String> getSpeciesGene() {
-		return this.species;
+	public Chromosome<Integer> getStatGene(AgriStat stat) {
+		return this.getChromosome(AgriGenes.getStatGene(stat).get());
 	}
 
-	public AgriGenePair<Integer> getStatGene(AgriStat stat) {
-		return this.stats.get(stat.getId());
+	public Chromosome<String> species() {
+		return this.getChromosome(AgriGenes.SPECIES.get());
 	}
 
-	public int getGain() {
-		return this.getStatGene(AgriStatRegistry.getInstance().gainStat()).getTrait();
+	public Chromosome<Integer> gain() {
+		return this.getChromosome(AgriGenes.GAIN.get());
 	}
 
-	public int getGrowth() {
-		return this.getStatGene(AgriStatRegistry.getInstance().growthStat()).getTrait();
+	public Chromosome<Integer> getGrowth() {
+		return this.getChromosome(AgriGenes.GROWTH.get());
 	}
 
-	public int getStrength() {
-		return this.getStatGene(AgriStatRegistry.getInstance().strengthStat()).getTrait();
+	public Chromosome<Integer> getStrength() {
+		return this.getChromosome(AgriGenes.STRENGTH.get());
 	}
 
-	public int getFertility() {
-		return this.getStatGene(AgriStatRegistry.getInstance().fertilityStat()).getTrait();
+	public Chromosome<Integer> getFertility() {
+		return this.getChromosome(AgriGenes.FERTILITY.get());
 	}
 
-	public int getResistance() {
-		return this.getStatGene(AgriStatRegistry.getInstance().resistanceStat()).getTrait();
+	public Chromosome<Integer> getResistance() {
+		return this.getChromosome(AgriGenes.RESISTANCE.get());
 	}
 
-	public int getMutativity() {
-		return this.getStatGene(AgriStatRegistry.getInstance().mutativityStat()).getTrait();
+	public Chromosome<Integer> getMutativity() {
+		return this.getChromosome(AgriGenes.MUTATIVITY.get());
 	}
 
-	public Collection<AgriGenePair<Integer>> getStatGenes() {
-		return this.stats.values();
+	public Collection<Chromosome<?>> chromosomes() {
+		return this.chromosomes.values();
 	}
 
-	public void writeToNBT(CompoundTag tag) {
-		CompoundTag genes = new CompoundTag();
-		species.getGene().writeToNBT(genes, species.getDominant(), species.getRecessive());
-		for (AgriGenePair<Integer> statPair : stats.values()) {
-			statPair.getGene().writeToNBT(genes, statPair.getDominant(), statPair.getRecessive());
-		}
-		tag.put("genes", genes);
-	}
-
-	@Override
-	public String toString() {
-		CompoundTag compoundTag = new CompoundTag();
-		this.writeToNBT(compoundTag);
-		return compoundTag.toString();
+	@SuppressWarnings("unchecked")
+	public Collection<Chromosome<Integer>> getStatChromosomes() {
+		// TODO: @Ketheroth remove the unchecked optional unwrap
+		return AgriStats.STATS.getEntries().stream().map(stat -> AgriGenes.getStatGene(stat.get()).get()).map(this.chromosomes::get).map(c -> (Chromosome<Integer>) c).toList();
 	}
 
 	public void appendHoverText(List<Component> tooltipComponents, TooltipFlag isAdvanced) {
 		if (isAdvanced.isAdvanced()) {
-			this.getSpeciesGene().getGene().addTooltip(tooltipComponents, this.getSpeciesGene().getTrait());
+			this.species().gene().addTooltip(tooltipComponents, this.species().trait());
 		}
-		this.getStatGenes().stream()
-				.sorted(Comparator.comparing(pair -> pair.getGene().getId()))
-				.forEach(pair -> pair.getGene().addTooltip(tooltipComponents, pair.getTrait()));
+		this.getStatChromosomes().stream()
+				.sorted(Comparator.comparing(pair -> pair.gene().getId()))
+				.forEach(pair -> pair.gene().addTooltip(tooltipComponents, pair.trait()));
 	}
+
+	@Override
+	public String toString() {
+		return "AgriGenome{" +
+				"chromosomes=" + chromosomes +
+				'}';
+	}
+
+	@Override
+	public final boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof AgriGenome that)) {
+			return false;
+		}
+
+		return chromosomes.equals(that.chromosomes);
+	}
+
+	@Override
+	public int hashCode() {
+		return chromosomes.hashCode();
+	}
+
 }

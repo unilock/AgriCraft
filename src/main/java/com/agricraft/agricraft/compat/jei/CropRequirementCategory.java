@@ -7,9 +7,10 @@ import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.codecs.AgriSoilCondition;
 import com.agricraft.agricraft.api.requirement.AgriGrowthConditionRegistry;
 import com.agricraft.agricraft.api.requirement.AgriSeason;
+import com.agricraft.agricraft.api.stat.AgriStats;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
 import com.agricraft.agricraft.common.util.LangUtils;
-import com.agricraft.agricraft.common.util.Platform;
+import com.agricraft.agricraft.common.util.TagUtils;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -44,11 +45,11 @@ import java.util.function.BooleanSupplier;
 
 public class CropRequirementCategory implements IRecipeCategory<CropRequirementCategory.Recipe> {
 
-	public static final ResourceLocation ID = new ResourceLocation(AgriApi.MOD_ID, "jei/requirement");
+	public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(AgriApi.MOD_ID, "jei/requirement");
 	public static final RecipeType<CropRequirementCategory.Recipe> TYPE = new RecipeType<>(ID, CropRequirementCategory.Recipe.class);
-	public static final IDrawable BACKGROUND = AgriCraftJeiPlugin.createDrawable(new ResourceLocation(AgriApi.MOD_ID, "textures/gui/jei/crop_requirement.png"), 0, 0, 128, 128, 128, 128);
-	public static final ResourceLocation COMPONENTS = new ResourceLocation(AgriApi.MOD_ID, "textures/gui/jei/crop_requirement_components.png");
-	public static final ResourceLocation GUI_COMPONENTS = new ResourceLocation(AgriApi.MOD_ID, "textures/gui/gui_components.png");
+	public static final IDrawable BACKGROUND = AgriCraftJeiClient.createDrawable(ResourceLocation.fromNamespaceAndPath(AgriApi.MOD_ID, "textures/gui/jei/crop_requirement.png"), 0, 0, 128, 128, 128, 128);
+	public static final ResourceLocation COMPONENTS = ResourceLocation.fromNamespaceAndPath(AgriApi.MOD_ID, "textures/gui/jei/crop_requirement_components.png");
+	public static final ResourceLocation GUI_COMPONENTS = ResourceLocation.fromNamespaceAndPath(AgriApi.MOD_ID, "textures/gui/gui_components.png");
 	public static final int[] HUMIDITY_OFFSETS = {8, 8, 10, 10, 10, 7};
 	public static final int[] ACIDITY_OFFSETS = {7, 8, 7, 8, 8, 8, 6};
 	public static final int[] NUTRIENTS_OFFSETS = {6, 8, 9, 9, 11, 10};
@@ -270,7 +271,7 @@ public class CropRequirementCategory implements IRecipeCategory<CropRequirementC
 			Component desc = LangUtils.plantDescription(recipe.plantId);
 			return desc == null ? List.of(LangUtils.plantName(recipe.plantId)) : List.of(LangUtils.plantName(recipe.plantId), desc);
 		}
-		if (50 <= mouseX && mouseX <= 76 && 58 <= mouseY && mouseY <= 74) {
+		if (50 <= mouseX && mouseX <= 76 && 58 <= mouseY && mouseY <= 74 && !recipe.soils.isEmpty()) {
 			return Screen.getTooltipFromItem(Minecraft.getInstance(), new ItemStack(recipe.soils.get(recipe.soil)));
 		}
 		if (AgriApi.getSeasonLogic().isActive()) {
@@ -298,7 +299,7 @@ public class CropRequirementCategory implements IRecipeCategory<CropRequirementC
 		private final Btn decStrButton;
 		private final Btn incStageButton;
 		private final Btn decStageButton;
-		private int currentStrength = AgriApi.getStatRegistry().strengthStat().getMin();
+		private int currentStrength = AgriStats.STRENGTH.get().getMin();
 		private AgriGrowthStage currentStage;
 		private List<Block> soils;
 		private int soil;
@@ -315,13 +316,13 @@ public class CropRequirementCategory implements IRecipeCategory<CropRequirementC
 		}
 
 		public boolean incrementStrength() {
-			this.currentStrength = Math.min(AgriApi.getStatRegistry().strengthStat().getMax(), currentStrength + 1);
+			this.currentStrength = Math.min(AgriStats.STRENGTH.get().getMax(), currentStrength + 1);
 			this.updateSoils();
 			return true;
 		}
 
 		public boolean decrementStrength() {
-			this.currentStrength = Math.max(AgriApi.getStatRegistry().strengthStat().getMin(), currentStrength - 1);
+			this.currentStrength = Math.max(AgriStats.STRENGTH.get().getMin(), currentStrength - 1);
 			this.updateSoils();
 			return true;
 		}
@@ -344,7 +345,7 @@ public class CropRequirementCategory implements IRecipeCategory<CropRequirementC
 								return humidity && acidity && nutrients;
 							})
 							.flatMap(soil -> soil.variants().stream())
-							.flatMap(variant -> Platform.get().getBlocksFromLocation(variant.block()).stream())
+							.flatMap(variant -> TagUtils.getBlocksFromLocation(variant.block()).stream())
 							.distinct()
 							.toList())
 					.orElse(List.of());

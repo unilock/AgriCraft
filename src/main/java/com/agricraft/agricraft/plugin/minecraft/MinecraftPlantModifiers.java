@@ -3,7 +3,7 @@ package com.agricraft.agricraft.plugin.minecraft;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.plant.IAgriPlantModifier;
 import com.agricraft.agricraft.api.plant.AgriPlantModifierFactoryRegistry;
-import com.agricraft.agricraft.api.genetic.AgriGenePair;
+import com.agricraft.agricraft.api.genetic.Chromosome;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -42,7 +42,7 @@ public class MinecraftPlantModifiers {
 		AgriPlantModifierFactoryRegistry.register(BushyPlantModifier.ID, info -> Optional.of(new BushyPlantModifier()));
 		AgriPlantModifierFactoryRegistry.register(ExperiencePlantModifier.ID, info -> Optional.of(new ExperiencePlantModifier()));
 		AgriPlantModifierFactoryRegistry.register(FungusPlantModifier.ID, info -> {
-			Block block = BuiltInRegistries.BLOCK.get(new ResourceLocation(info.value()));
+			Block block = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(info.value()));
 			if (block instanceof FungusBlock fungus) {
 				return Optional.of(new FungusPlantModifier(fungus));
 			}
@@ -51,14 +51,14 @@ public class MinecraftPlantModifiers {
 		AgriPlantModifierFactoryRegistry.register(PoisonPlantModifier.ID, info -> Optional.of(new PoisonPlantModifier()));
 		AgriPlantModifierFactoryRegistry.register(RedstonePlantModifier.ID, info -> Optional.of(new RedstonePlantModifier()));
 		AgriPlantModifierFactoryRegistry.register(SummonPlantModifier.ID, info -> {
-			if (BuiltInRegistries.ENTITY_TYPE.containsKey(new ResourceLocation(info.value()))) {
-				return Optional.of(new SummonPlantModifier(BuiltInRegistries.ENTITY_TYPE.get(new ResourceLocation(info.value()))));
+			if (BuiltInRegistries.ENTITY_TYPE.containsKey(ResourceLocation.parse(info.value()))) {
+				return Optional.of(new SummonPlantModifier(BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(info.value()))));
 			}
 			return Optional.empty();
 		});
 		AgriPlantModifierFactoryRegistry.register(ThornsPlantModifier.ID, info -> Optional.of(new ThornsPlantModifier()));
 		AgriPlantModifierFactoryRegistry.register(TreePlantModifier.ID, info -> {
-			Block block = BuiltInRegistries.BLOCK.get(new ResourceLocation(info.value()));
+			Block block = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(info.value()));
 			if (block instanceof BonemealableBlock sapling) {
 				return Optional.of(new TreePlantModifier(sapling));
 			}
@@ -84,7 +84,7 @@ public class MinecraftPlantModifiers {
 
 		@Override
 		public void onEntityCollision(AgriCrop crop, Entity entity) {
-			entity.setSecondsOnFire(((int) crop.getGenome().getStatGenes().stream().map(AgriGenePair::getTrait).mapToInt(i -> i).average().orElse(0.0)));
+			entity.igniteForSeconds(((int) crop.getGenome().getStatChromosomes().stream().map(Chromosome::trait).mapToInt(i -> i).average().orElse(0.0)));
 		}
 
 	}
@@ -107,7 +107,7 @@ public class MinecraftPlantModifiers {
 		@Override
 		public void onHarvest(AgriCrop crop, @Nullable LivingEntity entity) {
 			if (crop.getLevel() != null && !crop.getLevel().isClientSide) {
-				for (int i = 0; i < crop.getGenome().getGain(); i++) {
+				for (int i = 0; i < crop.getGenome().gain().trait(); i++) {
 					if (i == 0 || crop.getLevel().getRandom().nextDouble() < 0.5) {
 						BlockPos pos = crop.getBlockPos();
 						crop.getLevel().addFreshEntity(new ExperienceOrb(crop.getLevel(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 4));
@@ -153,7 +153,7 @@ public class MinecraftPlantModifiers {
 		public void onEntityCollision(AgriCrop crop, Entity entity) {
 			if (entity instanceof LivingEntity livingEntity && !entity.isDiscrete() && !entity.level().isClientSide) {
 				if (!livingEntity.hasEffect(MobEffects.POISON)) {
-					livingEntity.addEffect(new MobEffectInstance(MobEffects.POISON, (int) (20 * crop.getGenome().getStatGenes().stream().map(AgriGenePair::getTrait).mapToInt(i -> i).average().orElse(0.0))));
+					livingEntity.addEffect(new MobEffectInstance(MobEffects.POISON, (int) (20 * crop.getGenome().getStatChromosomes().stream().map(Chromosome::trait).mapToInt(i -> i).average().orElse(0.0))));
 				}
 			}
 		}
@@ -200,7 +200,7 @@ public class MinecraftPlantModifiers {
 			if (entity instanceof ItemEntity itemEntity && itemEntity.getAge() < 100) {
 				return;
 			}
-			double damage = crop.getGrowthPercent() * crop.getGenome().getStatGenes().stream().map(AgriGenePair::getTrait).mapToInt(i -> i).average().orElse(0.0);
+			double damage = crop.getGrowthPercent() * crop.getGenome().getStatChromosomes().stream().map(Chromosome::trait).mapToInt(i -> i).average().orElse(0.0);
 			entity.hurt(crop.getLevel().damageSources().cactus(), (float) damage);
 		}
 
@@ -231,12 +231,12 @@ public class MinecraftPlantModifiers {
 			if (state.hasProperty(SaplingBlock.STAGE)) { // for trees
 				state = state.setValue(SaplingBlock.STAGE, 1);
 			}
-			CompoundTag before = crop.asBlockEntity().saveWithoutMetadata();
+			CompoundTag before = crop.asBlockEntity().saveWithoutMetadata(level.registryAccess());
 			sapling.performBonemeal(serverLevel, serverLevel.getRandom(), crop.getBlockPos(), state);
 			if (serverLevel.getBlockState(crop.getBlockPos()).getBlock().equals(sapling)) {
 				// if we couldn't grow the tree, put back the crop instead of the sapling
 				serverLevel.setBlockAndUpdate(crop.getBlockPos(), crop.getBlockState());
-				serverLevel.getBlockEntity(crop.getBlockPos()).load(before);
+				serverLevel.getBlockEntity(crop.getBlockPos()).loadWithComponents(before, level.registryAccess());
 				return Optional.of(InteractionResult.FAIL);
 			}
 			serverLevel.levelEvent(2005, crop.getBlockPos(), 0);
@@ -253,7 +253,7 @@ public class MinecraftPlantModifiers {
 		@Override
 		public void onEntityCollision(AgriCrop crop, Entity entity) {
 			if (entity instanceof LivingEntity) {
-				MobEffectInstance wither = new MobEffectInstance(MobEffects.WITHER, (int) (10 * crop.getGenome().getStatGenes().stream().map(AgriGenePair::getTrait).mapToInt(i -> i).average().orElse(0.0)));
+				MobEffectInstance wither = new MobEffectInstance(MobEffects.WITHER, (int) (10 * crop.getGenome().getStatChromosomes().stream().map(Chromosome::trait).mapToInt(i -> i).average().orElse(0.0)));
 				((LivingEntity) entity).addEffect(wither);
 			}
 		}

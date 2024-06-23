@@ -1,6 +1,6 @@
 package com.agricraft.agricraft.api.crop;
 
-import com.agricraft.agricraft.api.config.CoreConfig;
+import com.agricraft.agricraft.api.config.AgriCraftConfig;
 import net.minecraft.util.RandomSource;
 
 public class AgriGrowthStage {
@@ -30,7 +30,7 @@ public class AgriGrowthStage {
 	}
 
 	public boolean canDropSeed() {
-		return this.isFinal() || !CoreConfig.onlyMatureSeedDrops;
+		return this.isFinal() || !AgriCraftConfig.ONLY_MATURE_SEED_DROPS.get();
 	}
 
 	public AgriGrowthStage getNext(AgriCrop crop, RandomSource random) {

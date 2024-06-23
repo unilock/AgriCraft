@@ -1,32 +1,33 @@
 package com.agricraft.agricraft.common.item;
 
 import com.agricraft.agricraft.api.AgriApi;
-import com.agricraft.agricraft.api.config.CoreConfig;
+import com.agricraft.agricraft.api.config.AgriCraftConfig;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.crop.AgriGrowthStage;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
 import com.agricraft.agricraft.api.genetic.AgriGenomeProviderItem;
 import com.agricraft.agricraft.common.block.CropBlock;
 import com.agricraft.agricraft.common.registry.ModBlocks;
+import com.agricraft.agricraft.common.registry.ModDataComponentTypes;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -114,8 +115,8 @@ public class TrowelItem extends Item implements AgriGenomeProviderItem {
 	}
 
 	protected InteractionResult tryNewPlant(Level world, BlockPos pos, ItemStack stack, @Nullable Player player) {
-		if (CoreConfig.plantOffCropSticks) {
-			CropBlock cropBlock = (CropBlock) ModBlocks.CROP.get();
+		if (AgriCraftConfig.PLANT_OFF_CROP_STICKS.get()) {
+			CropBlock cropBlock = ModBlocks.CROP.get();
 			BlockState newState = cropBlock.blockStatePlant(cropBlock.defaultBlockState());
 			if (world.setBlock(pos, newState, 3)) {
 				boolean success = AgriApi.getCrop(world, pos).map(crop -> this.getGenome(stack).map(genome ->
@@ -140,45 +141,48 @@ public class TrowelItem extends Item implements AgriGenomeProviderItem {
 		if (this.hasPlant(stack)) {
 			return;
 		}
-		this.setGenome(stack, genome);
-		CompoundTag tag = stack.getOrCreateTag();
-		tag.putInt("growthIndex", stage.index());
-		tag.putInt("growthTotal", stage.total());
+		stack.set(ModDataComponentTypes.GENOME, genome);
+		stack.set(ModDataComponentTypes.TROWEL_DATA, new TrowelData(stage.index(), stage.total()));
 	}
 
 	public void removePlant(ItemStack stack) {
-		CompoundTag tag = stack.getTag();
-		if (tag != null) {
-			tag.remove("growthIndex");
-			tag.remove("growthTotal");
-			AgriGenome.removeFromNBT(tag);
-		}
+		stack.remove(ModDataComponentTypes.GENOME);
+		stack.remove(ModDataComponentTypes.TROWEL_DATA);
 	}
 
 	public boolean hasPlant(ItemStack itemStack) {
-		return this.getGenome(itemStack).isPresent();
+		return itemStack.has(ModDataComponentTypes.GENOME);
 	}
 
 	public Optional<AgriGrowthStage> getGrowthStage(ItemStack stack) {
-		CompoundTag tag = stack.getOrCreateTag();
-		if (tag.contains("growthIndex") && tag.contains("growthTotal")) {
-			int growthIndex = tag.getInt("growthIndex");
-			int growthTotal = tag.getInt("growthTotal");
-			return Optional.of(new AgriGrowthStage(growthIndex, growthTotal));
+		TrowelData data = stack.get(ModDataComponentTypes.TROWEL_DATA);
+		if (data != null) {
+			return Optional.of(new AgriGrowthStage(data.index, data.total));
 		}
 		return Optional.empty();
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
 		tooltipComponents.add(Component.translatable("agricraft.tooltip.trowel").withStyle(ChatFormatting.DARK_GRAY));
-		CompoundTag tag = stack.getTag();
-		if (tag != null) {
-			AgriGenome genome = AgriGenome.fromNBT(tag);
-			if (genome != null) {
-				genome.appendHoverText(tooltipComponents, TooltipFlag.ADVANCED);
-			}
+		AgriGenome genome = stack.get(ModDataComponentTypes.GENOME);
+		if (genome != null) {
+			genome.appendHoverText(tooltipComponents, TooltipFlag.ADVANCED);
 		}
+	}
+
+	public record TrowelData(int index, int total) {
+
+		public static Codec<TrowelData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+				Codec.INT.fieldOf("index").forGetter(TrowelData::index),
+				Codec.INT.fieldOf("total").forGetter(TrowelData::total)
+		).apply(instance, TrowelData::new));
+		public static StreamCodec<ByteBuf, TrowelData> STREAM_CODEC = StreamCodec.composite(
+				ByteBufCodecs.INT, TrowelData::index,
+				ByteBufCodecs.INT, TrowelData::total,
+				TrowelData::new
+		);
+
 	}
 
 }

@@ -5,13 +5,14 @@ import com.agricraft.agricraft.api.genetic.AgriGenomeProviderItem;
 import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
+import com.agricraft.agricraft.client.bewlr.AgriSeedBEWLR;
 import com.agricraft.agricraft.common.block.entity.SeedAnalyzerBlockEntity;
 import com.agricraft.agricraft.common.registry.ModBlocks;
+import com.agricraft.agricraft.common.registry.ModDataComponentTypes;
 import com.agricraft.agricraft.common.registry.ModItems;
 import com.agricraft.agricraft.common.util.LangUtils;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
@@ -20,11 +21,11 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 
@@ -39,11 +40,8 @@ public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 	 * @return an ItemStack with the default genome of the plant
 	 */
 	public static ItemStack toStack(AgriPlant plant) {
-		ItemStack stack = new ItemStack(ModItems.SEED.get(), 1);
-		AgriGenome genome = new AgriGenome(plant);
-		CompoundTag tag = new CompoundTag();
-		genome.writeToNBT(tag);
-		stack.setTag(tag);
+		ItemStack stack = new ItemStack(ModItems.SEED.get());
+		stack.set(ModDataComponentTypes.GENOME, new AgriGenome(plant));
 		return stack;
 	}
 
@@ -54,10 +52,8 @@ public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 	 * @return an ItemStack with the given genome
 	 */
 	public static ItemStack toStack(AgriGenome genome) {
-		ItemStack stack = new ItemStack(ModItems.SEED.get(), 1);
-		CompoundTag tag = new CompoundTag();
-		genome.writeToNBT(tag);
-		stack.setTag(tag);
+		ItemStack stack = new ItemStack(ModItems.SEED.get());
+		stack.set(ModDataComponentTypes.GENOME, genome);
 		return stack;
 	}
 
@@ -71,27 +67,20 @@ public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 		if (stack.getItem() != ModItems.SEED.get()) {
 			return "agricraft:unknown";
 		}
-		CompoundTag tag = stack.getTag();
-		if (tag == null) {
-			return "agricraft:unknown";
-		}
-		AgriGenome genome = AgriGenome.fromNBT(tag);
+		AgriGenome genome = stack.get(ModDataComponentTypes.GENOME);
 		if (genome == null) {
 			return "agricraft:unknown";
 		}
-		return genome.getSpeciesGene().getDominant().trait();
+		return genome.species().trait();
 	}
 
 	@Override
 	public Component getName(ItemStack stack) {
-		if (stack.getTag() == null) {
-			return Component.translatable("seed.agricraft.agricraft.unknown");
-		}
-		AgriGenome genome = AgriGenome.fromNBT(stack.getTag());
+		AgriGenome genome = stack.get(ModDataComponentTypes.GENOME);
 		if (genome == null) {
 			return Component.translatable("seed.agricraft.agricraft.unknown");
 		}
-		return LangUtils.seedName(genome.getSpeciesGene().getDominant().trait());
+		return LangUtils.seedName(genome.species().trait());
 	}
 
 	@Override
@@ -100,9 +89,9 @@ public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 		Level level = context.getLevel();
 		if (result.consumesAction() && !level.isClientSide) {
 			AgriApi.getCrop(level, context.getClickedPos()).ifPresent(crop -> {
-				CompoundTag tag = context.getItemInHand().getTag();
-				if (tag != null) {
-					crop.plantGenome(AgriGenome.fromNBT(tag));
+				AgriGenome genome = context.getItemInHand().get(ModDataComponentTypes.GENOME);
+				if (genome != null) {
+					crop.plantGenome(genome);
 				}
 			});
 		}
@@ -128,12 +117,7 @@ public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 		}
 		// if a seed analyzer was clicked, insert the seed inside
 		if (level.getBlockEntity(context.getClickedPos()) instanceof SeedAnalyzerBlockEntity seedAnalyzer) {
-			if (seedAnalyzer.hasSeed()) {
-				return InteractionResult.PASS;
-			}
-			ItemStack remaining = seedAnalyzer.insertSeed(heldItem);
-			heldItem.setCount(remaining.getCount());
-			return InteractionResult.CONSUME;
+			return seedAnalyzer.insertSeed(heldItem, context.getPlayer()) ? InteractionResult.SUCCESS : InteractionResult.PASS;
 		}
 		// if a soil was clicked, check the block above and handle accordingly
 		return AgriApi.getSoil(level, context.getClickedPos()).map(soil -> AgriApi.getCrop(level, context.getClickedPos().above()).map(crop -> {
@@ -148,20 +132,30 @@ public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 	}
 
 	private void plantSeed(Player player, AgriCrop crop, ItemStack seed) {
-		crop.plantGenome(AgriGenome.fromNBT(seed.getTag()), player);
-		if (player != null && !player.isCreative()) {
-			seed.shrink(1);
+		AgriGenome genome = seed.get(ModDataComponentTypes.GENOME);
+		if (genome != null) {
+			crop.plantGenome(genome, player);
+			if (player != null && !player.isCreative()) {
+				seed.shrink(1);
+			}
 		}
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
-		CompoundTag tag = stack.getTag();
-		if (tag != null) {
-			AgriGenome genome = AgriGenome.fromNBT(tag);
-			if (genome != null) {
-				genome.appendHoverText(tooltipComponents, isAdvanced);
+	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+		consumer.accept(new IClientItemExtensions() {
+			@Override
+			public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+				return AgriSeedBEWLR.INSTANCE;
 			}
+		});
+	}
+
+	@Override
+	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+		AgriGenome genome = stack.get(ModDataComponentTypes.GENOME);
+		if (genome != null) {
+			genome.appendHoverText(tooltipComponents, tooltipFlag);
 		}
 	}
 

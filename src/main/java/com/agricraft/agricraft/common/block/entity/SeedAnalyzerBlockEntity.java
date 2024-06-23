@@ -5,34 +5,29 @@ import com.agricraft.agricraft.common.inventory.container.SeedAnalyzerMenu;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
 import com.agricraft.agricraft.common.item.JournalItem;
 import com.agricraft.agricraft.common.registry.ModBlockEntityTypes;
-import com.agricraft.agricraft.common.util.ExtraDataMenuProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.WorldlyContainer;
-import net.minecraft.world.WorldlyContainerHolder;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SeedAnalyzerBlockEntity extends BlockEntity implements WorldlyContainer, ExtraDataMenuProvider {
+public class SeedAnalyzerBlockEntity extends BlockEntity implements MenuProvider {
 
 	public static final int SEED_SLOT = 0;
 	public static final int JOURNAL_SLOT = 1;
@@ -45,62 +40,38 @@ public class SeedAnalyzerBlockEntity extends BlockEntity implements WorldlyConta
 	}
 
 	@Override
-	public void load(CompoundTag tag) {
-		super.load(tag);
+	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.loadAdditional(tag, registries);
 		if (tag.contains("journal")) {
-			ItemStack journal = ItemStack.of(tag.getCompound("journal"));
+			ItemStack journal = ItemStack.parseOptional(registries, tag.getCompound("journal"));
 			this.inventory.setItem(JOURNAL_SLOT, journal);
 		}
 		if (tag.contains("seed")) {
-			ItemStack seed = ItemStack.of(tag.getCompound("seed"));
+			ItemStack seed = ItemStack.parseOptional(registries, tag.getCompound("seed"));
 			this.inventory.setItem(SEED_SLOT, seed);
 		}
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
+	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.saveAdditional(tag, registries);
 		if (hasJournal()) {
-			tag.put("journal", getJournal().save(new CompoundTag()));
+			tag.put("journal", getJournal().save(registries));
 		}
 		if (hasSeed()) {
-			tag.put("seed", getSeed().save(new CompoundTag()));
+			tag.put("seed", getSeed().save(registries));
 		}
 	}
 
-	@NotNull
 	@Override
-	public CompoundTag getUpdateTag() {
-		return this.saveWithoutMetadata();
+	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+		return super.saveWithoutMetadata(registries);
 	}
 
 	@Nullable
 	@Override
 	public Packet<ClientGamePacketListener> getUpdatePacket() {
 		return ClientboundBlockEntityDataPacket.create(this);
-	}
-
-	private ItemStack insertItem(int slot, ItemStack stack) {
-		ItemStack result = ItemStack.EMPTY;
-		if (this.inventory.canPlaceItem(slot, stack)) {
-			ItemStack current = this.inventory.getItem(slot);
-			if (current.isEmpty()) {
-				this.inventory.setItem(slot, stack.copy());
-			} else if (ItemStack.matches(current, stack)) {
-				int max = stack.getMaxStackSize();
-				int transfer = Math.min(stack.getCount(), max - current.getCount());
-				current.grow(transfer);
-				if (transfer < stack.getCount()) {
-					stack.shrink(transfer);
-					result = stack;
-				}
-			}
-		} else {
-			result = stack;
-		}
-		this.setChanged();
-		this.level.sendBlockUpdated(this.getBlockPos(), this.getBlockState(), this.getBlockState(), Block.UPDATE_ALL);
-		return result;
 	}
 
 	public boolean hasSeed() {
@@ -111,12 +82,18 @@ public class SeedAnalyzerBlockEntity extends BlockEntity implements WorldlyConta
 		return this.inventory.getItem(SEED_SLOT);
 	}
 
-	public ItemStack insertSeed(ItemStack seed) {
-		ItemStack stack = insertItem(SEED_SLOT, seed);
-		if (hasJournal() && stack.getCount() == 0) {
-			JournalItem.researchPlant(this.getJournal(), new ResourceLocation(AgriSeedItem.getSpecies(seed)));
+	public boolean insertSeed(ItemStack seed, @Nullable LivingEntity entity) {
+		if (this.inventory.getItem(SEED_SLOT).isEmpty()) {
+			ItemStack stack = seed.consumeAndReturn(1, entity);
+			this.inventory.setItem(SEED_SLOT, stack);
+			if (hasJournal()) {
+				JournalItem.researchPlant(this.getJournal(), ResourceLocation.parse(AgriSeedItem.getSpecies(seed)));
+			}
+			this.setChanged();
+			this.getLevel().sendBlockUpdated(this.getBlockPos(), this.getBlockState(), this.getBlockState(), Block.UPDATE_ALL);
+			return true;
 		}
-		return stack;
+		return false;
 	}
 
 	public ItemStack extractSeed() {
@@ -135,80 +112,29 @@ public class SeedAnalyzerBlockEntity extends BlockEntity implements WorldlyConta
 		return this.inventory.getItem(JOURNAL_SLOT);
 	}
 
-	public ItemStack insertJournal(ItemStack seed) {
-		ItemStack stack = insertItem(JOURNAL_SLOT, seed);
-		BlockState state = this.getBlockState().setValue(SeedAnalyzerBlock.JOURNAL, true);
-		level.setBlock(this.worldPosition, state, Block.UPDATE_ALL);
-		return stack;
+	public boolean insertJournal(ItemStack journal, @Nullable LivingEntity entity) {
+		if (this.inventory.getItem(JOURNAL_SLOT).isEmpty()) {
+			this.inventory.setItem(JOURNAL_SLOT, journal.consumeAndReturn(1, entity));
+			this.setChanged();
+			BlockState state = this.getBlockState().setValue(SeedAnalyzerBlock.JOURNAL, true);
+			level.setBlock(this.worldPosition, state, Block.UPDATE_ALL);
+			return true;
+		}
+		return false;
 	}
 
 	public ItemStack extractJournal() {
 		ItemStack stack = this.inventory.getItem(JOURNAL_SLOT).copy();
 		this.inventory.setItem(JOURNAL_SLOT, ItemStack.EMPTY);
+		this.setChanged();
 		BlockState state = this.getBlockState().setValue(SeedAnalyzerBlock.JOURNAL, false);
 		level.setBlock(this.worldPosition, state, Block.UPDATE_ALL);
-		this.setChanged();
 		this.level.sendBlockUpdated(this.getBlockPos(), this.getBlockState(), this.getBlockState(), Block.UPDATE_ALL);
 		return stack;
 	}
 
 	public SimpleContainer getInventory() {
 		return inventory;
-	}
-
-	@Override
-	public int[] getSlotsForFace(Direction side) {
-		return new int[]{JOURNAL_SLOT};
-	}
-
-	@Override
-	public boolean canPlaceItemThroughFace(int index, ItemStack itemStack, @Nullable Direction direction) {
-		return this.canPlaceItem(index, itemStack);
-	}
-
-	@Override
-	public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
-		return true;
-	}
-
-	@Override
-	public int getContainerSize() {
-		return inventory.getContainerSize();
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return inventory.isEmpty();
-	}
-
-	@Override
-	public ItemStack getItem(int slot) {
-		return inventory.getItem(slot);
-	}
-
-	@Override
-	public ItemStack removeItem(int slot, int amount) {
-		return inventory.removeItem(slot, amount);
-	}
-
-	@Override
-	public ItemStack removeItemNoUpdate(int slot) {
-		return inventory.removeItemNoUpdate(slot);
-	}
-
-	@Override
-	public void setItem(int slot, ItemStack stack) {
-		this.inventory.setItem(slot, stack);
-	}
-
-	@Override
-	public boolean stillValid(Player player) {
-		return this.inventory.stillValid(player);
-	}
-
-	@Override
-	public void clearContent() {
-		this.inventory.clearContent();
 	}
 
 	@Override
@@ -220,11 +146,6 @@ public class SeedAnalyzerBlockEntity extends BlockEntity implements WorldlyConta
 	@Override
 	public AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
 		return new SeedAnalyzerMenu(i, inventory, player, this.worldPosition);
-	}
-
-	@Override
-	public void writeExtraData(ServerPlayer player, FriendlyByteBuf buffer) {
-		buffer.writeBlockPos(this.getBlockPos());
 	}
 
 }

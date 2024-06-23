@@ -1,41 +1,41 @@
 package com.agricraft.agricraft.api.genetic;
 
 import com.agricraft.agricraft.api.stat.AgriStat;
-import com.agricraft.agricraft.api.plant.AgriPlant;
-import net.minecraft.nbt.CompoundTag;
+import com.mojang.serialization.Codec;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
-import java.util.HashMap;
 import java.util.List;
 
 public class GeneStat implements AgriGene<Integer> {
 
-	private final AgriStat stat;
-	private final HashMap<Integer, IntAllele> alleles;
+	private final Holder<AgriStat> stat;
 
-	public GeneStat(AgriStat stat) {
+	public GeneStat(Holder<AgriStat> stat) {
 		this.stat = stat;
-		alleles = new HashMap<>();
-		for (int i = stat.getMin(); i <= stat.getMax(); ++i) {
-			alleles.put(i, new IntAllele(i, this));
-		}
 	}
 
 	@Override
 	public String getId() {
-		return stat.getId();
+		return stat.value().getId();
 	}
 
 	@Override
-	public AgriAllele<Integer> defaultAllele(AgriPlant object) {
-		return alleles.get(stat.getMin());
+	public Chromosome<Integer> chromosome(Integer value) {
+		return new Chromosome<>(this, value);
 	}
 
 	@Override
-	public AgriAllele<Integer> getAllele(Integer value) {
-		int val = Mth.clamp(value, this.stat.getMin(), this.stat.getMax());
-		return alleles.get(val);
+	public Chromosome<Integer> chromosome(Integer first, Integer second) {
+		return new Chromosome<>(this, first, second);
+	}
+
+	@Override
+	public boolean isAlleleDominant(Integer allele, Integer otherAllele) {
+		return allele >= otherAllele;
 	}
 
 	@Override
@@ -44,63 +44,56 @@ public class GeneStat implements AgriGene<Integer> {
 	}
 
 	@Override
-	public void writeToNBT(CompoundTag genes, AgriAllele<Integer> dominant, AgriAllele<Integer> recessive) {
-		CompoundTag stat = new CompoundTag();
-		stat.putInt("dom", dominant.trait());
-		stat.putInt("rec", recessive.trait());
-		genes.put(this.getId(), stat);
+	public Codec<Integer> getCodec() {
+		return Codec.INT;
 	}
 
 	@Override
-	public AgriGenePair<Integer> readFromNBT(CompoundTag genes) {
-		CompoundTag stat = genes.getCompound(this.getId());
-		return new AgriGenePair<>(this, this.getAllele(stat.getInt("dom")), this.getAllele(stat.getInt("rec")));
+	public StreamCodec<ByteBuf, Integer> getStreamCodec() {
+		return ByteBufCodecs.INT;
 	}
 
 	@Override
 	public void addTooltip(List<Component> tooltipComponents, Integer trait) {
-		this.stat.addTooltip(tooltipComponents::add, trait);
+		this.stat.value().addTooltip(tooltipComponents::add, trait);
 	}
 
 	@Override
 	public int getDominantColor() {
-		return stat.getColor();
+		return stat.value().getColor();
 	}
 
 	@Override
 	public int getRecessiveColor() {
-		int col = this.stat.getColor();
+		int col = this.stat.value().getColor();
 		int r = (int) ((col >> 16 & 255) * 0.6f);
 		int g = (int) ((col >> 8 & 255) * 0.6f);
 		int b = (int) ((col & 255) * 0.6f);
 		return 0xFF << 24 | r << 16 | g << 8 | b & 0xFF;
 	}
 
-	public static class IntAllele implements AgriAllele<Integer> {
+	@Override
+	public String toString() {
+		return "GeneStat{" +
+				"stat=" + stat +
+				'}';
+	}
 
-		private final int trait;
-		private final AgriGene<Integer> gene;
-
-		public IntAllele(int trait, AgriGene<Integer> gene) {
-			this.trait = trait;
-			this.gene = gene;
+	@Override
+	public final boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof GeneStat geneStat)) {
+			return false;
 		}
 
-		@Override
-		public Integer trait() {
-			return this.trait;
-		}
+		return stat.equals(geneStat.stat);
+	}
 
-		@Override
-		public boolean isDominant(AgriAllele<Integer> other) {
-			return this.trait >= other.trait();
-		}
-
-		@Override
-		public AgriGene<Integer> gene() {
-			return this.gene;
-		}
-
+	@Override
+	public int hashCode() {
+		return stat.hashCode();
 	}
 
 }

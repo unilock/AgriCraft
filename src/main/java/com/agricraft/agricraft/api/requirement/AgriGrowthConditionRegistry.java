@@ -6,13 +6,14 @@ import com.agricraft.agricraft.api.AgriRegistry;
 import com.agricraft.agricraft.api.codecs.AgriBlockCondition;
 import com.agricraft.agricraft.api.codecs.AgriFluidCondition;
 import com.agricraft.agricraft.api.codecs.AgriListCondition;
-import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.codecs.AgriRequirement;
 import com.agricraft.agricraft.api.codecs.AgriSoil;
 import com.agricraft.agricraft.api.codecs.AgriSoilCondition;
 import com.agricraft.agricraft.api.codecs.AgriSoilValue;
 import com.agricraft.agricraft.api.crop.AgriCrop;
-import com.agricraft.agricraft.common.util.Platform;
+import com.agricraft.agricraft.api.plant.AgriPlant;
+import com.agricraft.agricraft.api.stat.AgriStats;
+import com.agricraft.agricraft.common.util.TagUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
@@ -22,7 +23,6 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateHolder;
-import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
@@ -44,7 +44,7 @@ public class AgriGrowthConditionRegistry extends AgriRegistry<AgriGrowthConditio
 	private final BaseGrowthCondition<Integer> light;
 	private final BaseGrowthCondition<BlockState> block;
 	private final BaseGrowthCondition<Holder<Biome>> biome;
-	private final BaseGrowthCondition<ResourceKey<DimensionType>> dimension;
+	private final BaseGrowthCondition<ResourceKey<Level>> dimension;
 	private final BaseGrowthCondition<AgriSeason> season;
 	private final BaseGrowthCondition<FluidState> fluid;
 
@@ -75,7 +75,7 @@ public class AgriGrowthConditionRegistry extends AgriRegistry<AgriGrowthConditio
 				if (strength >= blockCondition.strength()) {
 					continue;
 				}
-				List<Block> requiredBlocks = Platform.get().getBlocksFromLocation(blockCondition.block());
+				List<Block> requiredBlocks = TagUtils.getBlocksFromLocation(blockCondition.block());
 				// regular block state requirement
 				if (requiredBlocks.contains(blockstate.getBlock())) {
 					if (blockCondition.states().isEmpty()) {
@@ -121,12 +121,12 @@ public class AgriGrowthConditionRegistry extends AgriRegistry<AgriGrowthConditio
 				}
 			}
 			return AgriGrowthResponse.FERTILE;
-		}, (level, blockPos) -> level.dimensionTypeId());
+		}, (level, blockPos) -> level.dimension());
 		season = new BaseGrowthCondition<>("season", (plant, strength, season) -> {
 			List<AgriSeason> seasons = plant.getGrowthRequirements().seasons();
 			if (!AgriApi.getSeasonLogic().isActive()
 					|| seasons.isEmpty()
-					|| strength >= AgriApi.getStatRegistry().strengthStat().getMax()
+					|| strength >= AgriStats.STRENGTH.get().getMax()
 					|| seasons.stream().anyMatch(season::matches)) {
 				return AgriGrowthResponse.FERTILE;
 			}
@@ -134,7 +134,7 @@ public class AgriGrowthConditionRegistry extends AgriRegistry<AgriGrowthConditio
 		}, (level, blockPos) -> AgriApi.getSeasonLogic().getSeason(level, blockPos));
 		fluid = new BaseGrowthCondition<>("fluid", (plant, strength, fluid) -> {
 			AgriFluidCondition fluidCondition = plant.getGrowthRequirements().fluidCondition();
-			List<Fluid> requiredFluids = Platform.get().getFluidsFromLocation(fluidCondition.fluid());
+			List<Fluid> requiredFluids = TagUtils.getFluidsFromLocation(fluidCondition.fluid());
 			if (requiredFluids.isEmpty()) {
 				if (fluid.is(Fluids.LAVA)) {
 					return AgriGrowthResponse.KILL_IT_WITH_FIRE;
@@ -196,7 +196,7 @@ public class AgriGrowthConditionRegistry extends AgriRegistry<AgriGrowthConditio
 		return getInstance().biome;
 	}
 
-	public static BaseGrowthCondition<ResourceKey<DimensionType>> getDimension() {
+	public static BaseGrowthCondition<ResourceKey<Level>> getDimension() {
 		return getInstance().dimension;
 	}
 

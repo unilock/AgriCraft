@@ -1,9 +1,10 @@
 package com.agricraft.agricraft.api.genetic;
 
 import com.agricraft.agricraft.api.AgriRegistrable;
-import com.agricraft.agricraft.api.plant.AgriPlant;
-import net.minecraft.nbt.CompoundTag;
+import com.mojang.serialization.Codec;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
@@ -16,21 +17,30 @@ import java.util.List;
 public interface AgriGene<T> extends AgriRegistrable {
 
 	/**
-	 * Gets the default fallback trait for the gene, used when genomes are constructed without explicitly assigning alleles
+	 * Create a chromosome for that gene, with the same value for its alleles
 	 *
-	 * @param plant the plant for which to fetch the default allele
-	 * @return the default allele for this gene
+	 * @param value the value for both alleles
+	 * @return the chromosome with the give value for both alleles
 	 */
-	AgriAllele<T> defaultAllele(AgriPlant plant);
+	Chromosome<T> chromosome(T value);
 
 	/**
-	 * Maps a value of the gene to an allele, it is possible that this value falls out of the set of acceptable values,
-	 * in which case a different allele must be returned (e.g. the default, or the closest one)
+	 * Create a chromosome for that gene, with different values for its alleles.
+	 * There are no order on the parameter, the allele dominance is computed automatically.
 	 *
-	 * @param value the value
-	 * @return the allele for a value
+	 * @param first  the value for one allele
+	 * @param second the value for the other allele
+	 * @return the chromosome with the give value for each allele
 	 */
-	AgriAllele<T> getAllele(T value);
+	Chromosome<T> chromosome(T first, T second);
+
+	/**
+	 * Check if the allele of this gene is dominant to the other allele.
+	 * @param allele the allele to check the dominance
+	 * @param otherAllele the allele to check the dominance of the first allele against
+	 * @return true if the allele is dominant to the other allele, false otherwise
+	 */
+	boolean isAlleleDominant(T allele, T otherAllele);
 
 	/**
 	 * @return The mutator object which controls mutations for this gene
@@ -38,21 +48,10 @@ public interface AgriGene<T> extends AgriRegistrable {
 	AgriGeneMutator<T> mutator();
 
 	/**
-	 * Used when serializing genomes, write the alleles to the tag
-	 *
-	 * @param genes     the tag to write to
-	 * @param dominant  the dominant allele
-	 * @param recessive the recessive allele
+	 * @return The codec for the underlying type of its alleles
 	 */
-	void writeToNBT(CompoundTag genes, AgriAllele<T> dominant, AgriAllele<T> recessive);
-
-	/**
-	 * Used when deserializing genomes, reads the alleles from the tag.
-	 *
-	 * @param tag the tag to read from
-	 * @return the gene pair
-	 */
-	AgriGenePair<T> readFromNBT(CompoundTag tag);
+	Codec<T> getCodec();
+	StreamCodec<ByteBuf, T> getStreamCodec();
 
 	/**
 	 * Add components to the item tooltip

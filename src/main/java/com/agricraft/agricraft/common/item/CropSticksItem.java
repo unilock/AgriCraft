@@ -5,6 +5,7 @@ import com.agricraft.agricraft.common.block.CropStickVariant;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -44,8 +45,8 @@ public class CropSticksItem extends BlockItem {
 	}
 
 	protected InteractionResult applyToExisting(Level world, BlockPos pos, BlockState state, Player player, InteractionHand hand) {
-		InteractionResult result = CropBlock.applyCropSticks(world, pos, state, this.getVariant());
-		if(result == InteractionResult.SUCCESS) {
+		ItemInteractionResult result = CropBlock.applyCropSticks(world, pos, state, this.getVariant());
+		if(result == ItemInteractionResult.SUCCESS) {
 			if(player != null) {
 				ItemStack stack = player.getItemInHand(hand);
 				if(!player.isCreative()) {
@@ -53,7 +54,7 @@ public class CropSticksItem extends BlockItem {
 				}
 			}
 		}
-		return result;
+		return result.result();
 	}
 
 	@Override
