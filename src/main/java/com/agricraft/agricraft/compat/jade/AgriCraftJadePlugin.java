@@ -1,4 +1,4 @@
-package com.agricraft.agricraft.common.plugin;
+package com.agricraft.agricraft.compat.jade;
 
 import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.codecs.AgriSoil;
@@ -44,24 +44,30 @@ public class AgriCraftJadePlugin implements IWailaPlugin {
 		@Override
 		public void appendTooltip(ITooltip iTooltip, BlockAccessor blockAccessor, IPluginConfig iPluginConfig) {
 			if (blockAccessor.getBlockEntity() instanceof AgriCrop crop) {
-				if (!crop.hasPlant()) {
+				if (crop.hasPlant()) {
+					iTooltip.add(Component.translatable("agricraft.tooltip.jade.growth", crop.getGrowthPercent() * 100));
+					if (Minecraft.getInstance().player.isShiftKeyDown()) {
+						iTooltip.add(Component.translatable("agricraft.tooltip.jade.species")
+								.append(LangUtils.plantName(crop.getGenome().species().trait()))
+						);
+						AgriStats.STATS.getEntries().stream()
+								.map(DeferredHolder::get)
+								.filter(stat -> !stat.isHidden())
+								.map(stat -> crop.getGenome().getStatGene(stat))
+								.sorted(Comparator.comparing(p -> p.gene().getId()))
+								.map(genePair -> Component.translatable("agricraft.tooltip.jade.stat." + genePair.gene().getId(), genePair.trait()))
+								.forEach(iTooltip::add);
+						AgriGrowthResponse response = crop.getFertilityResponse();
+						iTooltip.add(Component.translatable("agricraft.tooltip.magnifying.requirement." + (response.isLethal() ? "lethal" : response.isFertile() ? "fertile" : "not_fertile")));
+					}
+				} else {
 					iTooltip.add(Component.translatable("agricraft.tooltip.magnifying.no_plant"));
-					return;
 				}
-				iTooltip.add(Component.translatable("agricraft.tooltip.jade.growth", crop.getGrowthPercent() * 100));
-				if (Minecraft.getInstance().player.isShiftKeyDown()) {
-					iTooltip.add(Component.translatable("agricraft.tooltip.jade.species")
-							.append(LangUtils.plantName(crop.getGenome().species().trait()))
-					);
-					AgriStats.STATS.getEntries().stream()
-							.map(DeferredHolder::get)
-							.filter(stat -> !stat.isHidden())
-							.map(stat -> crop.getGenome().getStatGene(stat))
-							.sorted(Comparator.comparing(p -> p.gene().getId()))
-							.map(genePair -> Component.translatable("agricraft.tooltip.jade.stat." + genePair.gene().getId(), genePair.trait()))
-							.forEach(iTooltip::add);
-					AgriGrowthResponse response = crop.getFertilityResponse();
-					iTooltip.add(Component.translatable("agricraft.tooltip.magnifying.requirement." + (response.isLethal() ? "lethal" : response.isFertile() ? "fertile" : "not_fertile")));
+				if (crop.hasWeeds()) {
+					iTooltip.add(Component.translatable("agricraft.tooltip.magnifying.weeds").append(LangUtils.weedName(crop.getWeedId().toString())));
+					if (Minecraft.getInstance().player.isShiftKeyDown()) {
+						iTooltip.add(Component.literal("  ").append(Component.translatable("agricraft.tooltip.magnifying.growth", crop.getWeedGrowthStage().index() + 1, crop.getWeedGrowthStage().total())));
+					}
 				}
 			}
 		}

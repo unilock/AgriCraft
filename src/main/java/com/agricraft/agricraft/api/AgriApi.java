@@ -41,7 +41,7 @@ public final class AgriApi {
 	public static final ResourceKey<Registry<AgriFertilizer>> AGRIFERTILIZERS = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(AgriApi.MOD_ID, "fertilizers"));
 
 	public static Optional<Registry<AgriPlant>> getPlantRegistry() {
-		return SideUtils.getRegistryAccess().registry(AGRIPLANTS);
+		return SideUtils.getRegistryAccess().flatMap(reg -> reg.registry(AGRIPLANTS));
 	}
 
 	public static Optional<Registry<AgriPlant>> getPlantRegistry(RegistryAccess registryAccess) {
@@ -73,7 +73,7 @@ public final class AgriApi {
 	}
 
 	public static Optional<Registry<AgriWeed>> getWeedRegistry() {
-		return SideUtils.getRegistryAccess().registry(AGRIWEEDS);
+		return SideUtils.getRegistryAccess().flatMap(reg -> reg.registry(AGRIWEEDS));
 	}
 
 	public static Optional<Registry<AgriWeed>> getWeedRegistry(RegistryAccess registryAccess) {
@@ -97,7 +97,7 @@ public final class AgriApi {
 	}
 
 	public static Optional<Registry<AgriSoil>> getSoilRegistry() {
-		return SideUtils.getRegistryAccess().registry(AGRISOILS);
+		return SideUtils.getRegistryAccess().flatMap(reg -> reg.registry(AGRISOILS));
 	}
 
 	public static Optional<Registry<AgriSoil>> getSoilRegistry(RegistryAccess registryAccess) {
@@ -133,7 +133,7 @@ public final class AgriApi {
 	}
 
 	public static Optional<Registry<AgriMutation>> getMutationRegistry() {
-		return SideUtils.getRegistryAccess().registry(AGRIMUTATIONS);
+		return SideUtils.getRegistryAccess().flatMap(reg -> reg.registry(AGRIMUTATIONS));
 	}
 
 	public static Optional<Registry<AgriMutation>> getMutationRegistry(RegistryAccess registryAccess) {
@@ -154,7 +154,7 @@ public final class AgriApi {
 	}
 
 	public static Optional<Registry<AgriFertilizer>> getFertilizerRegistry() {
-		return SideUtils.getRegistryAccess().registry(AGRIFERTILIZERS);
+		return SideUtils.getRegistryAccess().flatMap(reg -> reg.registry(AGRIFERTILIZERS));
 	}
 
 	public static Optional<Registry<AgriFertilizer>> getFertilizerRegistry(RegistryAccess registryAccess) {

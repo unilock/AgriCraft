@@ -18,6 +18,18 @@ repositories {
 			includeGroup "curse.maven"
 		}
 	}
+	maven {
+		name = "TerraformersMC"  // EMI
+		url = "https://maven.terraformersmc.com/"
+	}
+	maven {
+		name = "WTHIT's maven"
+		url "https://maven2.bai.lol"
+		content {
+			includeGroup "lol.bai"
+			includeGroup "mcp.mobius.waila"
+		}
+	}
 }
 
 base {
@@ -51,9 +63,7 @@ runs {
 	data {
 		programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(),
 				'--existing', file('src/main/resources/').getAbsolutePath(),
-				'--existing-mod', 'biomesoplenty',
-				'--existing-mod', 'immersiveengineering',
-				'--existing-mod', 'pamhc2crops'
+				'--existing-mod', 'biomesoplenty'
 	}
 }
 
@@ -68,12 +78,21 @@ dependencies {
 
 	compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
 	compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
-	localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+//	localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+
+	compileOnly "dev.emi:emi-neoforge:${emi_version}:api"
+	localRuntime "dev.emi:emi-neoforge:${emi_version}"
 
 	compileOnly "curse.maven:jade-324717:5427895"  // Jade-1.21-neoforge-15.0.4-api
 	localRuntime "curse.maven:jade-324717:5427817"  // Jade-1.21-neoforge-15.0.4
+
+	compileOnly "mcp.mobius.waila:wthit-api:neo-${wthit_version}"  // What The Hell Is That
+//	localRuntime "mcp.mobius.waila:wthit:neo-${wthit_version}"
+//	localRuntime "lol.bai:badpackets:neo-${badpackets_version}"
+
 	implementation "curse.maven:biomes-o-plenty-220318:5437861"  // Biomes O' Plenty 1.21-21.0.0.7
-	implementation "curse.maven:serene-seasons-291874:5429913"  // Serene Seasons 1.21-10.0.0.2
+	compileOnly "curse.maven:serene-seasons-291874:5429913"  // Serene Seasons 1.21-10.0.0.2
+//	localRuntime "curse.maven:serene-seasons-291874:5429913"  // Serene Seasons 1.21-10.0.0.2
 	localRuntime "curse.maven:glitchcore-955399:5429863"  // GlitchCore 1.21-2.0.0.1 (serene season / biomes o' plenty dep)
 	localRuntime "curse.maven:terrablender-940057:5429865"  // TerraBlender 1.21-4.0.0.1 (biomes o' plenty dep)
 
@@ -81,7 +100,7 @@ dependencies {
 
 subsystems {
 	parchment {
-		minecraftVersion = "1.20.6"
+		minecraftVersion = "${minecraft_version}"
 		mappingsVersion = "${parchment_version}"
 	}
 }

@@ -12,6 +12,7 @@ import com.agricraft.agricraft.api.stat.AgriStats;
 import com.agricraft.agricraft.common.commands.DumpRegistriesCommand;
 import com.agricraft.agricraft.common.commands.GiveSeedCommand;
 import com.agricraft.agricraft.common.handler.VanillaSeedConversion;
+import com.agricraft.agricraft.compat.sereneseason.SereneSeasonPlugin;
 import com.agricraft.agricraft.common.registry.ModBlockEntityTypes;
 import com.agricraft.agricraft.common.registry.ModBlocks;
 import com.agricraft.agricraft.common.registry.ModCreativeTabs;
@@ -78,7 +79,9 @@ public class AgriCraft {
 
 	public static void onCommonSetup(FMLCommonSetupEvent event) {
 		MinecraftPlugin.init();
-//		SereneSeasonPlugin.init();
+		if (ModList.get().isLoaded(SereneSeasonPlugin.ID)) {
+			SereneSeasonPlugin.init();
+		}
 	}
 
 	public static void onRegisterDatapackRegistry(DataPackRegistryEvent.NewRegistry event) {
@@ -106,25 +109,11 @@ public class AgriCraft {
 		if (event.getPackType() == PackType.SERVER_DATA) {
 			for (IModInfo mod : ModList.get().getMods()) {
 				addPack("datapacks", mod.getModId(), agricraft, PackType.SERVER_DATA, event);
-//				event.addPackFinders(ResourceLocation.parse("agricraft:datapacks/"+mod.getModId()),
-//						PackType.SERVER_DATA,
-//						Component.translatable("agricraft.datapacks." + mod.getModId()),
-//						PackSource.BUILT_IN,
-//						false,
-//						Pack.Position.TOP
-//				);
 			}
 		}
 		if (event.getPackType() == PackType.CLIENT_RESOURCES) {
 			for (IModInfo mod : ModList.get().getMods()) {
 				addPack("resourcepacks", mod.getModId(), agricraft, PackType.CLIENT_RESOURCES, event);
-//				event.addPackFinders(ResourceLocation.parse("agricraft:resourcepacks/"+mod.getModId()),
-//						PackType.CLIENT_RESOURCES,
-//						Component.translatable("agricraft.resourcepacks." + mod.getModId()),
-//						PackSource.BUILT_IN,
-//						false,
-//						Pack.Position.TOP
-//						);
 			}
 		}
 	}
