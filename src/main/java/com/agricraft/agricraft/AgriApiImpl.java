@@ -12,13 +12,16 @@ import com.agricraft.agricraft.api.genetic.AgriMutationHandler;
 import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.plant.AgriPlantModifierFactory;
 import com.agricraft.agricraft.api.plant.AgriWeed;
+import com.agricraft.agricraft.api.registries.AgriCraftStats;
 import com.agricraft.agricraft.api.requirement.AgriGrowthCondition;
 import com.agricraft.agricraft.api.requirement.SeasonLogic;
 import com.agricraft.agricraft.api.stat.AgriStat;
+import com.agricraft.agricraft.api.tools.seedbag.BagSorter;
 import com.agricraft.agricraft.api.tools.journal.JournalData;
 import com.agricraft.agricraft.common.adapter.FertilizerAdapter;
 import com.agricraft.agricraft.common.adapter.GenomeAdapter;
 import com.agricraft.agricraft.common.genetic.AgriMutationHandlerImpl;
+import com.agricraft.agricraft.common.item.SeedBagItem;
 import com.agricraft.agricraft.common.registry.AgriDataComponents;
 import com.agricraft.agricraft.common.registry.AgriRegistries;
 import net.minecraft.core.Registry;
@@ -42,6 +45,13 @@ public class AgriApiImpl implements AgriApi {
 		mutationHandler = new AgriMutationHandlerImpl();
 		this.registerFertilizerAdapter(new FertilizerAdapter());
 		this.registerGenomeAdapter(new GenomeAdapter());
+		this.registerSeedBagSorter(SeedBagItem.DEFAULT_SORTER);
+		this.registerSeedBagSorter(new SeedBagItem.StatSorter(AgriCraftStats.GAIN, AgriCraftStats.GAIN.getId()));
+		this.registerSeedBagSorter(new SeedBagItem.StatSorter(AgriCraftStats.GROWTH, AgriCraftStats.GROWTH.getId()));
+		this.registerSeedBagSorter(new SeedBagItem.StatSorter(AgriCraftStats.STRENGTH, AgriCraftStats.STRENGTH.getId()));
+		this.registerSeedBagSorter(new SeedBagItem.StatSorter(AgriCraftStats.RESISTANCE, AgriCraftStats.RESISTANCE.getId()));
+		this.registerSeedBagSorter(new SeedBagItem.StatSorter(AgriCraftStats.FERTILITY, AgriCraftStats.FERTILITY.getId()));
+		this.registerSeedBagSorter(new SeedBagItem.StatSorter(AgriCraftStats.MUTATIVITY, AgriCraftStats.MUTATIVITY.getId()));
 	}
 
 	public Registry<AgriGene<?>> getGeneRegistry() {
@@ -155,6 +165,11 @@ public class AgriApiImpl implements AgriApi {
 	@Override
 	public void setMutationHandler(AgriMutationHandler handler) {
 		this.mutationHandler = handler;
+	}
+
+	@Override
+	public void registerSeedBagSorter(BagSorter sorter) {
+		SeedBagItem.SORTERS.add(sorter);
 	}
 
 }

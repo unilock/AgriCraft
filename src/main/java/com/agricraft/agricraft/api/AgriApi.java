@@ -15,6 +15,7 @@ import com.agricraft.agricraft.api.requirement.AgriGrowthCondition;
 import com.agricraft.agricraft.api.requirement.SeasonLogic;
 import com.agricraft.agricraft.api.stat.AgriStat;
 import com.agricraft.agricraft.api.tools.journal.JournalData;
+import com.agricraft.agricraft.api.tools.seedbag.BagSorter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -140,6 +141,8 @@ public interface AgriApi {
 	AgriMutationHandler getMutationHandler();
 
 	void setMutationHandler(AgriMutationHandler handler);
+
+	void registerSeedBagSorter(BagSorter sorter);
 
 	@ApiStatus.Internal
 	final class InstanceHolder {

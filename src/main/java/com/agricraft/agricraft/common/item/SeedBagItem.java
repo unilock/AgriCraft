@@ -5,6 +5,8 @@ import com.agricraft.agricraft.api.config.AgriCraftConfig;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
 import com.agricraft.agricraft.api.stat.AgriStat;
+import com.agricraft.agricraft.api.tools.seedbag.BagEntry;
+import com.agricraft.agricraft.api.tools.seedbag.BagSorter;
 import com.agricraft.agricraft.common.block.CropBlock;
 import com.agricraft.agricraft.common.block.CropState;
 import com.agricraft.agricraft.common.registry.AgriBlocks;
@@ -36,9 +38,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class SeedBagItem extends Item {
@@ -52,32 +54,23 @@ public class SeedBagItem extends Item {
 
 		@Override
 		public int compare(BagEntry entry1, BagEntry entry2) {
-			int s1 = AgriApi.get().getStatRegistry().stream().mapToInt(stat -> entry1.genome.getStatChromosome(stat).trait()).sum();
-			int s2 = AgriApi.get().getStatRegistry().stream().mapToInt(stat -> entry2.genome.getStatChromosome(stat).trait()).sum();
+			int s1 = AgriApi.get().getStatRegistry().stream().mapToInt(stat -> entry1.genome().getStatChromosome(stat).trait()).sum();
+			int s2 = AgriApi.get().getStatRegistry().stream().mapToInt(stat -> entry2.genome().getStatChromosome(stat).trait()).sum();
 			if (s1 != s2) {
 				return s2 - s1;
 			}
 			return AgriApi.get().getStatRegistry().stream().mapToInt(stat -> {
-				Integer d1 = entry1.genome.getStatChromosome(stat).dominant();
-				Integer r1 = entry1.genome.getStatChromosome(stat).recessive();
-				Integer d2 = entry2.genome.getStatChromosome(stat).dominant();
-				Integer r2 = entry2.genome.getStatChromosome(stat).recessive();
+				Integer d1 = entry1.genome().getStatChromosome(stat).dominant();
+				Integer r1 = entry1.genome().getStatChromosome(stat).recessive();
+				Integer d2 = entry2.genome().getStatChromosome(stat).dominant();
+				Integer r2 = entry2.genome().getStatChromosome(stat).recessive();
 				return (d2 + r2) - (d1 + r1);
 			}).sum();
 		}
 	};
 
-	static {
-		SORTERS.add(DEFAULT_SORTER);
-		// TODO: @Ketheroth add stat sorters in non static block
-	}
-
 	public SeedBagItem(Properties properties) {
 		super(properties);
-	}
-
-	public static void addStatSorter(AgriStat stat) {
-		SORTERS.add(new StatSorter(stat));
 	}
 
 	private static boolean plantOnCrop(AgriCrop crop, ItemStack seed) {
@@ -98,7 +91,7 @@ public class SeedBagItem extends Item {
 		if (insertedStack.isEmpty() || genome == null || data == null) {
 			return 0;
 		}
-		if (!data.plants().isEmpty() && !data.plants().getFirst().genome.species().trait().equals(genome.species().trait())) {
+		if (!data.plants().isEmpty() && !data.plants().getFirst().genome().species().trait().equals(genome.species().trait())) {
 			// bag already has seeds, we can add seeds only if they have the same species
 			return 0;
 		}
@@ -122,8 +115,8 @@ public class SeedBagItem extends Item {
 			return ItemStack.EMPTY;
 		}
 		BagEntry entry = data.plants().getFirst();
-		ItemStack seed = AgriSeedItem.toStack(entry.genome);
-		seed.setCount(entry.count);
+		ItemStack seed = AgriSeedItem.toStack(entry.genome());
+		seed.setCount(entry.count());
 		seedBag.set(AgriDataComponents.SEED_BAG_DATA, new Data(data.plants().stream().skip(1).collect(ImmutableList.toImmutableList()), data.sorter()));
 		return seed;
 	}
@@ -134,13 +127,13 @@ public class SeedBagItem extends Item {
 			return ItemStack.EMPTY;
 		}
 		BagEntry entry = data.plants().getFirst();
-		ItemStack seed = AgriSeedItem.toStack(entry.genome);
+		ItemStack seed = AgriSeedItem.toStack(entry.genome());
 		if (!simulate) {
 			ImmutableList.Builder<BagEntry> builder = ImmutableList.builder();
-			if (entry.count <= 1) {
+			if (entry.count() <= 1) {
 				data.plants().stream().skip(1).forEach(builder::add);
 			} else {
-				BagEntry newEntry = new BagEntry(entry.count - 1, entry.genome);
+				BagEntry newEntry = new BagEntry(entry.count() - 1, entry.genome());
 				builder.add(newEntry);
 			}
 			data.plants().stream().skip(1).forEach(builder::add);
@@ -286,21 +279,12 @@ public class SeedBagItem extends Item {
 		if (isEmpty(stack) || data == null) {
 			tooltipComponents.add(Component.translatable("agricraft.tooltip.bag.empty").withStyle(ChatFormatting.DARK_GRAY));
 		} else {
-			tooltipComponents.add(Component.translatable("agricraft.tooltip.bag.content", size(stack)).append(LangUtils.seedName(data.plants().getFirst().genome.species().trait())).withStyle(ChatFormatting.DARK_GRAY));
+			tooltipComponents.add(Component.translatable("agricraft.tooltip.bag.content", size(stack)).append(LangUtils.seedName(data.plants().getFirst().genome().species().trait())).withStyle(ChatFormatting.DARK_GRAY));
 		}
 		String id = SORTERS.get(data.sorter).getId().toString().replace(":", ".");
 		tooltipComponents.add(Component.translatable("agricraft.tooltip.bag.sorter")
 				.append(Component.translatable("agricraft.tooltip.bag.sorter." + id))
 				.withStyle(ChatFormatting.DARK_GRAY));
-	}
-
-	/**
-	 * Sorts its entries by having the best in first, and the worst in last
-	 */
-	public interface BagSorter extends Comparator<BagEntry> {
-
-		ResourceLocation getId();
-
 	}
 
 	public record Data(ImmutableList<BagEntry> plants, int sorter) {
@@ -337,28 +321,14 @@ public class SeedBagItem extends Item {
 
 	}
 
-	public record BagEntry(int count, AgriGenome genome) {
-
-		public static final Codec<BagEntry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-				Codec.INT.fieldOf("count").forGetter(data -> data.count),
-				AgriGenome.CODEC.fieldOf("genome").forGetter(data -> data.genome)
-		).apply(instance, BagEntry::new));
-		public static StreamCodec<RegistryFriendlyByteBuf, BagEntry> STREAM_CODEC = StreamCodec.composite(
-				ByteBufCodecs.INT, data -> data.count,
-				AgriGenome.STREAM_CODEC, data -> data.genome,
-				BagEntry::new
-		);
-
-	}
-
 	public static class StatSorter implements BagSorter {
 
-		private final AgriStat stat;
+		private final Supplier<AgriStat> stat;
 		private final ResourceLocation id;
 
-		public StatSorter(AgriStat stat) {
+		public StatSorter(Supplier<AgriStat> stat, ResourceLocation id) {
 			this.stat = stat;
-			this.id = stat.getId();
+			this.id = id;
 		}
 
 		@Override
@@ -368,8 +338,8 @@ public class SeedBagItem extends Item {
 
 		@Override
 		public int compare(BagEntry entry1, BagEntry entry2) {
-			int s1 = entry1.genome.getStatChromosome(this.stat).trait();
-			int s2 = entry2.genome.getStatChromosome(this.stat).trait();
+			int s1 = entry1.genome().getStatChromosome(this.stat.get()).trait();
+			int s2 = entry2.genome().getStatChromosome(this.stat.get()).trait();
 			if (s1 == s2) {
 				return DEFAULT_SORTER.compare(entry1, entry2);
 			}
