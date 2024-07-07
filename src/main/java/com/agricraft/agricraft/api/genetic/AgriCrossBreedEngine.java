@@ -1,14 +1,9 @@
 package com.agricraft.agricraft.api.genetic;
 
-import com.agricraft.agricraft.api.config.AgriCraftConfig;
-import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.crop.AgriCrop;
-import com.agricraft.agricraft.api.stat.AgriStats;
 import net.minecraft.util.RandomSource;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -17,29 +12,13 @@ import java.util.stream.Stream;
  * It's active / default implementations can be obtained from the AgriCrossBreedEngine instance
  * Overriding implementations can be activated with the AgriCrossBreedEngine instance as well
  */
-public class AgriCrossBreedEngine {
+public interface AgriCrossBreedEngine {
 
-	private ParentSelector selector;
-	private CloneLogic cloner;
-	private CombineLogic combiner;
+	ParentSelector getSelector();
 
-	public AgriCrossBreedEngine() {
-		this.selector = this::selectAndSortCandidates;
-		this.cloner = (crop, parent, random) -> new AgriGenome(parent.chromosomes().stream().map(chromosome -> cloneChromosome(crop, chromosome, parent, random)).collect(Collectors.toList()));
-		this.combiner = (crop, parent1, parent2, random) -> new AgriGenome(AgriGenes.GENES.getEntries().stream().map(gene -> this.mutateChromosome(crop, gene.get(), parent1, parent2, random)).collect(Collectors.toList()));
-	}
+	CloneLogic getCloner();
 
-	protected ParentSelector getSelector() {
-		return this.selector;
-	}
-
-	protected CloneLogic getCloner() {
-		return this.cloner;
-	}
-
-	protected CombineLogic getCombiner() {
-		return this.combiner;
-	}
+	CombineLogic getCombiner();
 
 	/**
 	 * Handles a growth tick resulting in cross breeding, is only fired for cross crops.
@@ -57,145 +36,12 @@ public class AgriCrossBreedEngine {
 	 * @param random     pseudo-random generator to take decisions
 	 * @return true if the cross breeding / spread succeeded, false if it failed
 	 */
-	public boolean handleCrossBreedTick(AgriCrop crop, Stream<AgriCrop> neighbours, RandomSource random) {
-		// select candidate parents from the neighbours
-		List<AgriCrop> candidates = this.getSelector().selectAndOrder(neighbours, random);
-		// No candidates: do nothing
-		if (candidates.isEmpty()) {
-			return false;
-		}
-		// Only one candidate: clone
-		if (candidates.size() == 1) {
-			return this.doClone(crop, candidates.get(0), random);
-		}
-		// More than one candidate passed, pick the two parents with the highest fertility stat:
-		return this.doCombine(crop, candidates.get(0), candidates.get(1), random);
-	}
-
-	protected List<AgriCrop> selectAndSortCandidates(Stream<AgriCrop> neighbours, RandomSource random) {
-		return neighbours
-				// Plant only
-				.filter(AgriCrop::hasPlant)
-				// Mature crops only
-				.filter(AgriCrop::canBeHarvested)
-				// Fertile crops only
-				.filter(crop -> (!AgriCraftConfig.ONLY_FERTILE_CROPS_SPREAD.get() || crop.isFertile()))
-				// Sort based on fertility stat
-				.sorted(Comparator.comparingInt(this::sorter))
-				// Roll for fertility stat
-				.filter(neighbour -> this.rollFertility(neighbour, random))
-				// Collect successful passes
-				.collect(Collectors.toList());
-	}
-
-	protected boolean doClone(AgriCrop target, AgriCrop parent, RandomSource random) {
-		AgriPlant plant = parent.getPlant();
-		// Try spawning a clone if cloning is allowed
-		if (plant.allowsCloning(parent.getGrowthStage())) {
-			// roll for spread chance
-			if (random.nextDouble() < parent.getPlant().getSpreadChance(parent.getGrowthStage())) {
-				AgriGenome clone = this.getCloner().clone(target, parent.getGenome(), random);
-				target.plantGenome(clone);
-				return true;
-			}
-		}
-		// spreading failed
-		return false;
-	}
-
-	protected boolean doCombine(AgriCrop target, AgriCrop a, AgriCrop b, RandomSource random) {
-		// Determine the child's genome
-		AgriGenome genome = this.getCombiner().combine(target, a.getGenome(), b.getGenome(), random);
-		// Spawn the child
-		target.plantGenome(genome);
-		return true;
-	}
-
-	protected int sorter(AgriCrop crop) {
-		return AgriStats.FERTILITY.get().getMax() - crop.getGenome().getFertility().trait();
-	}
-
-	protected boolean rollFertility(AgriCrop crop, RandomSource random) {
-		return random.nextInt(AgriStats.FERTILITY.get().getMax()) < crop.getGenome().getFertility().trait();
-	}
-
-	protected <T> Chromosome<T> mutateChromosome(AgriCrop crop, AgriGene<T> gene, AgriGenome parent1, AgriGenome parent2, RandomSource rand) {
-		return gene.mutator().pickOrMutate(
-				crop,
-				gene,
-				this.pickRandomAllele(parent1.getChromosome(gene), rand),
-				this.pickRandomAllele(parent1.getChromosome(gene), rand),
-				parent1, parent2,
-				rand
-		);
-	}
-
-	protected <T> Chromosome<T> cloneChromosome(AgriCrop crop, Chromosome<T> chromosome, AgriGenome parent, RandomSource rand) {
-		if (AgriCraftConfig.CLONE_MUTATIONS.get()) {
-			return chromosome.gene().mutator().pickOrMutate(
-					crop,
-					chromosome.gene(),
-					chromosome.dominant(),
-					chromosome.recessive(),
-					parent, parent,
-					rand
-			);
-		} else {
-			return chromosome.copy();
-		}
-	}
-
-	protected <T> T pickRandomAllele(Chromosome<T> pair, RandomSource random) {
-		return random.nextBoolean() ? pair.dominant() : pair.recessive();
-	}
-
-	/**
-	 * Sets the selection logic to be used by the cross breeding engine
-	 * <p>
-	 * It is not obligatory to use this logic, in case you do not want your selection logic to be replaced.
-	 * The default AgriCraft cross breeding engine does allow replacing of its selection logic
-	 * <p>
-	 * This method should always be safe to call
-	 *
-	 * @param selector the new selection logic
-	 */
-	void setSelectionLogic(ParentSelector selector) {
-		this.selector = selector;
-	}
-
-	/**
-	 * Sets the cloning logic to be used by the cross breeding engine
-	 * <p>
-	 * It is not obligatory to use this logic, in case you do not want your cloning logic to be replaced.
-	 * The default AgriCraft cross breeding engine does allow replacing of its cloning logic
-	 * <p>
-	 * This method should always be safe to call
-	 *
-	 * @param cloneLogic the new cloning logic
-	 */
-	void setCloneLogic(CloneLogic cloneLogic) {
-		this.cloner = cloneLogic;
-	}
-
-	/**
-	 * Sets the combining logic to be used by the cross breeding engine
-	 * <p>
-	 * It is not obligatory to use this logic, in case you do not want your combining logic to be replaced.
-	 * The default AgriCraft cross breeding engine does allow replacing of its combining logic
-	 * <p>
-	 * This method should always be safe to call
-	 *
-	 * @param combineLogic the new combining logic
-	 */
-	void setCombineLogic(CombineLogic combineLogic) {
-		this.combiner = combineLogic;
-	}
-
+	boolean handleCrossBreedTick(AgriCrop crop, Stream<AgriCrop> neighbours, RandomSource random);
 	/**
 	 * Functional interface for selection logic
 	 */
 	@FunctionalInterface
-	public interface ParentSelector {
+	interface ParentSelector {
 
 		/**
 		 * Selects potential parent candidates from all neighbouring crops.
@@ -216,7 +62,7 @@ public class AgriCrossBreedEngine {
 	 * Functional interface for cloning logic
 	 */
 	@FunctionalInterface
-	public interface CloneLogic {
+	interface CloneLogic {
 
 		/**
 		 * Clones the parent genome to a new genome.
@@ -237,7 +83,7 @@ public class AgriCrossBreedEngine {
 	 * Functional interface for combining logic
 	 */
 	@FunctionalInterface
-	public interface CombineLogic {
+	interface CombineLogic {
 
 		/**
 		 * Combines the genomes of two parents into a child genome

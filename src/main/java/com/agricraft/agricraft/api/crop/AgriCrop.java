@@ -6,8 +6,8 @@ import com.agricraft.agricraft.api.fertilizer.IAgriFertilizable;
 import com.agricraft.agricraft.api.genetic.AgriGenomeProvider;
 import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.plant.AgriWeed;
+import com.agricraft.agricraft.api.registries.AgriCraftStats;
 import com.agricraft.agricraft.api.requirement.AgriGrowthResponse;
-import com.agricraft.agricraft.api.stat.AgriStats;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -149,7 +149,7 @@ public interface AgriCrop extends AgriGenomeProvider, IAgriFertilizable {
 		}
 		if (this.hasPlant()) {
 			int resistance = this.getGenome().getResistance().trait();
-			int max = AgriStats.RESISTANCE.get().getMax();
+			int max = AgriCraftStats.RESISTANCE.get().getMax();
 			// At 1 resistance, 45% chance for weed growth tick
 			// At 10 resistance, 0% chance
 			return this.getLevel().getRandom().nextInt(max) >= (max + resistance) / 2;

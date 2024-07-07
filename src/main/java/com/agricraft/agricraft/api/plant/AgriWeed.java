@@ -1,13 +1,17 @@
 package com.agricraft.agricraft.api.plant;
 
+import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.codecs.AgriProduct;
 import com.agricraft.agricraft.api.codecs.AgriRequirement;
 import com.agricraft.agricraft.api.config.AgriCraftConfig;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.crop.AgriGrowthStage;
-import com.agricraft.agricraft.common.util.TagUtils;
+import com.agricraft.agricraft.api.TagUtils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
@@ -22,6 +26,8 @@ import java.util.function.Consumer;
 
 // TODO: @Ketheroth convert nbt to component ?
 public class AgriWeed {
+
+	public static final ResourceKey<Registry<AgriWeed>> REGISTRY_KEY = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(AgriApi.MOD_ID, "weed"));
 
 	public static final Codec<AgriWeed> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 			Codec.STRING.listOf().fieldOf("mods").forGetter(weed -> weed.mods),
@@ -91,7 +97,7 @@ public class AgriWeed {
 			if (random.nextDouble() < probability) {
 				this.rakeProducts.stream().filter(product -> product.shouldDrop(random))
 						.forEach(product -> {
-							List<Item> possible = TagUtils.getItemsFromLocation(product.item());
+							List<Item> possible = TagUtils.items(product.item());
 							Item item = possible.get(random.nextInt(possible.size()));
 							ItemStack itemStack = new ItemStack(item, product.getAmount(random));
 //							itemStack.getOrCreateTag().merge(product.nbt());

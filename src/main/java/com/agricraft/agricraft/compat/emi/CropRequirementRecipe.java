@@ -2,15 +2,15 @@ package com.agricraft.agricraft.compat.emi;
 
 import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.AgriClientApi;
+import com.agricraft.agricraft.api.LangUtils;
+import com.agricraft.agricraft.api.TagUtils;
 import com.agricraft.agricraft.api.codecs.AgriSoilCondition;
 import com.agricraft.agricraft.api.crop.AgriGrowthStage;
 import com.agricraft.agricraft.api.plant.AgriPlant;
-import com.agricraft.agricraft.api.requirement.AgriGrowthConditionRegistry;
+import com.agricraft.agricraft.api.registries.AgriCraftGrowthConditions;
+import com.agricraft.agricraft.api.registries.AgriCraftStats;
 import com.agricraft.agricraft.api.requirement.AgriSeason;
-import com.agricraft.agricraft.api.stat.AgriStats;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
-import com.agricraft.agricraft.common.util.LangUtils;
-import com.agricraft.agricraft.common.util.TagUtils;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -62,7 +62,7 @@ public class CropRequirementRecipe implements EmiRecipe {
 	private final List<EmiStack> output;
 	private final String plantId;
 	public long lastTime;
-	private int currentStrength = AgriStats.STRENGTH.value().getMin();
+	private int currentStrength = AgriCraftStats.STRENGTH.value().getMin();
 	private AgriGrowthStage currentStage;
 	private List<Block> soils;
 	private int soil;
@@ -72,7 +72,7 @@ public class CropRequirementRecipe implements EmiRecipe {
 		input = List.of(EmiStack.of(AgriSeedItem.toStack(plant)).comparison(Comparison.compareComponents()));
 		this.plant = plant;
 		output = new ArrayList<>();
-		this.plantId = AgriApi.getPlantId(plant).map(ResourceLocation::toString).orElse("");
+		this.plantId = plant.getId().map(ResourceLocation::toString).orElse("");
 		this.currentStage = plant.getInitialGrowthStage();
 		this.incStrButton = new Btn(104, 10, 9, 9, this::incrementStrength, true);
 		this.decStrButton = new Btn(104, 71, 9, 9, this::decrementStrength, false);
@@ -134,7 +134,7 @@ public class CropRequirementRecipe implements EmiRecipe {
 			guiGraphics.blit(R_COMPONENTS, 93, stageY, 7, stageHeight, 0, 69, 7, 1, 128, 128);
 			// render light levels
 			for (int i = 15; i >= 0; --i) {
-				boolean fertile = AgriGrowthConditionRegistry.getLight().apply(plant, currentStrength, i).isFertile();
+				boolean fertile = AgriCraftGrowthConditions.LIGHT.get().apply(plant, currentStrength, i).isFertile();
 				if (fertile) {
 					guiGraphics.blit(R_COMPONENTS, 32, 26 + 3 * (15 - i), 3, 3, 0, 18 + 3 * (15 - i), 3, 3, 128, 128);
 				}
@@ -144,7 +144,7 @@ public class CropRequirementRecipe implements EmiRecipe {
 				if (!humidity.isValid()) {
 					continue;
 				}
-				if (AgriGrowthConditionRegistry.getHumidity().apply(plant, currentStrength, humidity).isFertile()) {
+				if (AgriCraftGrowthConditions.HUMIDITY.get().apply(plant, currentStrength, humidity).isFertile()) {
 					int index = humidity.ordinal();
 					int offset = 0;
 					for (int i = 0; i < index; ++i) {
@@ -157,7 +157,7 @@ public class CropRequirementRecipe implements EmiRecipe {
 				if (!acidity.isValid()) {
 					continue;
 				}
-				if (AgriGrowthConditionRegistry.getAcidity().apply(plant, currentStrength, acidity).isFertile()) {
+				if (AgriCraftGrowthConditions.ACIDITY.get().apply(plant, currentStrength, acidity).isFertile()) {
 					int index = acidity.ordinal();
 					int offset = 0;
 					for (int i = 0; i < index; ++i) {
@@ -170,7 +170,7 @@ public class CropRequirementRecipe implements EmiRecipe {
 				if (!nutrients.isValid()) {
 					continue;
 				}
-				if (AgriGrowthConditionRegistry.getNutrients().apply(plant, currentStrength, nutrients).isFertile()) {
+				if (AgriCraftGrowthConditions.NUTRIENTS.get().apply(plant, currentStrength, nutrients).isFertile()) {
 					int index = nutrients.ordinal();
 					int offset = 0;
 					for (int i = 0; i < index; ++i) {
@@ -180,12 +180,12 @@ public class CropRequirementRecipe implements EmiRecipe {
 				}
 			}
 			// render seasons
-			if (AgriApi.getSeasonLogic().isActive()) {
+			if (AgriApi.get().getSeasonLogic().isActive()) {
 				for (AgriSeason season : AgriSeason.values()) {
 					if (season == AgriSeason.ANY) {
 						continue;
 					}
-					if (AgriGrowthConditionRegistry.getSeason().apply(plant, currentStrength, season).isFertile()) {
+					if (AgriCraftGrowthConditions.SEASON.get().apply(plant, currentStrength, season).isFertile()) {
 						guiGraphics.blit(R_GUI_COMPONENTS, 17, 24 + 13 * season.ordinal(), 10 * season.ordinal(), 44, 10, 12, 128, 128);
 					}
 				}
@@ -215,7 +215,7 @@ public class CropRequirementRecipe implements EmiRecipe {
 				stack.popPose();
 			}
 			// render plant
-			BakedModel model = AgriClientApi.getPlantModel(plantId, currentStage.index());
+			BakedModel model = AgriClientApi.get().getPlantModel(plantId, currentStage.index());
 			stack.pushPose();
 			stack.translate(0, 1, 0);
 			Minecraft.getInstance().getBlockRenderer().getModelRenderer().renderModel(stack.last(), guiGraphics.bufferSource().getBuffer(RenderType.cutoutMipped()), null, model, 1, 1, 1, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
@@ -267,7 +267,7 @@ public class CropRequirementRecipe implements EmiRecipe {
 		if (!soils.isEmpty() && soil < soils.size()) {
 			widgets.addTooltip((mouseX, mouseY) -> Screen.getTooltipFromItem(Minecraft.getInstance(), new ItemStack(soils.get(soil))).stream().map(Component::getVisualOrderText).map(ClientTooltipComponent::create).toList(), 50, 58, 26, 16);
 		}
-		if (AgriApi.getSeasonLogic().isActive()) {
+		if (AgriApi.get().getSeasonLogic().isActive()) {
 			widgets.addTooltipText(List.of(LangUtils.seasonName(AgriSeason.SPRING)), 17, 24, 12, 12);
 			widgets.addTooltipText(List.of(LangUtils.seasonName(AgriSeason.SUMMER)), 17, 37, 12, 12);
 			widgets.addTooltipText(List.of(LangUtils.seasonName(AgriSeason.AUTUMN)), 17, 50, 12, 12);
@@ -276,13 +276,13 @@ public class CropRequirementRecipe implements EmiRecipe {
 	}
 
 	public boolean incrementStrength() {
-		this.currentStrength = Math.min(AgriStats.STRENGTH.value().getMax(), currentStrength + 1);
+		this.currentStrength = Math.min(AgriCraftStats.STRENGTH.value().getMax(), currentStrength + 1);
 		this.updateSoils();
 		return true;
 	}
 
 	public boolean decrementStrength() {
-		this.currentStrength = Math.max(AgriStats.STRENGTH.value().getMin(), currentStrength - 1);
+		this.currentStrength = Math.max(AgriCraftStats.STRENGTH.value().getMin(), currentStrength - 1);
 		this.updateSoils();
 		return true;
 	}
@@ -298,14 +298,14 @@ public class CropRequirementRecipe implements EmiRecipe {
 	}
 
 	public void updateSoils() {
-		this.soils = AgriApi.getSoilRegistry().map(registry -> registry.stream().filter(soil -> {
-							boolean humidity = AgriGrowthConditionRegistry.getHumidity().apply(this.plant, this.currentStrength, soil.humidity()).isFertile();
-							boolean acidity = AgriGrowthConditionRegistry.getAcidity().apply(this.plant, this.currentStrength, soil.acidity()).isFertile();
-							boolean nutrients = AgriGrowthConditionRegistry.getNutrients().apply(this.plant, this.currentStrength, soil.nutrients()).isFertile();
+		this.soils = AgriApi.get().getSoilRegistry().map(registry -> registry.stream().filter(soil -> {
+							boolean humidity = AgriCraftGrowthConditions.HUMIDITY.get().apply(this.plant, this.currentStrength, soil.humidity()).isFertile();
+							boolean acidity = AgriCraftGrowthConditions.ACIDITY.get().apply(this.plant, this.currentStrength, soil.acidity()).isFertile();
+							boolean nutrients = AgriCraftGrowthConditions.NUTRIENTS.get().apply(this.plant, this.currentStrength, soil.nutrients()).isFertile();
 							return humidity && acidity && nutrients;
 						})
 						.flatMap(soil -> soil.variants().stream())
-						.flatMap(variant -> TagUtils.getBlocksFromLocation(variant.block()).stream())
+						.flatMap(variant -> TagUtils.blocks(variant.block()).stream())
 						.distinct()
 						.toList())
 				.orElse(List.of());

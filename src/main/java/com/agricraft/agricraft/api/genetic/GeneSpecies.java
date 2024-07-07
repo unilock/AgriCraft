@@ -1,23 +1,12 @@
 package com.agricraft.agricraft.api.genetic;
 
 import com.agricraft.agricraft.api.AgriApi;
-import com.mojang.serialization.Codec;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
 public class GeneSpecies implements AgriGene<String> {
-
-	public static final String ID = "species";
-
-	@Override
-	public String getId() {
-		return ID;
-	}
 
 	@Override
 	public Chromosome<String> chromosome(String value) {
@@ -35,8 +24,8 @@ public class GeneSpecies implements AgriGene<String> {
 			return true;
 		}
 		// Fetch complexity of both plants
-		int a = AgriApi.getMutationHandler().complexity(allele);
-		int b = AgriApi.getMutationHandler().complexity(otherAllele);
+		int a = AgriApi.get().getMutationHandler().complexity(allele);
+		int b = AgriApi.get().getMutationHandler().complexity(otherAllele);
 		if(a == b) {
 			// Equal complexity, therefore we use an arbitrary definition for dominance, which we will base on the plant id
 			return allele.compareTo(otherAllele) < 0;
@@ -47,17 +36,7 @@ public class GeneSpecies implements AgriGene<String> {
 
 	@Override
 	public AgriGeneMutator<String> mutator() {
-		return AgriMutationHandler.getInstance().getActivePlantMutator();
-	}
-
-	@Override
-	public Codec<String> getCodec() {
-		return Codec.STRING;
-	}
-
-	@Override
-	public StreamCodec<ByteBuf, String> getStreamCodec() {
-		return ByteBufCodecs.STRING_UTF8;
+		return AgriApi.get().getMutationHandler().getPlantMutator();
 	}
 
 	@Override
@@ -73,6 +52,16 @@ public class GeneSpecies implements AgriGene<String> {
 	@Override
 	public int getRecessiveColor() {
 		return 0xff7f00bf;
+	}
+
+	@Override
+	public <S> String encode(S value) {
+		return (String) value;
+	}
+
+	@Override
+	public <S> S decode(String value) {
+		return (S) value;
 	}
 
 	@Override

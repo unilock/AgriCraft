@@ -1,10 +1,11 @@
-package com.agricraft.agricraft.common.util;
+package com.agricraft.agricraft.api;
 
 import com.agricraft.agricraft.api.codecs.AgriSoilValue;
 import com.agricraft.agricraft.api.requirement.AgriSeason;
 import com.agricraft.agricraft.api.stat.AgriStat;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 
 public class LangUtils {
 
@@ -38,7 +39,7 @@ public class LangUtils {
 	}
 
 	public static MutableComponent statName(AgriStat stat) {
-		return Component.translatable("agricraft.stat." + stat.getId());
+		return Component.translatable("agricraft.stat." + stat.getId().toString().replace(":", ".").replace("/", "."));
 	}
 
 	public static Component seasonName(AgriSeason season) {

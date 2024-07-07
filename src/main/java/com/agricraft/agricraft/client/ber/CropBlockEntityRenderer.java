@@ -40,7 +40,7 @@ public class CropBlockEntityRenderer implements BlockEntityRenderer<CropBlockEnt
 		if (blockEntity.hasPlant()) {
 			AgriGrowthStage stage = blockEntity.getGrowthStage();
 			String plantId = blockEntity.getPlantId().toString();
-			BakedModel plantModel = AgriClientApi.getPlantModel(plantId, stage.index());
+			BakedModel plantModel = AgriClientApi.get().getPlantModel(plantId, stage.index());
 			if (plantModel != null) {
 				// render the computed plant model
 				Minecraft.getInstance().getBlockRenderer().getModelRenderer().renderModel(poseStack.last(),
@@ -51,7 +51,7 @@ public class CropBlockEntityRenderer implements BlockEntityRenderer<CropBlockEnt
 		if (blockEntity.hasWeeds()) {
 			AgriGrowthStage weedStage = blockEntity.getWeedGrowthStage();
 			String weedId = blockEntity.getWeedId().toString();
-			BakedModel weedModel = AgriClientApi.getWeedModel(weedId, weedStage.index());
+			BakedModel weedModel = AgriClientApi.get().getWeedModel(weedId, weedStage.index());
 			if (weedModel != null) {
 				// render the computed plant model
 				Minecraft.getInstance().getBlockRenderer().getModelRenderer().renderModel(poseStack.last(),

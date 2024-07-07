@@ -9,8 +9,8 @@ import com.agricraft.agricraft.common.block.CropBlock;
 import com.agricraft.agricraft.common.block.CropState;
 import com.agricraft.agricraft.common.block.entity.SeedAnalyzerBlockEntity;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
-import com.agricraft.agricraft.common.registry.ModBlocks;
-import com.agricraft.agricraft.common.registry.ModDataComponentTypes;
+import com.agricraft.agricraft.common.registry.AgriBlocks;
+import com.agricraft.agricraft.common.registry.AgriDataComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -34,14 +34,14 @@ public class VanillaSeedConversion {
 		if (!AgriCraftConfig.OVERRIDE_VANILLA_FARMING.get()
 				|| heldItem.isEmpty()
 				|| heldItem.getItem() instanceof AgriSeedItem
-				|| AgriApi.getCrop(player.level(), pos).isPresent()) {
+				|| AgriApi.get().getCrop(player.level(), pos).isPresent()) {
 			return false;
 		}
 
 		if (player.isShiftKeyDown()) {
 			if (player.level().getBlockEntity(pos) instanceof SeedAnalyzerBlockEntity seedAnalyzer && !seedAnalyzer.hasSeed()) {
 				// if the analyzer is empty, convert the item to an agricraft seed and let it handle the rest
-				Optional<AgriGenome> genome = AgriApi.getGenomeAdapter(heldItem).flatMap(adapter -> adapter.valueOf(heldItem));
+				Optional<AgriGenome> genome = AgriApi.get().getGenomeAdapter(heldItem).flatMap(adapter -> adapter.valueOf(heldItem));
 				if (genome.isPresent() && seedAnalyzer.insertSeed(AgriSeedItem.toStack(genome.get()), null)) {
 					heldItem.shrink(1);
 					return true;
@@ -51,12 +51,12 @@ public class VanillaSeedConversion {
 
 		if (!AgriCraftConfig.CONVERTS_SEED_ONLY_IN_ANALYZER.get()) {
 			BlockPos cropPos = pos.relative(blockHitResult.getDirection());
-			Optional<AgriSoil> optionalSoil = AgriApi.getSoil(player.level(), cropPos.below());
+			Optional<AgriSoil> optionalSoil = AgriApi.get().getSoil(player.level(), cropPos.below());
 			if (optionalSoil.isPresent()) {
-				Optional<AgriCrop> optionalCrop = AgriApi.getCrop(player.level(), cropPos);
+				Optional<AgriCrop> optionalCrop = AgriApi.get().getCrop(player.level(), cropPos);
 				if (optionalCrop.isPresent()) {
 					if (!optionalCrop.get().hasPlant() && !optionalCrop.get().isCrossCropSticks()) {
-						Optional<AgriGenome> genome = AgriApi.getGenomeAdapter(heldItem).flatMap(adapter -> adapter.valueOf(heldItem));
+						Optional<AgriGenome> genome = AgriApi.get().getGenomeAdapter(heldItem).flatMap(adapter -> adapter.valueOf(heldItem));
 						if (genome.isPresent()) {
 							plantSeedOnCrop(player, hand, optionalCrop.get(), AgriSeedItem.toStack(genome.get()));
 							return true;
@@ -65,10 +65,10 @@ public class VanillaSeedConversion {
 						return false;
 					}
 				} else if (player.level().getBlockState(cropPos).isAir() && AgriCraftConfig.PLANT_OFF_CROP_STICKS.get()) {
-					Optional<AgriGenome> genome = AgriApi.getGenomeAdapter(heldItem).flatMap(adapter -> adapter.valueOf(heldItem));
+					Optional<AgriGenome> genome = AgriApi.get().getGenomeAdapter(heldItem).flatMap(adapter -> adapter.valueOf(heldItem));
 					if (genome.isPresent()) {
-						player.level().setBlock(cropPos, ModBlocks.CROP.get().defaultBlockState().setValue(CropBlock.CROP_STATE, CropState.PLANT), 3);
-						plantSeedOnCrop(player, hand, AgriApi.getCrop(player.level(), cropPos).get(), AgriSeedItem.toStack(genome.get()));
+						player.level().setBlock(cropPos, AgriBlocks.CROP.get().defaultBlockState().setValue(CropBlock.CROP_STATE, CropState.PLANT), 3);
+						plantSeedOnCrop(player, hand, AgriApi.get().getCrop(player.level(), cropPos).get(), AgriSeedItem.toStack(genome.get()));
 						return true;
 					}
 				}
@@ -78,7 +78,7 @@ public class VanillaSeedConversion {
 	}
 
 	private static void plantSeedOnCrop(Player player, InteractionHand hand, AgriCrop crop, ItemStack seed) {
-		AgriGenome genome = seed.get(ModDataComponentTypes.GENOME);
+		AgriGenome genome = seed.get(AgriDataComponents.GENOME);
 		if (genome != null) {
 			crop.plantGenome(genome);
 			if (player != null && !player.isCreative()) {

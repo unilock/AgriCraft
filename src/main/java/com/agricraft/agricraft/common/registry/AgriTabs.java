@@ -4,38 +4,40 @@ import com.agricraft.agricraft.AgriCraft;
 import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Map;
 
-public class ModCreativeTabs {
+import static com.agricraft.agricraft.common.registry.AgriRegistries.CREATIVE_MODE_TAB;
 
-	public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TAB = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, AgriApi.MOD_ID);
+public interface AgriTabs {
 
-	public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN_TAB = CREATIVE_MODE_TAB.register("main", () -> CreativeModeTab.builder()
-			.icon(() -> new ItemStack(ModItems.DEBUGGER.get()))
+	DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN_TAB = CREATIVE_MODE_TAB.register("main", () -> CreativeModeTab.builder()
+			.icon(() -> new ItemStack(AgriItems.DEBUGGER.get()))
 			.title(Component.translatable("itemGroup.agricraft.main"))
-			.displayItems(ModItems::addItemsToTabs)
+			.displayItems(AgriItems::addItemsToTabs)
 //				.withTabsBefore(CreativeModeTabs.SPAWN_EGGS)
 			.build());
-	public static final DeferredHolder<CreativeModeTab, CreativeModeTab> SEED_TAB = CREATIVE_MODE_TAB.register("seeds", () -> CreativeModeTab.builder()
+	DeferredHolder<CreativeModeTab, CreativeModeTab> SEED_TAB = CREATIVE_MODE_TAB.register("seeds", () -> CreativeModeTab.builder()
 			.title(Component.translatable("itemGroup.agricraft.seeds"))
 			.icon(() -> new ItemStack(Items.WHEAT_SEEDS))
-			.displayItems((itemDisplayParameters, output) -> AgriApi.getPlantRegistry()
+			.displayItems((itemDisplayParameters, output) -> AgriApi.get().getPlantRegistry()
 					.ifPresent(registry -> {
-						AgriCraft.LOGGER.info("add seeds in tab: " + registry.stream().count());
+						AgriCraft.LOGGER.info("add seeds in tab: " + registry.size());
 						for (Map.Entry<ResourceKey<AgriPlant>, AgriPlant> entry : registry.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList()) {
 							output.accept(AgriSeedItem.toStack(entry.getValue()));
 						}
 					}))
-			.withTabsBefore(ModCreativeTabs.MAIN_TAB.getId())
+			.withTabsBefore(AgriTabs.MAIN_TAB.getId())
 			.build());
+
+	@ApiStatus.Internal
+	static void register() {}
 
 }

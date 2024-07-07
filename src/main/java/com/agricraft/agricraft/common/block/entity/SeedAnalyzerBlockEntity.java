@@ -4,9 +4,8 @@ import com.agricraft.agricraft.common.block.SeedAnalyzerBlock;
 import com.agricraft.agricraft.common.inventory.container.SeedAnalyzerMenu;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
 import com.agricraft.agricraft.common.item.JournalItem;
-import com.agricraft.agricraft.common.registry.ModBlockEntityTypes;
+import com.agricraft.agricraft.common.registry.AgriBlockEntities;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -16,7 +15,6 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -35,7 +33,7 @@ public class SeedAnalyzerBlockEntity extends BlockEntity implements MenuProvider
 
 
 	public SeedAnalyzerBlockEntity(BlockPos blockPos, BlockState blockState) {
-		super(ModBlockEntityTypes.SEED_ANALYZER.get(), blockPos, blockState);
+		super(AgriBlockEntities.SEED_ANALYZER.get(), blockPos, blockState);
 		this.inventory = new SimpleContainer(2);
 	}
 

@@ -1,7 +1,7 @@
 package com.agricraft.agricraft.common.block;
 
 import com.agricraft.agricraft.common.item.CropSticksItem;
-import com.agricraft.agricraft.common.registry.ModItems;
+import com.agricraft.agricraft.common.registry.AgriItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.StringRepresentable;
@@ -40,9 +40,9 @@ public enum CropStickVariant implements StringRepresentable {
 
 	public static ItemStack toItem(CropStickVariant variant) {
 		return switch (variant) {
-			case WOODEN -> new ItemStack(ModItems.WOODEN_CROP_STICKS.get());
-			case IRON -> new ItemStack(ModItems.IRON_CROP_STICKS.get());
-			case OBSIDIAN -> new ItemStack(ModItems.OBSIDIAN_CROP_STICKS.get());
+			case WOODEN -> new ItemStack(AgriItems.WOODEN_CROP_STICKS.get());
+			case IRON -> new ItemStack(AgriItems.IRON_CROP_STICKS.get());
+			case OBSIDIAN -> new ItemStack(AgriItems.OBSIDIAN_CROP_STICKS.get());
 		};
 	}
 

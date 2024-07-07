@@ -1,10 +1,12 @@
 package com.agricraft.agricraft.api.genetic;
 
-import com.agricraft.agricraft.api.AgriRegistrable;
+import com.agricraft.agricraft.api.AgriApi;
 import com.mojang.serialization.Codec;
-import io.netty.buffer.ByteBuf;
+import com.mojang.serialization.DataResult;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 
@@ -14,7 +16,21 @@ import java.util.List;
  *
  * @param <T> the type of the trait governed by this gene
  */
-public interface AgriGene<T> extends AgriRegistrable {
+public interface AgriGene<T> {
+
+	ResourceKey<Registry<AgriGene<?>>> REGISTRY_KEY = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath("agricraft", "gene"));
+
+	Codec<AgriGene<?>> CODEC = ResourceLocation.CODEC.comapFlatMap(
+			s -> {
+				AgriGene<?> gene = AgriApi.get().getGeneRegistry().get(s);
+				if (gene == null) {
+					return DataResult.error(() -> "The gene " + s + " is not present in the gene registry");
+				} else {
+					return DataResult.success(gene);
+				}
+			},
+			AgriGene::getId
+	);
 
 	/**
 	 * Create a chromosome for that gene, with the same value for its alleles
@@ -36,7 +52,8 @@ public interface AgriGene<T> extends AgriRegistrable {
 
 	/**
 	 * Check if the allele of this gene is dominant to the other allele.
-	 * @param allele the allele to check the dominance
+	 *
+	 * @param allele      the allele to check the dominance
 	 * @param otherAllele the allele to check the dominance of the first allele against
 	 * @return true if the allele is dominant to the other allele, false otherwise
 	 */
@@ -46,12 +63,6 @@ public interface AgriGene<T> extends AgriRegistrable {
 	 * @return The mutator object which controls mutations for this gene
 	 */
 	AgriGeneMutator<T> mutator();
-
-	/**
-	 * @return The codec for the underlying type of its alleles
-	 */
-	Codec<T> getCodec();
-	StreamCodec<ByteBuf, T> getStreamCodec();
 
 	/**
 	 * Add components to the item tooltip
@@ -70,5 +81,28 @@ public interface AgriGene<T> extends AgriRegistrable {
 	 * @return the recessive color as an argb int
 	 */
 	int getRecessiveColor();
+
+	/**
+	 * @return its id in the gene registry
+	 */
+	default ResourceLocation getId() {
+		return AgriApi.get().getGeneRegistry().getKey(this);
+	}
+
+	/**
+	 * Encode it's underlying value as a string for use in codecs
+	 * @param value the value to convert to string
+	 * @return the string representing the value
+	 * @param <S> the type of the value
+	 */
+	<S> String encode(S value);
+
+	/**
+	 * Decode it's underlying value from a string for use in codecs
+	 * @param value the string value to decode from
+	 * @return the decoded value
+	 * @param <S> the type of the decoded value
+	 */
+	<S> S decode(String value);
 
 }

@@ -4,13 +4,16 @@ import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
 
+// TODO: @Ketheroth mutation condition (check what this is in the old agricraft code)
 public record AgriMutation(ResourceLocation child, ResourceLocation parent1, ResourceLocation parent2, double chance) {
 
-	// TODO: @Ketheroth mutation condition (check what this is in the old agricraft code)
+	public static final ResourceKey<Registry<AgriMutation>> REGISTRY_KEY = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(AgriApi.MOD_ID, "mutation"));
 
 	public static final Codec<AgriMutation> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 			ResourceLocation.CODEC.fieldOf("child").forGetter(mutation -> mutation.child),
@@ -24,15 +27,15 @@ public record AgriMutation(ResourceLocation child, ResourceLocation parent1, Res
 	}
 
 	public Optional<AgriPlant> getParent1() {
-		return AgriApi.getPlant(this.parent1);
+		return AgriApi.get().getPlant(this.parent1);
 	}
 
 	public Optional<AgriPlant> getParent2() {
-		return AgriApi.getPlant(this.parent2);
+		return AgriApi.get().getPlant(this.parent2);
 	}
 
 	public Optional<AgriPlant> getChild() {
-		return AgriApi.getPlant(this.child);
+		return AgriApi.get().getPlant(this.child);
 	}
 
 	public boolean isValid() {

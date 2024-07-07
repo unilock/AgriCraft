@@ -1,26 +1,22 @@
 package com.agricraft.agricraft.api.genetic;
 
+import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.stat.AgriStat;
-import com.mojang.serialization.Codec;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 public class GeneStat implements AgriGene<Integer> {
 
-	private final Holder<AgriStat> stat;
+	private final Supplier<AgriStat> stat;
 
-	public GeneStat(Holder<AgriStat> stat) {
+	public GeneStat(Supplier<AgriStat> stat) {
 		this.stat = stat;
 	}
 
-	@Override
-	public String getId() {
-		return stat.value().getId();
+	public AgriStat stat() {
+		return stat.get();
 	}
 
 	@Override
@@ -40,32 +36,22 @@ public class GeneStat implements AgriGene<Integer> {
 
 	@Override
 	public AgriGeneMutator<Integer> mutator() {
-		return AgriMutationHandler.getInstance().getActiveStatMutator();
-	}
-
-	@Override
-	public Codec<Integer> getCodec() {
-		return Codec.INT;
-	}
-
-	@Override
-	public StreamCodec<ByteBuf, Integer> getStreamCodec() {
-		return ByteBufCodecs.INT;
+		return AgriApi.get().getMutationHandler().getStatMutator();
 	}
 
 	@Override
 	public void addTooltip(List<Component> tooltipComponents, Integer trait) {
-		this.stat.value().addTooltip(tooltipComponents::add, trait);
+		this.stat.get().addTooltip(tooltipComponents::add, trait);
 	}
 
 	@Override
 	public int getDominantColor() {
-		return stat.value().getColor();
+		return stat.get().getColor();
 	}
 
 	@Override
 	public int getRecessiveColor() {
-		int col = this.stat.value().getColor();
+		int col = this.stat.get().getColor();
 		int r = (int) ((col >> 16 & 255) * 0.6f);
 		int g = (int) ((col >> 8 & 255) * 0.6f);
 		int b = (int) ((col & 255) * 0.6f);
@@ -73,9 +59,19 @@ public class GeneStat implements AgriGene<Integer> {
 	}
 
 	@Override
+	public <S> String encode(S value) {
+		return "" + (int) value;
+	}
+
+	@Override
+	public <S> S decode(String value) {
+		return (S) Integer.valueOf(value);
+	}
+
+	@Override
 	public String toString() {
 		return "GeneStat{" +
-				"stat=" + stat +
+				"stat=" + stat.get() +
 				'}';
 	}
 
@@ -88,12 +84,12 @@ public class GeneStat implements AgriGene<Integer> {
 			return false;
 		}
 
-		return stat.equals(geneStat.stat);
+		return stat.get().equals(geneStat.stat.get());
 	}
 
 	@Override
 	public int hashCode() {
-		return stat.hashCode();
+		return stat.get().hashCode();
 	}
 
 }

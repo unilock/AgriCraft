@@ -1,29 +1,18 @@
 package com.agricraft.agricraft.client;
 
+import com.agricraft.agricraft.AgriClientApiImpl;
 import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.AgriClientApi;
 import com.agricraft.agricraft.client.ber.CropBlockEntityRenderer;
 import com.agricraft.agricraft.client.ber.SeedAnalyzerEntityRenderer;
 import com.agricraft.agricraft.client.gui.MagnifyingGlassOverlay;
 import com.agricraft.agricraft.client.gui.SeedAnalyzerScreen;
-import com.agricraft.agricraft.client.tools.journal.drawers.FrontPageDrawer;
-import com.agricraft.agricraft.client.tools.journal.drawers.GeneticsPageDrawer;
-import com.agricraft.agricraft.client.tools.journal.drawers.GrowthReqsPageDrawer;
-import com.agricraft.agricraft.client.tools.journal.drawers.IntroductionPageDrawer;
-import com.agricraft.agricraft.client.tools.journal.drawers.MutationPageDrawer;
-import com.agricraft.agricraft.client.tools.journal.drawers.PlantPageDrawer;
 import com.agricraft.agricraft.common.item.SeedBagItem;
 import com.agricraft.agricraft.common.item.TrowelItem;
-import com.agricraft.agricraft.common.item.journal.FrontPage;
-import com.agricraft.agricraft.common.item.journal.GeneticsPage;
-import com.agricraft.agricraft.common.item.journal.GrowthReqsPage;
-import com.agricraft.agricraft.common.item.journal.IntroductionPage;
-import com.agricraft.agricraft.common.item.journal.MutationsPage;
-import com.agricraft.agricraft.common.item.journal.PlantPage;
-import com.agricraft.agricraft.common.registry.ModBlockEntityTypes;
-import com.agricraft.agricraft.common.registry.ModBlocks;
-import com.agricraft.agricraft.common.registry.ModItems;
-import com.agricraft.agricraft.common.registry.ModMenus;
+import com.agricraft.agricraft.common.registry.AgriBlockEntities;
+import com.agricraft.agricraft.common.registry.AgriBlocks;
+import com.agricraft.agricraft.common.registry.AgriItems;
+import com.agricraft.agricraft.common.registry.AgriMenuTypes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
@@ -49,20 +38,15 @@ public class AgriCraftClient {
 
 	@SubscribeEvent
 	public static void onClientSetup(FMLClientSetupEvent event) {
-		AgriClientApi.registerPageDrawer(FrontPage.ID, new FrontPageDrawer());
-		AgriClientApi.registerPageDrawer(IntroductionPage.ID, new IntroductionPageDrawer());
-		AgriClientApi.registerPageDrawer(GrowthReqsPage.ID, new GrowthReqsPageDrawer());
-		AgriClientApi.registerPageDrawer(GeneticsPage.ID, new GeneticsPageDrawer());
-		AgriClientApi.registerPageDrawer(PlantPage.ID, new PlantPageDrawer());
-		AgriClientApi.registerPageDrawer(MutationsPage.ID, new MutationPageDrawer());
-		ItemProperties.register(ModItems.TROWEL.get(), ResourceLocation.fromNamespaceAndPath("agricraft", "plant"), (itemStack, clientLevel, livingEntity, i) -> {
+		AgriClientApi.set(new AgriClientApiImpl());
+		ItemProperties.register(AgriItems.TROWEL.get(), ResourceLocation.fromNamespaceAndPath("agricraft", "plant"), (itemStack, clientLevel, livingEntity, i) -> {
 			if (!itemStack.isEmpty() && itemStack.getItem() instanceof TrowelItem trowel && trowel.hasPlant(itemStack)) {
 				return 1;
 			} else {
 				return 0;
 			}
 		});
-		ItemProperties.register(ModItems.SEED_BAG.get(), ResourceLocation.fromNamespaceAndPath("agricraft", "seed_bag"), (itemStack, clientLevel, livingEntity, i) -> {
+		ItemProperties.register(AgriItems.SEED_BAG.get(), ResourceLocation.fromNamespaceAndPath("agricraft", "seed_bag"), (itemStack, clientLevel, livingEntity, i) -> {
 			if (!itemStack.isEmpty() && itemStack.getItem() instanceof SeedBagItem) {
 				if (SeedBagItem.isFilled(itemStack)) {
 					return 1;
@@ -74,12 +58,12 @@ public class AgriCraftClient {
 				return 0.5F;
 			}
 		});
-		ItemBlockRenderTypes.setRenderLayer(ModBlocks.SEED_ANALYZER.get(), RenderType.cutout());
+		ItemBlockRenderTypes.setRenderLayer(AgriBlocks.SEED_ANALYZER.get(), RenderType.cutout());
 	}
 
 	@SubscribeEvent
 	public static void registerMenuScreen(RegisterMenuScreensEvent event) {
-		event.register(ModMenus.SEED_ANALYZER_MENU.get(), SeedAnalyzerScreen::new);
+		event.register(AgriMenuTypes.SEED_ANALYZER_MENU.get(), SeedAnalyzerScreen::new);
 	}
 
 	@SubscribeEvent
@@ -108,8 +92,8 @@ public class AgriCraftClient {
 
 	@SubscribeEvent
 	public static void registerBer(EntityRenderersEvent.RegisterRenderers event) {
-		event.registerBlockEntityRenderer(ModBlockEntityTypes.CROP.get(), CropBlockEntityRenderer::new);
-		event.registerBlockEntityRenderer(ModBlockEntityTypes.SEED_ANALYZER.get(), SeedAnalyzerEntityRenderer::new);
+		event.registerBlockEntityRenderer(AgriBlockEntities.CROP.get(), CropBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(AgriBlockEntities.SEED_ANALYZER.get(), SeedAnalyzerEntityRenderer::new);
 	}
 
 	@SubscribeEvent

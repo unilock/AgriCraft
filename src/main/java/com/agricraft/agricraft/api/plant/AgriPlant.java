@@ -1,5 +1,6 @@
 package com.agricraft.agricraft.api.plant;
 
+import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.codecs.AgriParticleEffect;
 import com.agricraft.agricraft.api.codecs.AgriProduct;
 import com.agricraft.agricraft.api.codecs.AgriRequirement;
@@ -7,13 +8,15 @@ import com.agricraft.agricraft.api.codecs.AgriSeed;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.crop.AgriGrowthStage;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
-import com.agricraft.agricraft.common.util.TagUtils;
+import com.agricraft.agricraft.api.TagUtils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
@@ -35,6 +38,8 @@ import java.util.stream.Stream;
 // TODO: @Ketheroth convert nbt to component ?
 // TODO: @Ketheroth add javadoc to all methods
 public class AgriPlant {
+
+	public static final ResourceKey<Registry<AgriPlant>> REGISTRY_KEY = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(AgriApi.MOD_ID, "plant"));
 
 	public static final Codec<AgriPlant> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 			Codec.STRING.listOf().fieldOf("mods").forGetter(plant -> plant.mods),
@@ -68,7 +73,6 @@ public class AgriPlant {
 	private final AgriRequirement requirement;
 	private final List<AgriPlantModifierInfo> modifierInfos;
 	private final List<AgriParticleEffect> particleEffects;
-
 	private List<IAgriPlantModifier> modifiers;
 
 	public AgriPlant(List<String> mods, List<AgriSeed> seeds, List<Integer> stages,
@@ -144,7 +148,7 @@ public class AgriPlant {
 
 	public void getAllPossibleProducts(Consumer<ItemStack> products) {
 		this.products.forEach(product -> {
-			TagUtils.getItemsFromLocation(product.item()).forEach(item -> {
+			TagUtils.items(product.item()).forEach(item -> {
 				ItemStack itemStack = new ItemStack(item, product.min());
 //				itemStack.getOrCreateTag().merge(product.nbt());
 				products.accept(itemStack);
@@ -156,7 +160,7 @@ public class AgriPlant {
 		if (growthStage.isMature()) {
 			this.products.stream().filter(product -> product.shouldDrop(random))
 					.forEach(product -> {
-						List<Item> possible = TagUtils.getItemsFromLocation(product.item());
+						List<Item> possible = TagUtils.items(product.item());
 						Item item = possible.get(random.nextInt(possible.size()));
 						ItemStack itemStack = new ItemStack(item, product.getAmount(random));
 //						itemStack.getOrCreateTag().merge(product.nbt());
@@ -168,7 +172,7 @@ public class AgriPlant {
 
 	public void getAllPossibleClipProducts(Consumer<ItemStack> products) {
 		this.clipProducts.forEach(product -> {
-			TagUtils.getItemsFromLocation(product.item()).forEach(item -> products.accept(new ItemStack(item)));
+			TagUtils.items(product.item()).forEach(item -> products.accept(new ItemStack(item)));
 		});
 	}
 
@@ -176,7 +180,7 @@ public class AgriPlant {
 		if (growthStage.isMature()) {
 			this.clipProducts.stream().filter(product -> product.shouldDrop(random))
 					.forEach(product -> {
-						List<Item> possible = TagUtils.getItemsFromLocation(product.item());
+						List<Item> possible = TagUtils.items(product.item());
 						Item item = possible.get(random.nextInt(possible.size()));
 						ItemStack itemStack = new ItemStack(item, product.getAmount(random));
 //						itemStack.getOrCreateTag().merge(product.nbt());
@@ -225,7 +229,7 @@ public class AgriPlant {
 	public Stream<IAgriPlantModifier> getModifiers() {
 		if (this.modifiers == null) {
 			this.modifiers = new ArrayList<>();
-			this.modifierInfos.stream().map(AgriPlantModifierFactoryRegistry::construct)
+			this.modifierInfos.stream().map(info -> AgriApi.get().getPlantModifierFactoryRegistry().getOptional(info.id()).flatMap(factory -> factory.construct(info)))
 					.filter(Optional::isPresent)
 					.map(Optional::get)
 					.forEach(modifier -> this.modifiers.add(modifier));
@@ -295,6 +299,10 @@ public class AgriPlant {
 				.filter(Optional::isPresent)
 				.map(Optional::get)
 				.findFirst();
+	}
+
+	public Optional<ResourceLocation> getId() {
+		return AgriApi.get().getPlantRegistry().flatMap(registry -> Optional.ofNullable(registry.getKey(this)));
 	}
 
 	@Override

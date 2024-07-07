@@ -1,16 +1,15 @@
 package com.agricraft.agricraft.common.item;
 
 import com.agricraft.agricraft.api.AgriApi;
-import com.agricraft.agricraft.api.genetic.AgriGenomeProviderItem;
 import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
 import com.agricraft.agricraft.client.bewlr.AgriSeedBEWLR;
 import com.agricraft.agricraft.common.block.entity.SeedAnalyzerBlockEntity;
-import com.agricraft.agricraft.common.registry.ModBlocks;
-import com.agricraft.agricraft.common.registry.ModDataComponentTypes;
-import com.agricraft.agricraft.common.registry.ModItems;
-import com.agricraft.agricraft.common.util.LangUtils;
+import com.agricraft.agricraft.common.registry.AgriBlocks;
+import com.agricraft.agricraft.common.registry.AgriDataComponents;
+import com.agricraft.agricraft.common.registry.AgriItems;
+import com.agricraft.agricraft.api.LangUtils;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
@@ -27,10 +26,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
+public class AgriSeedItem extends BlockItem {
 
 	public AgriSeedItem(Properties properties) {
-		super(ModBlocks.CROP.get(), properties);
+		super(AgriBlocks.CROP.get(), properties);
 	}
 
 	/**
@@ -40,8 +39,8 @@ public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 	 * @return an ItemStack with the default genome of the plant
 	 */
 	public static ItemStack toStack(AgriPlant plant) {
-		ItemStack stack = new ItemStack(ModItems.SEED.get());
-		stack.set(ModDataComponentTypes.GENOME, new AgriGenome(plant));
+		ItemStack stack = new ItemStack(AgriItems.SEED.get());
+		stack.set(AgriDataComponents.GENOME, new AgriGenome(plant));
 		return stack;
 	}
 
@@ -52,8 +51,8 @@ public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 	 * @return an ItemStack with the given genome
 	 */
 	public static ItemStack toStack(AgriGenome genome) {
-		ItemStack stack = new ItemStack(ModItems.SEED.get());
-		stack.set(ModDataComponentTypes.GENOME, genome);
+		ItemStack stack = new ItemStack(AgriItems.SEED.get());
+		stack.set(AgriDataComponents.GENOME, genome);
 		return stack;
 	}
 
@@ -64,10 +63,10 @@ public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 	 * @return the plant species formatted as a resource location, or {@code agricraft:unknown} if not found
 	 */
 	public static String getSpecies(ItemStack stack) {
-		if (stack.getItem() != ModItems.SEED.get()) {
+		if (stack.getItem() != AgriItems.SEED.get()) {
 			return "agricraft:unknown";
 		}
-		AgriGenome genome = stack.get(ModDataComponentTypes.GENOME);
+		AgriGenome genome = stack.get(AgriDataComponents.GENOME);
 		if (genome == null) {
 			return "agricraft:unknown";
 		}
@@ -76,7 +75,7 @@ public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 
 	@Override
 	public Component getName(ItemStack stack) {
-		AgriGenome genome = stack.get(ModDataComponentTypes.GENOME);
+		AgriGenome genome = stack.get(AgriDataComponents.GENOME);
 		if (genome == null) {
 			return Component.translatable("seed.agricraft.agricraft.unknown");
 		}
@@ -88,8 +87,8 @@ public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 		InteractionResult result = super.place(context);
 		Level level = context.getLevel();
 		if (result.consumesAction() && !level.isClientSide) {
-			AgriApi.getCrop(level, context.getClickedPos()).ifPresent(crop -> {
-				AgriGenome genome = context.getItemInHand().get(ModDataComponentTypes.GENOME);
+			AgriApi.get().getCrop(level, context.getClickedPos()).ifPresent(crop -> {
+				AgriGenome genome = context.getItemInHand().get(AgriDataComponents.GENOME);
 				if (genome != null) {
 					crop.plantGenome(genome);
 				}
@@ -106,7 +105,7 @@ public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 		}
 		ItemStack heldItem = context.getItemInHand();
 		// if crop sticks were clicked, attempt to plant the seed
-		Optional<AgriCrop> optionalAgriCrop = AgriApi.getCrop(level, context.getClickedPos());
+		Optional<AgriCrop> optionalAgriCrop = AgriApi.get().getCrop(level, context.getClickedPos());
 		if (optionalAgriCrop.isPresent()) {
 			AgriCrop crop = optionalAgriCrop.get();
 			if (crop.hasPlant() || crop.isCrossCropSticks()) {
@@ -120,7 +119,7 @@ public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 			return seedAnalyzer.insertSeed(heldItem, context.getPlayer()) ? InteractionResult.SUCCESS : InteractionResult.PASS;
 		}
 		// if a soil was clicked, check the block above and handle accordingly
-		return AgriApi.getSoil(level, context.getClickedPos()).map(soil -> AgriApi.getCrop(level, context.getClickedPos().above()).map(crop -> {
+		return AgriApi.get().getSoil(level, context.getClickedPos()).map(soil -> AgriApi.get().getCrop(level, context.getClickedPos().above()).map(crop -> {
 			// there is a crop with a plant or is a cross crop stick, do nothing
 			if (crop.hasPlant() || crop.isCrossCropSticks()) {
 				return InteractionResult.PASS;
@@ -132,7 +131,7 @@ public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 	}
 
 	private void plantSeed(Player player, AgriCrop crop, ItemStack seed) {
-		AgriGenome genome = seed.get(ModDataComponentTypes.GENOME);
+		AgriGenome genome = seed.get(AgriDataComponents.GENOME);
 		if (genome != null) {
 			crop.plantGenome(genome, player);
 			if (player != null && !player.isCreative()) {
@@ -153,7 +152,7 @@ public class AgriSeedItem extends BlockItem implements AgriGenomeProviderItem {
 
 	@Override
 	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-		AgriGenome genome = stack.get(ModDataComponentTypes.GENOME);
+		AgriGenome genome = stack.get(AgriDataComponents.GENOME);
 		if (genome != null) {
 			genome.appendHoverText(tooltipComponents, tooltipFlag);
 		}

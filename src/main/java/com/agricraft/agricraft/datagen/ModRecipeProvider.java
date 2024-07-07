@@ -1,6 +1,6 @@
 package com.agricraft.agricraft.datagen;
 
-import com.agricraft.agricraft.common.registry.ModItems;
+import com.agricraft.agricraft.common.registry.AgriItems;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
@@ -12,7 +12,6 @@ import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.common.Tags;
@@ -28,30 +27,30 @@ public class ModRecipeProvider extends RecipeProvider {
 
 	@Override
 	protected void buildRecipes(RecipeOutput output) {
-		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(ModItems.WOODEN_CROP_STICKS.get(), 8))
+		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(AgriItems.WOODEN_CROP_STICKS.get(), 8))
 				.pattern("##")
 				.pattern("##")
 				.define('#', Tags.Items.RODS_WOODEN)
 				.unlockedBy("has_stick", has(Tags.Items.RODS_WOODEN))
 				.save(output);
-		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(ModItems.IRON_CROP_STICKS.get(), 8))
+		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(AgriItems.IRON_CROP_STICKS.get(), 8))
 				.pattern("#")
 				.pattern("#")
 				.define('#', Tags.Items.NUGGETS_IRON)
 				.unlockedBy("has_nugget", has(Tags.Items.NUGGETS_IRON))
 				.save(output);
-		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(ModItems.OBSIDIAN_CROP_STICKS.get(), 8))
+		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(AgriItems.OBSIDIAN_CROP_STICKS.get(), 8))
 				.pattern("#")
 				.pattern("#")
 				.define('#', Tags.Items.OBSIDIANS)
 				.unlockedBy("has_obsidian", has(Tags.Items.OBSIDIANS))
 				.save(output);
-		ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, new ItemStack(ModItems.JOURNAL.get()))
+		ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, new ItemStack(AgriItems.JOURNAL.get()))
 				.requires(Items.WRITABLE_BOOK)
 				.requires(Tags.Items.SEEDS)
 				.unlockedBy("has_seed", has(Tags.Items.SEEDS))
 				.save(output);
-		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(ModItems.SEED_ANALYZER.get()))
+		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(AgriItems.SEED_ANALYZER.get()))
 				.pattern("sgs")
 				.pattern(" bs")
 				.pattern("pwp")
@@ -62,7 +61,7 @@ public class ModRecipeProvider extends RecipeProvider {
 				.define('w', ItemTags.WOODEN_SLABS)
 				.unlockedBy("has_seed", has(Tags.Items.SEEDS))
 				.save(output);
-		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(ModItems.CLIPPER.get()))
+		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(AgriItems.CLIPPER.get()))
 				.pattern(" i ")
 				.pattern("sr ")
 				.pattern(" s ")
@@ -71,7 +70,7 @@ public class ModRecipeProvider extends RecipeProvider {
 				.define('s', Tags.Items.RODS_WOODEN)
 				.unlockedBy("has_iron", has(Tags.Items.INGOTS_IRON))
 				.save(output);
-		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(ModItems.MAGNIFYING_GLASS.get()))
+		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(AgriItems.MAGNIFYING_GLASS.get()))
 				.pattern("sgs")
 				.pattern(" s ")
 				.pattern(" s ")
@@ -79,28 +78,28 @@ public class ModRecipeProvider extends RecipeProvider {
 				.define('s', Tags.Items.RODS_WOODEN)
 				.unlockedBy("has_stick", has(Tags.Items.RODS_WOODEN))
 				.save(output);
-		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(ModItems.WOODEN_RAKE.get()))
+		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(AgriItems.WOODEN_RAKE.get()))
 				.pattern("f")
 				.pattern("s")
 				.define('f', TagKey.create(Registries.ITEM, ResourceLocation.parse("c:fences/wooden")))
 				.define('s', Tags.Items.RODS_WOODEN)
 				.unlockedBy("has_stick", has(Tags.Items.RODS_WOODEN))
 				.save(output);
-		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(ModItems.IRON_RAKE.get()))
+		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(AgriItems.IRON_RAKE.get()))
 				.pattern("b")
 				.pattern("s")
 				.define('b', Items.IRON_BARS)
 				.define('s', Tags.Items.RODS_WOODEN)
 				.unlockedBy("has_stick", has(Tags.Items.RODS_WOODEN))
 				.save(output);
-		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(ModItems.TROWEL.get()))
+		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(AgriItems.TROWEL.get()))
 				.pattern("  s")
 				.pattern("ii ")
 				.define('s', Tags.Items.RODS_WOODEN)
 				.define('i', Tags.Items.INGOTS_IRON)
 				.unlockedBy("has_iron", has(Tags.Items.INGOTS_IRON))
 				.save(output);
-		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(ModItems.SEED_BAG.get()))
+		ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, new ItemStack(AgriItems.SEED_BAG.get()))
 				.pattern(" s ")
 				.pattern("l l")
 				.pattern(" l ")
@@ -113,50 +112,50 @@ public class ModRecipeProvider extends RecipeProvider {
 				.pattern("ppp")
 				.pattern("ppp")
 				.pattern("ppp")
-				.define('p', ModItems.AMATHYLLIS_PETAL.get())
-				.unlockedBy("has_petal", has(ModItems.AMATHYLLIS_PETAL.get()))
+				.define('p', AgriItems.AMATHYLLIS_PETAL.get())
+				.unlockedBy("has_petal", has(AgriItems.AMATHYLLIS_PETAL.get()))
 				.save(output, ResourceLocation.parse("agricraft:amethyst_shard"));
 		ShapedRecipeBuilder.shaped(RecipeCategory.MISC, new ItemStack(Items.COAL))
 				.pattern("ppp")
 				.pattern("ppp")
 				.pattern("ppp")
-				.define('p', ModItems.COAL_PEBBLE.get())
-				.unlockedBy("has_pebble", has(ModItems.COAL_PEBBLE.get()))
+				.define('p', AgriItems.COAL_PEBBLE.get())
+				.unlockedBy("has_pebble", has(AgriItems.COAL_PEBBLE.get()))
 				.save(output, ResourceLocation.parse("agricraft:coal"));
 		ShapedRecipeBuilder.shaped(RecipeCategory.MISC, new ItemStack(Items.COPPER_INGOT))
 				.pattern("nnn")
 				.pattern("nnn")
 				.pattern("nnn")
-				.define('n', ModItems.COPPER_NUGGET.get())
-				.unlockedBy("has_nugget", has(ModItems.COPPER_NUGGET.get()))
+				.define('n', AgriItems.COPPER_NUGGET.get())
+				.unlockedBy("has_nugget", has(AgriItems.COPPER_NUGGET.get()))
 				.save(output, ResourceLocation.parse("agricraft:copper_ingot"));
 		ShapedRecipeBuilder.shaped(RecipeCategory.MISC, new ItemStack(Items.DIAMOND))
 				.pattern("sss")
 				.pattern("sss")
 				.pattern("sss")
-				.unlockedBy("has_shard", has(ModItems.DIAMOND_SHARD.get()))
-				.define('s', ModItems.DIAMOND_SHARD.get())
+				.unlockedBy("has_shard", has(AgriItems.DIAMOND_SHARD.get()))
+				.define('s', AgriItems.DIAMOND_SHARD.get())
 				.save(output, ResourceLocation.parse("agricraft:diamond"));
 		ShapedRecipeBuilder.shaped(RecipeCategory.MISC, new ItemStack(Items.EMERALD))
 				.pattern("sss")
 				.pattern("sss")
 				.pattern("sss")
-				.unlockedBy("has_shard", has(ModItems.EMERALD_SHARD.get()))
-				.define('s', ModItems.EMERALD_SHARD.get())
+				.unlockedBy("has_shard", has(AgriItems.EMERALD_SHARD.get()))
+				.define('s', AgriItems.EMERALD_SHARD.get())
 				.save(output, ResourceLocation.parse("agricraft:emerald"));
 		ShapedRecipeBuilder.shaped(RecipeCategory.MISC, new ItemStack(Items.NETHERITE_SCRAP))
 				.pattern("sss")
 				.pattern("sss")
 				.pattern("sss")
-				.unlockedBy("has_sliver", has(ModItems.NETHERITE_SLIVER.get()))
-				.define('s', ModItems.NETHERITE_SLIVER.get())
+				.unlockedBy("has_sliver", has(AgriItems.NETHERITE_SLIVER.get()))
+				.define('s', AgriItems.NETHERITE_SLIVER.get())
 				.save(output, ResourceLocation.parse("agricraft:netherite_scrap"));
 		ShapedRecipeBuilder.shaped(RecipeCategory.MISC, new ItemStack(Items.QUARTZ))
 				.pattern("sss")
 				.pattern("sss")
 				.pattern("sss")
-				.unlockedBy("has_shard", has(ModItems.QUARTZ_SHARD.get()))
-				.define('s', ModItems.QUARTZ_SHARD.get())
+				.unlockedBy("has_shard", has(AgriItems.QUARTZ_SHARD.get()))
+				.define('s', AgriItems.QUARTZ_SHARD.get())
 				.save(output, ResourceLocation.parse("agricraft:quartz"));
 	}
 

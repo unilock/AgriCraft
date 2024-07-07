@@ -1,6 +1,6 @@
 package com.agricraft.agricraft.datagen;
 
-import com.agricraft.agricraft.common.registry.ModItems;
+import com.agricraft.agricraft.common.registry.AgriItems;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.DataMapProvider;
@@ -18,7 +18,7 @@ public class ModDataMapsProvider extends DataMapProvider {
 
 	@Override
 	protected void gather() {
-		builder(NeoForgeDataMaps.COMPOSTABLES).add(ModItems.SEED, new Compostable(0.3f), false);
+		builder(NeoForgeDataMaps.COMPOSTABLES).add(AgriItems.SEED, new Compostable(0.3f), false);
 	}
 
 }

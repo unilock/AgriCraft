@@ -29,7 +29,7 @@ public class AgriSeedBEWLR extends BlockEntityWithoutLevelRenderer {
 	@Override
 	public void renderByItem(ItemStack stack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, MultiBufferSource buffer, int packedLight, int packedOverlay) {
 		String plant = AgriSeedItem.getSpecies(stack);
-		BakedModel seedModel = AgriClientApi.getSeedModel(plant);
+		BakedModel seedModel = AgriClientApi.get().getSeedModel(plant);
 		// render the item using the computed model
 		// https://gist.github.com/XFactHD/11ccae6a54da62909caf6d555cd4d8b9
 		ItemRenderer renderer = Minecraft.getInstance().getItemRenderer();

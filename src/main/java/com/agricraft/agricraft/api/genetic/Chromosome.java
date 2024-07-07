@@ -33,6 +33,10 @@ public class Chromosome<T> {
 		return this.gene;
 	}
 
+	public AgriGene<T> castGene(AgriGene<?> gene) {
+		return (AgriGene<T>) gene;
+	}
+
 	/**
 	 * @return The apparent trait resulting form the two alleles (by default this is the dominant allele)
 	 */

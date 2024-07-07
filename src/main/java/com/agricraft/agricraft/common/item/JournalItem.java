@@ -12,7 +12,7 @@ import com.agricraft.agricraft.common.item.journal.GrowthReqsPage;
 import com.agricraft.agricraft.common.item.journal.IntroductionPage;
 import com.agricraft.agricraft.common.item.journal.MutationsPage;
 import com.agricraft.agricraft.common.item.journal.PlantPage;
-import com.agricraft.agricraft.common.registry.ModDataComponentTypes;
+import com.agricraft.agricraft.common.registry.AgriDataComponents;
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -82,21 +82,21 @@ public class JournalItem extends Item {
 	}
 
 	public static void researchPlant(ItemStack journal, ResourceLocation plantId) {
-		Data data = journal.get(ModDataComponentTypes.JOURNAL_DATA.get());
+		Data data = journal.get(AgriDataComponents.JOURNAL_DATA.get());
 		if (data != null && !data.plants.contains(plantId)) {
-			journal.set(ModDataComponentTypes.JOURNAL_DATA, data.addPlant(plantId));
+			journal.set(AgriDataComponents.JOURNAL_DATA, data.addPlant(plantId));
 		}
 	}
 
 	@Override
 	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
-		Data data = stack.get(ModDataComponentTypes.JOURNAL_DATA);
+		Data data = stack.get(AgriDataComponents.JOURNAL_DATA);
 		int size = data == null ? 0 : data.getDiscoveredSeeds().size();
 		tooltipComponents.add(Component.translatable("agricraft.tooltip.journal", size).withStyle(ChatFormatting.GRAY));
 	}
 
 	public static JournalData getJournalData(ItemStack journal) {
-		return journal.get(ModDataComponentTypes.JOURNAL_DATA);
+		return journal.get(AgriDataComponents.JOURNAL_DATA);
 	}
 
 	public static class Data implements JournalData {
@@ -145,7 +145,7 @@ public class JournalItem extends Item {
 			this.pages.add(new GeneticsPage());
 			this.pages.add(new GrowthReqsPage());
 			for (ResourceLocation plant : this.plants) {
-				if (AgriApi.getPlant(plant).isEmpty()) {
+				if (AgriApi.get().getPlant(plant).isEmpty()) {
 					continue;
 				}
 				PlantPage plantPage = new PlantPage(plant, plants);
@@ -164,6 +164,7 @@ public class JournalItem extends Item {
 					}
 				}
 			}
+			// TODO: @Ketheroth send modify page event
 		}
 
 		@Override

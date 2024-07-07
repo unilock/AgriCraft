@@ -1,26 +1,14 @@
 package com.agricraft.agricraft;
 
 import com.agricraft.agricraft.api.AgriApi;
-import com.agricraft.agricraft.api.codecs.AgriMutation;
-import com.agricraft.agricraft.api.codecs.AgriSoil;
+import com.agricraft.agricraft.common.adapter.FertilizerAdapter;
+import com.agricraft.agricraft.common.adapter.GenomeAdapter;
 import com.agricraft.agricraft.api.config.AgriCraftConfig;
-import com.agricraft.agricraft.api.fertilizer.AgriFertilizer;
-import com.agricraft.agricraft.api.genetic.AgriGenes;
-import com.agricraft.agricraft.api.plant.AgriPlant;
-import com.agricraft.agricraft.api.plant.AgriWeed;
-import com.agricraft.agricraft.api.stat.AgriStats;
 import com.agricraft.agricraft.common.commands.DumpRegistriesCommand;
 import com.agricraft.agricraft.common.commands.GiveSeedCommand;
 import com.agricraft.agricraft.common.handler.VanillaSeedConversion;
+import com.agricraft.agricraft.common.registry.AgriRegistries;
 import com.agricraft.agricraft.compat.sereneseason.SereneSeasonPlugin;
-import com.agricraft.agricraft.common.registry.ModBlockEntityTypes;
-import com.agricraft.agricraft.common.registry.ModBlocks;
-import com.agricraft.agricraft.common.registry.ModCreativeTabs;
-import com.agricraft.agricraft.common.registry.ModDataComponentTypes;
-import com.agricraft.agricraft.common.registry.ModItems;
-import com.agricraft.agricraft.common.registry.ModMenus;
-import com.agricraft.agricraft.common.registry.ModRecipeSerializers;
-import com.agricraft.agricraft.plugin.minecraft.MinecraftPlugin;
 import com.mojang.logging.LogUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackLocationInfo;
@@ -44,7 +32,6 @@ import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 import net.neoforged.neoforgespi.language.IModFileInfo;
 import net.neoforged.neoforgespi.language.IModInfo;
 import org.slf4j.Logger;
@@ -59,18 +46,10 @@ public class AgriCraft {
 	public static final Logger LOGGER = LogUtils.getLogger();
 
 	public AgriCraft(IEventBus bus, ModContainer modContainer) {
-		AgriStats.STATS.register(bus);
-		AgriGenes.GENES.register(bus);
-		ModDataComponentTypes.DATA_COMPONENTS.register(bus);
-		ModBlocks.BLOCKS.register(bus);
-		ModItems.ITEMS.register(bus);
-		ModBlockEntityTypes.BLOCK_ENTITY_TYPES.register(bus);
-		ModCreativeTabs.CREATIVE_MODE_TAB.register(bus);
-		ModMenus.MENUS.register(bus);
-		ModRecipeSerializers.RECIPE_SERIALIZERS.register(bus);
+		AgriRegistries.register(bus);
+		AgriApi.set(new AgriApiImpl());
 		LOGGER.info("Intializing API for " + AgriApi.MOD_ID);
 		bus.addListener(AgriCraft::onCommonSetup);
-		bus.addListener(AgriCraft::onRegisterDatapackRegistry);
 		bus.addListener(AgriCraft::onAddPackFinders);
 		NeoForge.EVENT_BUS.addListener(AgriCraft::onRegisterCommands);
 		NeoForge.EVENT_BUS.addListener(AgriCraft::onRightClick);
@@ -78,18 +57,9 @@ public class AgriCraft {
 	}
 
 	public static void onCommonSetup(FMLCommonSetupEvent event) {
-		MinecraftPlugin.init();
 		if (ModList.get().isLoaded(SereneSeasonPlugin.ID)) {
 			SereneSeasonPlugin.init();
 		}
-	}
-
-	public static void onRegisterDatapackRegistry(DataPackRegistryEvent.NewRegistry event) {
-		event.dataPackRegistry(AgriApi.AGRIPLANTS, AgriPlant.CODEC, AgriPlant.CODEC);
-		event.dataPackRegistry(AgriApi.AGRIWEEDS, AgriWeed.CODEC, AgriWeed.CODEC);
-		event.dataPackRegistry(AgriApi.AGRISOILS, AgriSoil.CODEC, AgriSoil.CODEC);
-		event.dataPackRegistry(AgriApi.AGRIMUTATIONS, AgriMutation.CODEC, AgriMutation.CODEC);
-		event.dataPackRegistry(AgriApi.AGRIFERTILIZERS, AgriFertilizer.CODEC, AgriFertilizer.CODEC);
 	}
 
 	public static void onRegisterCommands(RegisterCommandsEvent event) {

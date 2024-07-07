@@ -14,7 +14,7 @@ public class FertilizersDatagen {
 
 	private static void mc(BootstrapContext<AgriFertilizer> context, String fertilizerId, AgriFertilizer fertilizer) {
 		context.register(
-				ResourceKey.create(AgriApi.AGRIFERTILIZERS, ResourceLocation.withDefaultNamespace(fertilizerId)),
+				ResourceKey.create(AgriFertilizer.REGISTRY_KEY, ResourceLocation.withDefaultNamespace(fertilizerId)),
 				fertilizer
 		);
 	}

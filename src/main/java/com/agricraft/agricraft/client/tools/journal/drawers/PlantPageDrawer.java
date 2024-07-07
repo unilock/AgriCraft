@@ -8,7 +8,7 @@ import com.agricraft.agricraft.api.tools.journal.JournalData;
 import com.agricraft.agricraft.api.tools.journal.JournalPageDrawer;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
 import com.agricraft.agricraft.common.item.journal.PlantPage;
-import com.agricraft.agricraft.common.util.LangUtils;
+import com.agricraft.agricraft.api.LangUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -30,7 +30,7 @@ public class PlantPageDrawer implements JournalPageDrawer<PlantPage> {
 		Font font = Minecraft.getInstance().font;
 		// Title
 		guiGraphics.blit(GUI_COMPONENTS, pageX + 4, pageY + 9, 0, 56, 128, 20, 128, 128);
-		String plantId = AgriApi.getPlantId(page.getPlant()).map(ResourceLocation::toString).orElse("");
+		String plantId = page.getPlant().getId().map(ResourceLocation::toString).orElse("");
 		Component plantName = LangUtils.plantName(plantId);
 		Component seedName = LangUtils.seedName(plantId);
 		int titleWidth = font.width(plantName);
@@ -85,7 +85,7 @@ public class PlantPageDrawer implements JournalPageDrawer<PlantPage> {
 		}
 		dy += 9;
 		// Seasons
-		if (AgriApi.getSeasonLogic().isActive()) {
+		if (AgriApi.get().getSeasonLogic().isActive()) {
 			for (int i = 0; i < page.seasonMask().length; i++) {
 				int x = pageX + 75 + i % 2 * 12;
 				int y = (int) (dy + 6 + i / 2 * 12);
@@ -143,9 +143,9 @@ public class PlantPageDrawer implements JournalPageDrawer<PlantPage> {
 		this.drawScaledText(guiGraphics, MUTATIONS, pageX + 10, pageY + 15, 0.80F);
 		for (List<ResourceLocation> plants : page.getMutationsOnPage()) {
 			guiGraphics.blit(GUI_COMPONENTS, pageX + 10, pageY + 24, 0, 76, 86, 18, 128, 128);
-			TextureAtlasSprite parent1 = AgriClientApi.getPlantModel(plants.get(0), AgriApi.getPlant(plants.get(0)).map(plant -> plant.getInitialGrowthStage().total() - 1).orElse(0)).getParticleIcon();
-			TextureAtlasSprite parent2 = AgriClientApi.getPlantModel(plants.get(1), AgriApi.getPlant(plants.get(1)).map(plant -> plant.getInitialGrowthStage().total() - 1).orElse(0)).getParticleIcon();
-			TextureAtlasSprite child = AgriClientApi.getPlantModel(plants.get(2), AgriApi.getPlant(plants.get(2)).map(plant -> plant.getInitialGrowthStage().total() - 1).orElse(0)).getParticleIcon();
+			TextureAtlasSprite parent1 = AgriClientApi.get().getPlantModel(plants.get(0), AgriApi.get().getPlant(plants.get(0)).map(plant -> plant.getInitialGrowthStage().total() - 1).orElse(0)).getParticleIcon();
+			TextureAtlasSprite parent2 = AgriClientApi.get().getPlantModel(plants.get(1), AgriApi.get().getPlant(plants.get(1)).map(plant -> plant.getInitialGrowthStage().total() - 1).orElse(0)).getParticleIcon();
+			TextureAtlasSprite child = AgriClientApi.get().getPlantModel(plants.get(2), AgriApi.get().getPlant(plants.get(2)).map(plant -> plant.getInitialGrowthStage().total() - 1).orElse(0)).getParticleIcon();
 			guiGraphics.blit(pageX + 11, pageY + 25, 1, 16, 16, parent1);
 			guiGraphics.blit(pageX + 45, pageY + 25, 1, 16, 16, parent2);
 			guiGraphics.blit(pageX + 79, pageY + 25, 1, 16, 16, child);
@@ -156,7 +156,7 @@ public class PlantPageDrawer implements JournalPageDrawer<PlantPage> {
 	@Override
 	public void drawLeftTooltip(GuiGraphics guiGraphics, PlantPage page, int pageX, int pageY, int mouseX, int mouseY) {
 		Font font = Minecraft.getInstance().font;
-		String plantId = AgriApi.getPlantId(page.getPlant()).map(ResourceLocation::toString).orElse("");
+		String plantId = page.getPlant().getId().map(ResourceLocation::toString).orElse("");
 		Component plantName = LangUtils.plantName(plantId);
 		Component plantDescription = LangUtils.plantDescription(plantId);
 		// seed item
@@ -182,7 +182,7 @@ public class PlantPageDrawer implements JournalPageDrawer<PlantPage> {
 		}
 		dy += 9;
 		// Seasons
-		if (AgriApi.getSeasonLogic().isActive()) {
+		if (AgriApi.get().getSeasonLogic().isActive()) {
 			for (int i = 0; i < page.seasonMask().length; i++) {
 				int x = 75 + i % 2 * 12;
 				int y = (int) (dy + 6 + i / 2 * 12);

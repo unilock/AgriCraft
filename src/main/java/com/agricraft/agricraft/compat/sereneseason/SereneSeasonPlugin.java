@@ -12,7 +12,7 @@ public class SereneSeasonPlugin {
 	public static String ID = "sereneseasons";
 
 	public static void init() {
-		AgriApi.getSeasonLogic().claim(SereneSeasonPlugin.class, (level, pos) -> {
+		AgriApi.get().getSeasonLogic().claim(SereneSeasonPlugin.class, (level, pos) -> {
 			// Serene Seasons cave stuff
 			if (ModConfig.fertility.undergroundFertilityLevel > -1
 					&& pos.getY() < ModConfig.fertility.undergroundFertilityLevel) {

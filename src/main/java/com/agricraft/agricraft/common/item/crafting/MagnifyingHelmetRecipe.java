@@ -1,13 +1,11 @@
 package com.agricraft.agricraft.common.item.crafting;
 
-import com.agricraft.agricraft.common.registry.ModDataComponentTypes;
-import com.agricraft.agricraft.common.registry.ModItems;
-import com.agricraft.agricraft.common.registry.ModRecipeSerializers;
+import com.agricraft.agricraft.common.registry.AgriDataComponents;
+import com.agricraft.agricraft.common.registry.AgriItems;
+import com.agricraft.agricraft.common.registry.AgriRecipeSerializers;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.util.Unit;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -33,13 +31,13 @@ public class MagnifyingHelmetRecipe extends CustomRecipe {
 		boolean glass = false;
 		for (int i = 0; i < container.size(); i++) {
 			ItemStack itemStack = container.getItem(i);
-			if (itemStack.getItem() instanceof ArmorItem armorItem && armorItem.getEquipmentSlot() == EquipmentSlot.HEAD && !itemStack.has(ModDataComponentTypes.MAGNIFYING)) {
+			if (itemStack.getItem() instanceof ArmorItem armorItem && armorItem.getEquipmentSlot() == EquipmentSlot.HEAD && !itemStack.has(AgriDataComponents.MAGNIFYING)) {
 				if (helmet) {
 					return false;
 				} else {
 					helmet = true;
 				}
-			} else if (itemStack.is(ModItems.MAGNIFYING_GLASS.get())) {
+			} else if (itemStack.is(AgriItems.MAGNIFYING_GLASS.get())) {
 				if (glass) {
 					return false;
 				} else {
@@ -58,13 +56,13 @@ public class MagnifyingHelmetRecipe extends CustomRecipe {
 			ItemStack itemStack = container.getItem(i);
 			if (itemStack.getItem() instanceof ArmorItem armorItem && armorItem.getEquipmentSlot() == EquipmentSlot.HEAD) {
 				helmet = itemStack;
-			} else if (itemStack.is(ModItems.MAGNIFYING_GLASS.get())) {
+			} else if (itemStack.is(AgriItems.MAGNIFYING_GLASS.get())) {
 				glass = itemStack;
 			}
 		}
 		if (helmet != null && glass != null) {
 			ItemStack copy = helmet.copy();
-			copy.set(ModDataComponentTypes.MAGNIFYING, Unit.INSTANCE);
+			copy.set(AgriDataComponents.MAGNIFYING, Unit.INSTANCE);
 			return copy;
 		}
 		return ItemStack.EMPTY;
@@ -78,7 +76,7 @@ public class MagnifyingHelmetRecipe extends CustomRecipe {
 	@NotNull
 	@Override
 	public RecipeSerializer<?> getSerializer() {
-		return ModRecipeSerializers.MAGNIFYING_HELMET.get();
+		return AgriRecipeSerializers.MAGNIFYING_HELMET.get();
 	}
 
 }

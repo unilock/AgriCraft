@@ -5,10 +5,9 @@ import com.agricraft.agricraft.api.config.AgriCraftConfig;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.crop.AgriGrowthStage;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
-import com.agricraft.agricraft.api.genetic.AgriGenomeProviderItem;
 import com.agricraft.agricraft.common.block.CropBlock;
-import com.agricraft.agricraft.common.registry.ModBlocks;
-import com.agricraft.agricraft.common.registry.ModDataComponentTypes;
+import com.agricraft.agricraft.common.registry.AgriBlocks;
+import com.agricraft.agricraft.common.registry.AgriDataComponents;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
@@ -31,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public class TrowelItem extends Item implements AgriGenomeProviderItem {
+public class TrowelItem extends Item {
 
 	public TrowelItem(Properties properties) {
 		super(properties);
@@ -39,7 +38,7 @@ public class TrowelItem extends Item implements AgriGenomeProviderItem {
 
 	@Override
 	public InteractionResult useOn(UseOnContext context) {
-		return AgriApi.getCrop(context.getLevel(), context.getClickedPos())
+		return AgriApi.get().getCrop(context.getLevel(), context.getClickedPos())
 				.map(crop -> tryUseOnCrop(crop, context.getItemInHand(), context.getPlayer()))
 				.orElseGet(() -> tryPlantOnSoil(context.getLevel(), context.getClickedPos(), context.getItemInHand(), context.getPlayer()));
 	}
@@ -89,12 +88,14 @@ public class TrowelItem extends Item implements AgriGenomeProviderItem {
 		}
 		if (this.hasPlant(stack)) {
 			if (crop.hasCropSticks()) {
-				this.getGenome(stack).ifPresent(genome ->
-						this.getGrowthStage(stack).ifPresent(growth -> {
-							this.removePlant(stack);
-							crop.plantGenome(genome, player);
-							crop.setGrowthStage(growth);
-						}));
+				AgriGenome genome = stack.get(AgriDataComponents.GENOME);
+				if (genome != null) {
+					this.getGrowthStage(stack).ifPresent(growth -> {
+						this.removePlant(stack);
+						crop.plantGenome(genome, player);
+						crop.setGrowthStage(growth);
+					});
+				}
 			}
 			return InteractionResult.SUCCESS;
 		} else {
@@ -107,7 +108,7 @@ public class TrowelItem extends Item implements AgriGenomeProviderItem {
 
 	protected InteractionResult tryPlantOnSoil(Level level, BlockPos pos, ItemStack stack, Player player) {
 		if (this.hasPlant(stack)) {
-			return AgriApi.getCrop(level, pos.above())
+			return AgriApi.get().getCrop(level, pos.above())
 					.map(crop -> this.tryPlantOnCropSticks(crop, stack, player))
 					.orElseGet(() -> this.tryNewPlant(level, pos.above(), stack, player));
 		}
@@ -116,17 +117,21 @@ public class TrowelItem extends Item implements AgriGenomeProviderItem {
 
 	protected InteractionResult tryNewPlant(Level world, BlockPos pos, ItemStack stack, @Nullable Player player) {
 		if (AgriCraftConfig.PLANT_OFF_CROP_STICKS.get()) {
-			CropBlock cropBlock = ModBlocks.CROP.get();
+			CropBlock cropBlock = AgriBlocks.CROP.get();
 			BlockState newState = cropBlock.blockStatePlant(cropBlock.defaultBlockState());
 			if (world.setBlock(pos, newState, 3)) {
-				boolean success = AgriApi.getCrop(world, pos).map(crop -> this.getGenome(stack).map(genome ->
-								this.getGrowthStage(stack).map(stage -> {
-									crop.plantGenome(genome, player);
-									crop.setGrowthStage(stage);
-									this.removePlant(stack);
-									return true;
-								}).orElse(false))
-						.orElse(false)).orElse(false);
+				boolean success = AgriApi.get().getCrop(world, pos).map(crop -> {
+					AgriGenome genome = stack.get(AgriDataComponents.GENOME);
+					if (genome != null) {
+						return this.getGrowthStage(stack).map(stage -> {
+							crop.plantGenome(genome, player);
+							crop.setGrowthStage(stage);
+							this.removePlant(stack);
+							return true;
+						}).orElse(false);
+					}
+					return false;
+				}).orElse(false);
 				if (success) {
 					return InteractionResult.SUCCESS;
 				} else {
@@ -141,21 +146,21 @@ public class TrowelItem extends Item implements AgriGenomeProviderItem {
 		if (this.hasPlant(stack)) {
 			return;
 		}
-		stack.set(ModDataComponentTypes.GENOME, genome);
-		stack.set(ModDataComponentTypes.TROWEL_DATA, new TrowelData(stage.index(), stage.total()));
+		stack.set(AgriDataComponents.GENOME, genome);
+		stack.set(AgriDataComponents.TROWEL_DATA, new TrowelData(stage.index(), stage.total()));
 	}
 
 	public void removePlant(ItemStack stack) {
-		stack.remove(ModDataComponentTypes.GENOME);
-		stack.remove(ModDataComponentTypes.TROWEL_DATA);
+		stack.remove(AgriDataComponents.GENOME);
+		stack.remove(AgriDataComponents.TROWEL_DATA);
 	}
 
 	public boolean hasPlant(ItemStack itemStack) {
-		return itemStack.has(ModDataComponentTypes.GENOME);
+		return itemStack.has(AgriDataComponents.GENOME);
 	}
 
 	public Optional<AgriGrowthStage> getGrowthStage(ItemStack stack) {
-		TrowelData data = stack.get(ModDataComponentTypes.TROWEL_DATA);
+		TrowelData data = stack.get(AgriDataComponents.TROWEL_DATA);
 		if (data != null) {
 			return Optional.of(new AgriGrowthStage(data.index, data.total));
 		}
@@ -165,7 +170,7 @@ public class TrowelItem extends Item implements AgriGenomeProviderItem {
 	@Override
 	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
 		tooltipComponents.add(Component.translatable("agricraft.tooltip.trowel").withStyle(ChatFormatting.DARK_GRAY));
-		AgriGenome genome = stack.get(ModDataComponentTypes.GENOME);
+		AgriGenome genome = stack.get(AgriDataComponents.GENOME);
 		if (genome != null) {
 			genome.appendHoverText(tooltipComponents, TooltipFlag.ADVANCED);
 		}

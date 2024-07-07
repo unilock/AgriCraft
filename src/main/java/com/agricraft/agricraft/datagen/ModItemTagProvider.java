@@ -1,6 +1,6 @@
 package com.agricraft.agricraft.datagen;
 
-import com.agricraft.agricraft.common.registry.ModItems;
+import com.agricraft.agricraft.common.registry.AgriItems;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
@@ -22,14 +22,14 @@ public class ModItemTagProvider extends ItemTagsProvider {
 
 	@Override
 	protected void addTags(HolderLookup.Provider provider) {
-		this.tag(Tags.Items.SEEDS).add(ModItems.SEED.get());
-		this.tag(tag("nuggets/coal")).add(ModItems.COAL_PEBBLE.get());
-		this.tag(tag("nuggets/copper")).add(ModItems.COPPER_NUGGET.get());
-		this.tag(tag("nuggets/diamond")).add(ModItems.DIAMOND_SHARD.get());
-		this.tag(tag("nuggets/emerald")).add(ModItems.EMERALD_SHARD.get());
-		this.tag(tag("nuggets/quartz")).add(ModItems.QUARTZ_SHARD.get());
+		this.tag(Tags.Items.SEEDS).add(AgriItems.SEED.get());
+		this.tag(tag("nuggets/coal")).add(AgriItems.COAL_PEBBLE.get());
+		this.tag(tag("nuggets/copper")).add(AgriItems.COPPER_NUGGET.get());
+		this.tag(tag("nuggets/diamond")).add(AgriItems.DIAMOND_SHARD.get());
+		this.tag(tag("nuggets/emerald")).add(AgriItems.EMERALD_SHARD.get());
+		this.tag(tag("nuggets/quartz")).add(AgriItems.QUARTZ_SHARD.get());
 		this.tag(Tags.Items.NUGGETS).addTags(tag("nuggets/coal"), tag("nuggets/copper"), tag("nuggets/diamond"), tag("nuggets/emerald"), tag("nuggets/quartz"));
-		this.tag(ItemTags.CHICKEN_FOOD).add(ModItems.SEED.get());
+		this.tag(ItemTags.CHICKEN_FOOD).add(AgriItems.SEED.get());
 	}
 
 	private static TagKey<Item> tag(String path) {

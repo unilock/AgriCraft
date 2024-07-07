@@ -6,8 +6,8 @@ import com.agricraft.agricraft.common.block.SeedAnalyzerBlock;
 import com.agricraft.agricraft.common.block.entity.SeedAnalyzerBlockEntity;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
 import com.agricraft.agricraft.common.item.JournalItem;
-import com.agricraft.agricraft.common.registry.ModDataComponentTypes;
-import com.agricraft.agricraft.common.registry.ModMenus;
+import com.agricraft.agricraft.common.registry.AgriDataComponents;
+import com.agricraft.agricraft.common.registry.AgriMenuTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -26,7 +26,7 @@ public class SeedAnalyzerMenu extends AbstractContainerMenu {
 	private final SeedAnalyzerBlockEntity analyzer;
 
 	public SeedAnalyzerMenu(int id, Inventory playerInventory, Player player, BlockPos pos) {
-		super(ModMenus.SEED_ANALYZER_MENU.get(), id);
+		super(AgriMenuTypes.SEED_ANALYZER_MENU.get(), id);
 		this.pos = pos;
 		this.analyzer = ((SeedAnalyzerBlockEntity) player.level().getBlockEntity(pos));
 		this.addSlot(new Slot(this.analyzer.getInventory(), SeedAnalyzerBlockEntity.SEED_SLOT, 26, 38) {
@@ -34,7 +34,7 @@ public class SeedAnalyzerMenu extends AbstractContainerMenu {
 			public void set(ItemStack stack) {
 				if (!(stack.getItem() instanceof AgriSeedItem)) {
 					ItemStack finalStack = stack;  // lambda :(
-					stack = AgriApi.getPlantRegistry().flatMap(registry -> registry.stream().filter(plant -> plant.isSeedItem(finalStack)).findFirst())
+					stack = AgriApi.get().getPlantRegistry().flatMap(registry -> registry.stream().filter(plant -> plant.isSeedItem(finalStack)).findFirst())
 							.map(AgriSeedItem::toStack)
 							.orElse(stack);
 				}
@@ -48,7 +48,7 @@ public class SeedAnalyzerMenu extends AbstractContainerMenu {
 
 			@Override
 			public boolean mayPlace(ItemStack stack) {
-				return stack.getItem() instanceof AgriSeedItem || AgriApi.getPlantRegistry().map(registry -> registry.stream().anyMatch(plant-> plant.isSeedItem(stack))).orElse(false);
+				return stack.getItem() instanceof AgriSeedItem || AgriApi.get().getPlantRegistry().map(registry -> registry.stream().anyMatch(plant-> plant.isSeedItem(stack))).orElse(false);
 			}
 		});
 		this.addSlot(new Slot(this.analyzer.getInventory(), SeedAnalyzerBlockEntity.JOURNAL_SLOT, 26, 71) {
@@ -125,7 +125,7 @@ public class SeedAnalyzerMenu extends AbstractContainerMenu {
 		if (seed.isEmpty()) {
 			return Optional.empty();
 		}
-		AgriGenome genome = seed.get(ModDataComponentTypes.GENOME);
+		AgriGenome genome = seed.get(AgriDataComponents.GENOME);
 		return Optional.ofNullable(genome);
 	}
 
@@ -137,11 +137,6 @@ public class SeedAnalyzerMenu extends AbstractContainerMenu {
 	@Override
 	public void removed(Player pPlayer) {
 		super.removed(pPlayer);
-		// TODO: @ketheroth update blockstate when menu is closed
-//		if (this.analyzer.hasJournal()) {
-//
-//		}
-		System.out.println(this.analyzer.hasJournal());
 		BlockState state = analyzer.getBlockState().setValue(SeedAnalyzerBlock.JOURNAL, this.analyzer.hasJournal());
 		pPlayer.level().setBlock(pos, state, Block.UPDATE_ALL);
 		analyzer.setChanged();

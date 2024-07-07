@@ -1,7 +1,7 @@
-package com.agricraft.agricraft.api.adapter;
+package com.agricraft.agricraft.common.adapter;
 
 import com.agricraft.agricraft.api.AgriApi;
-import com.agricraft.agricraft.api.fertilizer.AgriFertilizer;
+import com.agricraft.agricraft.api.adapter.AgriAdapter;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
@@ -9,7 +9,7 @@ import net.minecraft.world.level.ItemLike;
 import java.util.Optional;
 
 // TODO: @Ketheroth move to minecraft plugin
-public class FertilizerAdapter implements AgriAdapter<AgriFertilizer> {
+public class GenomeAdapter implements AgriAdapter<AgriGenome> {
 
 	@Override
 	public boolean accepts(Object obj) {
@@ -23,7 +23,7 @@ public class FertilizerAdapter implements AgriAdapter<AgriFertilizer> {
 	}
 
 	@Override
-	public Optional<AgriFertilizer> valueOf(Object obj) {
+	public Optional<AgriGenome> valueOf(Object obj) {
 		if (obj instanceof ItemLike itemLike) {
 			return valueOf(new ItemStack(itemLike));
 		}
@@ -34,15 +34,14 @@ public class FertilizerAdapter implements AgriAdapter<AgriFertilizer> {
 	}
 
 	public boolean match(ItemStack itemStack) {
-		return AgriApi.getFertilizerRegistry().map(registry -> registry.stream()
-				.flatMap(fertilizer -> fertilizer.variants().stream())
-				.anyMatch(seed -> seed.isVariant(itemStack))).orElse(false);
+		return AgriApi.get().getPlantRegistry().map(registry -> registry.stream().anyMatch(seed -> seed.isSeedItem(itemStack))).orElse(false);
 	}
 
-	public Optional<AgriFertilizer> convert(ItemStack itemStack) {
-		return AgriApi.getFertilizerRegistry().flatMap(registry -> registry.stream()
-				.filter(fertilizer -> fertilizer.variants().stream().anyMatch(variant -> variant.isVariant(itemStack)))
-				.findFirst());
+	public Optional<AgriGenome> convert(ItemStack itemStack) {
+		return AgriApi.get().getPlantRegistry().flatMap(registry -> registry.stream()
+				.filter(plant -> plant.isSeedItem(itemStack))
+				.findFirst()
+				.map(AgriGenome::new));
 
 	}
 

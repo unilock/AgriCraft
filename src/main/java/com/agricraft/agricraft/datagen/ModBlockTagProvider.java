@@ -1,7 +1,6 @@
 package com.agricraft.agricraft.datagen;
 
-import com.agricraft.agricraft.api.AgriApi;
-import com.agricraft.agricraft.common.registry.ModBlocks;
+import com.agricraft.agricraft.common.registry.AgriBlocks;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
@@ -19,7 +18,7 @@ public class ModBlockTagProvider extends BlockTagsProvider {
 
 	@Override
 	protected void addTags(HolderLookup.Provider provider) {
-		this.tag(BlockTags.MAINTAINS_FARMLAND).add(ModBlocks.CROP.get());
+		this.tag(BlockTags.MAINTAINS_FARMLAND).add(AgriBlocks.CROP.get());
 	}
 
 }

@@ -1,6 +1,11 @@
 package com.agricraft.agricraft.datagen;
 
 import com.agricraft.agricraft.api.AgriApi;
+import com.agricraft.agricraft.api.codecs.AgriMutation;
+import com.agricraft.agricraft.api.codecs.AgriSoil;
+import com.agricraft.agricraft.api.fertilizer.AgriFertilizer;
+import com.agricraft.agricraft.api.plant.AgriPlant;
+import com.agricraft.agricraft.api.plant.AgriWeed;
 import net.minecraft.DetectedVersion;
 import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.data.DataGenerator;
@@ -52,11 +57,11 @@ public class DatagenEventHandler {
 						event.getLookupProvider(),
 						// The objects to generate
 						new RegistrySetBuilder()
-								.add(AgriApi.AGRIPLANTS, PlantsDatagen::registerPlants)
-								.add(AgriApi.AGRISOILS, SoilsDatagen::registerSoils)
-								.add(AgriApi.AGRIMUTATIONS, MutationsDatagen::registerMutations)
-								.add(AgriApi.AGRIFERTILIZERS, FertilizersDatagen::registerFertilizers)
-								.add(AgriApi.AGRIWEEDS, WeedsDatagen::registerWeeds),
+								.add(AgriPlant.REGISTRY_KEY, PlantsDatagen::registerPlants)
+								.add(AgriSoil.REGISTRY_KEY, SoilsDatagen::registerSoils)
+								.add(AgriMutation.REGISTRY_KEY, MutationsDatagen::registerMutations)
+								.add(AgriFertilizer.REGISTRY_KEY, FertilizersDatagen::registerFertilizers)
+								.add(AgriWeed.REGISTRY_KEY, WeedsDatagen::registerWeeds),
 						// Generate dynamic registry objects for this mod
 						Set.of("minecraft", AgriApi.MOD_ID)
 				)
@@ -68,13 +73,13 @@ public class DatagenEventHandler {
 		addProvider("agricraft", "weed", ModelsDatagen::registerAgricraftWeed, BlockModelBuilder::new, event.getGenerator(), event.getExistingFileHelper(), event.includeClient());
 
 		if (biomesoplenty) {
-			addExtraDataPackProvider("biomesoplenty", new RegistrySetBuilder().add(AgriApi.AGRIPLANTS, PlantsDatagen::registerBiomesOPlenty).add(AgriApi.AGRIMUTATIONS, MutationsDatagen::registerBiomesOPlenty), ModelsDatagen::registerBiomesOPlentyPlant, ModelsDatagen::registerBiomesOPlentySeed, LangDatagen::biomesoplenty, event);
+			addExtraDataPackProvider("biomesoplenty", new RegistrySetBuilder().add(AgriPlant.REGISTRY_KEY, PlantsDatagen::registerBiomesOPlenty).add(AgriMutation.REGISTRY_KEY, MutationsDatagen::registerBiomesOPlenty), ModelsDatagen::registerBiomesOPlentyPlant, ModelsDatagen::registerBiomesOPlentySeed, LangDatagen::biomesoplenty, event);
 		}
 		if (immersiveengineering) {
-			addExtraDataPackProvider("immersiveengineering", new RegistrySetBuilder().add(AgriApi.AGRIPLANTS, PlantsDatagen::registerImmersiveEngineering).add(AgriApi.AGRIMUTATIONS, MutationsDatagen::registerImmersiveEngineering), ModelsDatagen::registerImmersiveEngineeringPlant, ModelsDatagen::registerImmersiveEngineeringSeed, LangDatagen::immersiveengineering, event);
+			addExtraDataPackProvider("immersiveengineering", new RegistrySetBuilder().add(AgriPlant.REGISTRY_KEY, PlantsDatagen::registerImmersiveEngineering).add(AgriMutation.REGISTRY_KEY, MutationsDatagen::registerImmersiveEngineering), ModelsDatagen::registerImmersiveEngineeringPlant, ModelsDatagen::registerImmersiveEngineeringSeed, LangDatagen::immersiveengineering, event);
 		}
 		if (pamhc2crops) {
-			addExtraDataPackProvider("pamhc2crops", new RegistrySetBuilder().add(AgriApi.AGRIPLANTS, PlantsDatagen::registerPamsHarvestCraft2).add(AgriApi.AGRIMUTATIONS, MutationsDatagen::registerPamsHarvestCraft2), ModelsDatagen::registerPamsHarvestCraft2Plant, ModelsDatagen::registerPamsHarvestCraft2Seed, LangDatagen::pamhc2crops, event);
+			addExtraDataPackProvider("pamhc2crops", new RegistrySetBuilder().add(AgriPlant.REGISTRY_KEY, PlantsDatagen::registerPamsHarvestCraft2).add(AgriMutation.REGISTRY_KEY, MutationsDatagen::registerPamsHarvestCraft2), ModelsDatagen::registerPamsHarvestCraft2Plant, ModelsDatagen::registerPamsHarvestCraft2Seed, LangDatagen::pamhc2crops, event);
 		}
 
 	}

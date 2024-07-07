@@ -33,22 +33,22 @@ public class DumpRegistriesCommand {
 
 	public static int dumpPlants() {
 		System.out.println("Plants:");
-		AgriApi.getPlantRegistry().ifPresent(registry -> registry.keySet().forEach(System.out::println));
+		AgriApi.get().getPlantRegistry().ifPresent(registry -> registry.keySet().forEach(System.out::println));
 		return 1;
 	}
 	public static int dumpSoils() {
 		System.out.println("Soils:");
-		AgriApi.getSoilRegistry().ifPresent(registry -> registry.keySet().forEach(System.out::println));
+		AgriApi.get().getSoilRegistry().ifPresent(registry -> registry.keySet().forEach(System.out::println));
 		return 1;
 	}
 	public static int dumpMutations() {
 		System.out.println("Mutations:");
-		AgriApi.getMutationRegistry().ifPresent(registry -> registry.keySet().forEach(System.out::println));
+		AgriApi.get().getMutationRegistry().ifPresent(registry -> registry.keySet().forEach(System.out::println));
 		return 1;
 	}
 	public static int dumpFertilizers() {
 		System.out.println("Fertilizers:");
-		AgriApi.getFertilizerRegistry().ifPresent(registry -> registry.keySet().forEach(System.out::println));
+		AgriApi.get().getFertilizerRegistry().ifPresent(registry -> registry.keySet().forEach(System.out::println));
 		return 1;
 	}
 

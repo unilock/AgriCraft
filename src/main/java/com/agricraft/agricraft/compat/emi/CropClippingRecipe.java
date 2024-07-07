@@ -4,7 +4,7 @@ import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.AgriClientApi;
 import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
-import com.agricraft.agricraft.common.util.LangUtils;
+import com.agricraft.agricraft.api.LangUtils;
 import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.render.EmiTexture;
@@ -71,15 +71,15 @@ public class CropClippingRecipe implements EmiRecipe {
 		widgets.addTexture(BACKGROUND, 0, 0);
 		widgets.addSlot(input.get(0), 15, 8);
 		widgets.addDrawable(16, 49, 16, 16, (draw, mouseX, mouseY, delta) -> {
-			Optional<ResourceLocation> optional = AgriApi.getPlantId(plant);
+			Optional<ResourceLocation> optional = plant.getId();
 			if (optional.isPresent()) {
 				ResourceLocation plantId = optional.get();
 				// get the model for the last growth stage and use the particle texture (that is also the crop texture) to render in emi
-				draw.blit(0, 0, 0, 16, 16, AgriClientApi.getPlantModel(plantId.toString(), plant.getInitialGrowthStage().total() - 1).getParticleIcon());
+				draw.blit(0, 0, 0, 16, 16, AgriClientApi.get().getPlantModel(plantId.toString(), plant.getInitialGrowthStage().total() - 1).getParticleIcon());
 			}
 		});
 		ArrayList<Component> list = new ArrayList<>();
-		AgriApi.getPlantId(plant).map(ResourceLocation::toString).ifPresent(id -> {
+		plant.getId().map(ResourceLocation::toString).ifPresent(id -> {
 			list.add(LangUtils.plantName(id));
 			Component desc = LangUtils.plantDescription(id);
 			if (desc != null) {

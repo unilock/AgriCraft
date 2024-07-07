@@ -2,11 +2,11 @@ package com.agricraft.agricraft.client.tools.journal.drawers;
 
 import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.config.AgriCraftConfig;
-import com.agricraft.agricraft.api.stat.AgriStats;
+import com.agricraft.agricraft.api.registries.AgriCraftStats;
 import com.agricraft.agricraft.api.tools.journal.JournalData;
 import com.agricraft.agricraft.api.tools.journal.JournalPageDrawer;
 import com.agricraft.agricraft.common.item.journal.GeneticsPage;
-import com.agricraft.agricraft.common.util.LangUtils;
+import com.agricraft.agricraft.api.LangUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -74,37 +74,37 @@ public class GeneticsPageDrawer implements JournalPageDrawer<GeneticsPage> {
 
 		// Gain
 		if (!AgriCraftConfig.GAIN_HIDDEN.get()) {
-			dy += this.drawScaledText(guiGraphics, LangUtils.statName(AgriStats.GAIN.get()).withStyle(ChatFormatting.UNDERLINE), dx, dy, 0.7F);
+			dy += this.drawScaledText(guiGraphics, LangUtils.statName(AgriCraftStats.GAIN.get()).withStyle(ChatFormatting.UNDERLINE), dx, dy, 0.7F);
 			dy += this.drawScaledText(guiGraphics, PARAGRAPH_GAIN, dx, dy, 0.6F);
 			dy += spacing / 2;
 		}
 		// Growth
 		if (!AgriCraftConfig.GROWTH_HIDDEN.get()) {
-			dy += this.drawScaledText(guiGraphics, LangUtils.statName(AgriStats.GROWTH.get()).withStyle(ChatFormatting.UNDERLINE), dx, dy, 0.7F);
+			dy += this.drawScaledText(guiGraphics, LangUtils.statName(AgriCraftStats.GROWTH.get()).withStyle(ChatFormatting.UNDERLINE), dx, dy, 0.7F);
 			dy += this.drawScaledText(guiGraphics, PARAGRAPH_GROWTH, dx, dy, 0.6F);
 			dy += spacing / 2;
 		}
 		// Strength
 		if (!AgriCraftConfig.STRENGTH_HIDDEN.get()) {
-			dy += this.drawScaledText(guiGraphics, LangUtils.statName(AgriStats.STRENGTH.get()).withStyle(ChatFormatting.UNDERLINE), dx, dy, 0.7F);
+			dy += this.drawScaledText(guiGraphics, LangUtils.statName(AgriCraftStats.STRENGTH.get()).withStyle(ChatFormatting.UNDERLINE), dx, dy, 0.7F);
 			dy += this.drawScaledText(guiGraphics, PARAGRAPH_STRENGTH, dx, dy, 0.6F);
 			dy += spacing / 2;
 		}
 		// Resistance
 		if (!AgriCraftConfig.RESISTANCE_HIDDEN.get()) {
-			dy += this.drawScaledText(guiGraphics, LangUtils.statName(AgriStats.RESISTANCE.get()).withStyle(ChatFormatting.UNDERLINE), dx, dy, 0.7F);
+			dy += this.drawScaledText(guiGraphics, LangUtils.statName(AgriCraftStats.RESISTANCE.get()).withStyle(ChatFormatting.UNDERLINE), dx, dy, 0.7F);
 			dy += this.drawScaledText(guiGraphics, PARAGRAPH_RESISTANCE, dx, dy, 0.6F);
 			dy += spacing / 2;
 		}
 		// Fertility
 		if (!AgriCraftConfig.FERTILITY_HIDDEN.get()) {
-			dy += this.drawScaledText(guiGraphics, LangUtils.statName(AgriStats.FERTILITY.get()).withStyle(ChatFormatting.UNDERLINE), dx, dy, 0.7F);
+			dy += this.drawScaledText(guiGraphics, LangUtils.statName(AgriCraftStats.FERTILITY.get()).withStyle(ChatFormatting.UNDERLINE), dx, dy, 0.7F);
 			dy += this.drawScaledText(guiGraphics, PARAGRAPH_FERTILITY, dx, dy, 0.6F);
 			dy += spacing / 2;
 		}
 		// Mutativity
 		if (!AgriCraftConfig.MUTATIVITY_HIDDEN.get()) {
-			dy += this.drawScaledText(guiGraphics, LangUtils.statName(AgriStats.MUTATIVITY.get()).withStyle(ChatFormatting.UNDERLINE), dx, dy, 0.7F);
+			dy += this.drawScaledText(guiGraphics, LangUtils.statName(AgriCraftStats.MUTATIVITY.get()).withStyle(ChatFormatting.UNDERLINE), dx, dy, 0.7F);
 			dy += this.drawScaledText(guiGraphics, PARAGRAPH_MUTATIVITY, dx, dy, 0.6F);
 		}
 	}

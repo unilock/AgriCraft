@@ -4,14 +4,12 @@ import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.codecs.AgriSoil;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.requirement.AgriGrowthResponse;
-import com.agricraft.agricraft.api.stat.AgriStats;
 import com.agricraft.agricraft.common.block.CropBlock;
-import com.agricraft.agricraft.common.util.LangUtils;
+import com.agricraft.agricraft.api.LangUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.registries.DeferredHolder;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.ITooltip;
@@ -50,12 +48,11 @@ public class AgriCraftJadePlugin implements IWailaPlugin {
 						iTooltip.add(Component.translatable("agricraft.tooltip.jade.species")
 								.append(LangUtils.plantName(crop.getGenome().species().trait()))
 						);
-						AgriStats.STATS.getEntries().stream()
-								.map(DeferredHolder::get)
+						AgriApi.get().getStatRegistry().stream()
 								.filter(stat -> !stat.isHidden())
-								.map(stat -> crop.getGenome().getStatGene(stat))
+								.map(stat -> crop.getGenome().getStatChromosome(stat))
 								.sorted(Comparator.comparing(p -> p.gene().getId()))
-								.map(genePair -> Component.translatable("agricraft.tooltip.jade.stat." + genePair.gene().getId(), genePair.trait()))
+								.map(genePair -> Component.translatable("agricraft.tooltip.jade.stat." + genePair.gene().getId().toLanguageKey(), genePair.trait()))
 								.forEach(iTooltip::add);
 						AgriGrowthResponse response = crop.getFertilityResponse();
 						iTooltip.add(Component.translatable("agricraft.tooltip.magnifying.requirement." + (response.isLethal() ? "lethal" : response.isFertile() ? "fertile" : "not_fertile")));
@@ -90,7 +87,7 @@ public class AgriCraftJadePlugin implements IWailaPlugin {
 
 		@Override
 		public void appendTooltip(ITooltip iTooltip, BlockAccessor accessor, IPluginConfig iPluginConfig) {
-			Optional<AgriSoil> soil = AgriApi.getSoil(accessor.getLevel(), accessor.getPosition(), accessor.getLevel().registryAccess());
+			Optional<AgriSoil> soil = AgriApi.get().getSoil(accessor.getLevel(), accessor.getPosition(), accessor.getLevel().registryAccess());
 			if (soil.isPresent() && Minecraft.getInstance().player.isShiftKeyDown()) {
 				AgriSoil soil1 = soil.get();
 				iTooltip.add(Component.translatable("agricraft.tooltip.magnifying.soil.humidity")

@@ -1,14 +1,13 @@
 package com.agricraft.agricraft.common.commands;
 
 import com.agricraft.agricraft.api.AgriApi;
+import com.agricraft.agricraft.api.registries.AgriCraftGenes;
+import com.agricraft.agricraft.api.genetic.AgriGene;
+import com.agricraft.agricraft.api.genetic.AgriGenome;
+import com.agricraft.agricraft.api.genetic.Chromosome;
 import com.agricraft.agricraft.api.genetic.GeneStat;
 import com.agricraft.agricraft.api.plant.AgriPlant;
-import com.agricraft.agricraft.api.genetic.AgriGene;
-import com.agricraft.agricraft.api.genetic.Chromosome;
-import com.agricraft.agricraft.api.genetic.AgriGenes;
-import com.agricraft.agricraft.api.genetic.AgriGenome;
 import com.agricraft.agricraft.api.stat.AgriStat;
-import com.agricraft.agricraft.api.stat.AgriStats;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -29,7 +28,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,7 +42,7 @@ import java.util.Set;
 public class GiveSeedCommand {
 
 	private static final SuggestionProvider<CommandSourceStack> SUGGEST_PLANTS = (commandContext, suggestionsBuilder) -> SharedSuggestionProvider
-			.suggestResource(AgriApi.getPlantRegistry(commandContext.getSource().registryAccess())
+			.suggestResource(AgriApi.get().getPlantRegistry(commandContext.getSource().registryAccess())
 					.map(Registry::keySet)
 					.orElse(Set.of()), suggestionsBuilder);
 
@@ -73,7 +71,7 @@ public class GiveSeedCommand {
 	}
 
 	public static int giveSeed(CommandSourceStack source, ResourceLocation plant) {
-		Optional<AgriPlant> optional = AgriApi.getPlant(plant, source.getLevel().registryAccess());
+		Optional<AgriPlant> optional = AgriApi.get().getPlant(plant, source.getLevel().registryAccess());
 		if (optional.isEmpty()) {
 			return 0;
 		}
@@ -87,13 +85,10 @@ public class GiveSeedCommand {
 
 	public static int giveSeed(CommandSourceStack source, ResourceLocation plant, int value) {
 		List<Chromosome<?>> chromosomes = new ArrayList<>();
-		chromosomes.add(AgriGenes.SPECIES.get().chromosome(plant.toString()));
-		AgriStats.STATS.getEntries().stream()
-				.map(DeferredHolder::get)
+		chromosomes.add(AgriCraftGenes.SPECIES.get().chromosome(plant.toString()));
+		AgriApi.get().getStatRegistry().stream()
 				.sorted(Comparator.comparing(AgriStat::getId))
-				.map(AgriGenes::getStatGene)
-				.filter(Optional::isPresent)
-				.map(Optional::get)
+				.map(AgriStat::getGene)
 				.map(gene -> gene.chromosome(value))
 				.forEach(chromosomes::add);
 		AgriGenome genome = new AgriGenome(chromosomes);
@@ -106,17 +101,14 @@ public class GiveSeedCommand {
 	}
 
 	private static int giveSeed(CommandSourceStack source, ResourceLocation plant, String distincts) {
-		List<GeneStat> genes = AgriStats.STATS.getEntries().stream()
-				.map(DeferredHolder::get)
+		List<GeneStat> genes = AgriApi.get().getStatRegistry().stream()
 				.sorted(Comparator.comparing(AgriStat::getId))
-				.map(AgriGenes::getStatGene)
-				.filter(Optional::isPresent)
-				.map(Optional::get)
+				.map(AgriStat::getGene)
 				.toList();
 
 		List<Chromosome<?>> chromosomes = new ArrayList<>();
 		String[] split = distincts.split("-");
-		int[] values = new int[AgriStats.STATS.getEntries().size()];
+		int[] values = new int[AgriApi.get().getStatRegistry().size()];
 		Arrays.fill(values, 1);
 		for (int i = 0; i < split.length; i++) {
 			String s = split[i];
@@ -125,7 +117,7 @@ public class GiveSeedCommand {
 			} catch (NumberFormatException ignored) {
 			}
 		}
-		chromosomes.add(AgriGenes.SPECIES.get().chromosome(plant.toString()));
+		chromosomes.add(AgriCraftGenes.SPECIES.get().chromosome(plant.toString()));
 		for (int i = 0; i < genes.size() && i < values.length; i++) {
 			AgriGene<Integer> gene = genes.get(i);
 			chromosomes.add(gene.chromosome(values[i]));

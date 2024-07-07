@@ -1,8 +1,8 @@
 package com.agricraft.agricraft.compat.jei;
 
 import com.agricraft.agricraft.common.item.crafting.MagnifyingHelmetRecipe;
-import com.agricraft.agricraft.common.registry.ModDataComponentTypes;
-import com.agricraft.agricraft.common.registry.ModItems;
+import com.agricraft.agricraft.common.registry.AgriDataComponents;
+import com.agricraft.agricraft.common.registry.AgriItems;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.ingredient.ICraftingGridHelper;
 import mezz.jei.api.recipe.IFocusGroup;
@@ -24,10 +24,10 @@ public class MagnifyingHelmetExtension implements ICraftingCategoryExtension<Mag
 	@Override
 	public void setRecipe(RecipeHolder<MagnifyingHelmetRecipe> recipeHolder, IRecipeLayoutBuilder builder, ICraftingGridHelper craftingGridHelper, IFocusGroup focuses) {
 		List<ItemStack> helmetsOutput = HELMETS.stream().map(ItemStack::copy).toList();
-		helmetsOutput.forEach(h -> h.set(ModDataComponentTypes.MAGNIFYING.get(), Unit.INSTANCE));
+		helmetsOutput.forEach(h -> h.set(AgriDataComponents.MAGNIFYING.get(), Unit.INSTANCE));
 		int width = getWidth(recipeHolder);
 		int height = getHeight(recipeHolder);
-		craftingGridHelper.createAndSetInputs(builder, List.of(HELMETS, List.of(ModItems.MAGNIFYING_GLASS.get().getDefaultInstance())), width, height);
+		craftingGridHelper.createAndSetInputs(builder, List.of(HELMETS, List.of(AgriItems.MAGNIFYING_GLASS.get().getDefaultInstance())), width, height);
 		craftingGridHelper.createAndSetOutputs(builder, helmetsOutput);
 	}
 

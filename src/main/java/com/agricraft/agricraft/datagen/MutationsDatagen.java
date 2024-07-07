@@ -178,7 +178,7 @@ public class MutationsDatagen {
 	}
 
 	private static void r(BootstrapContext<AgriMutation> context, String modid, String mutationId, AgriMutation mutation) {
-		context.register(ResourceKey.create(AgriApi.AGRIMUTATIONS, ResourceLocation.fromNamespaceAndPath(modid, mutationId)), mutation);
+		context.register(ResourceKey.create(AgriMutation.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(modid, mutationId)), mutation);
 	}
 
 	private static void mc(BootstrapContext<AgriMutation> context, String mutationId, AgriMutation mutation) {

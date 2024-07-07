@@ -9,7 +9,7 @@ import com.agricraft.agricraft.client.ClientUtil;
 import com.agricraft.agricraft.common.block.entity.CropBlockEntity;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
 import com.agricraft.agricraft.common.item.CropSticksItem;
-import com.agricraft.agricraft.common.registry.ModItems;
+import com.agricraft.agricraft.common.registry.AgriItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -233,7 +233,7 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 
 	@Override
 	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-		Optional<AgriCrop> optional = AgriApi.getCrop(level, pos);
+		Optional<AgriCrop> optional = AgriApi.get().getCrop(level, pos);
 		if (optional.isEmpty()) {
 			return InteractionResult.FAIL;
 		}
@@ -259,7 +259,7 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 
 	@Override
 	protected ItemInteractionResult useItemOn(ItemStack heldItem, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-		Optional<AgriCrop> optional = AgriApi.getCrop(level, pos);
+		Optional<AgriCrop> optional = AgriApi.get().getCrop(level, pos);
 		if (optional.isEmpty()) {
 			return ItemInteractionResult.FAIL;
 		}
@@ -269,11 +269,11 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 			return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 		}
 		// TODO: @Ketheroth replace with item tag
-		if (heldItem.is(ModItems.CLIPPER.get()) || heldItem.is(ModItems.IRON_RAKE.get()) || heldItem.is(ModItems.WOODEN_RAKE.get()) || heldItem.is(ModItems.TROWEL.get())) {
+		if (heldItem.is(AgriItems.CLIPPER.get()) || heldItem.is(AgriItems.IRON_RAKE.get()) || heldItem.is(AgriItems.WOODEN_RAKE.get()) || heldItem.is(AgriItems.TROWEL.get())) {
 			return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
 		}
-		if (AgriApi.getFertilizerAdapter(heldItem).isPresent()) {
-			return AgriApi.getFertilizerAdapter(heldItem).get().valueOf(heldItem).map(fertilizer -> {
+		if (AgriApi.get().getFertilizerAdapter(heldItem).isPresent()) {
+			return AgriApi.get().getFertilizerAdapter(heldItem).get().valueOf(heldItem).map(fertilizer -> {
 				if (crop.acceptsFertilizer(fertilizer)) {
 					ItemInteractionResult result = fertilizer.applyFertilizer(level, pos, crop, heldItem, level.random, player);
 					if (result == ItemInteractionResult.CONSUME || result == ItemInteractionResult.SUCCESS) {
@@ -295,7 +295,7 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 			}
 		}
 		// planting from seed
-		Optional<AgriGenome> genome = AgriApi.getGenomeAdapter(heldItem).flatMap(adapter -> adapter.valueOf(heldItem));
+		Optional<AgriGenome> genome = AgriApi.get().getGenomeAdapter(heldItem).flatMap(adapter -> adapter.valueOf(heldItem));
 		if (genome.isPresent()) {
 			if (!crop.isCrossCropSticks() && !crop.hasPlant()) {
 				crop.plantGenome(genome.get());
@@ -367,37 +367,37 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 
 	@Override
 	public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-		return AgriApi.getSoil(level, pos.below(), level.registryAccess()).isPresent();
+		return AgriApi.get().getSoil(level, pos.below(), level.registryAccess()).isPresent();
 	}
 
 	@Override
 	public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
-		return AgriApi.getCrop(level, pos).map(crop -> crop.hasPlant() && crop.isFertile() && !crop.isFullyGrown()).orElse(false);
+		return AgriApi.get().getCrop(level, pos).map(crop -> crop.hasPlant() && crop.isFertile() && !crop.isFullyGrown()).orElse(false);
 	}
 
 	@Override
 	public boolean isBonemealSuccess(Level level, RandomSource random, BlockPos pos, BlockState state) {
-		return AgriApi.getFertilizer(BONE_MEAL).flatMap(fertilizer ->
-				AgriApi.getCrop(level, pos).map(crop -> !crop.isFullyGrown() && crop.acceptsFertilizer(fertilizer))
+		return AgriApi.get().getFertilizer(BONE_MEAL).flatMap(fertilizer ->
+				AgriApi.get().getCrop(level, pos).map(crop -> !crop.isFullyGrown() && crop.acceptsFertilizer(fertilizer))
 		).orElse(false);
 	}
 
 	@Override
 	public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state) {
 		// transfert the right click with a bonemeal to the block entity
-		AgriApi.getFertilizer(BONE_MEAL).ifPresent(fertilizer ->
-				AgriApi.getCrop(level, pos).ifPresent(crop -> fertilizer.applyFertilizer(level, pos, crop, BONE_MEAL, random, null))
+		AgriApi.get().getFertilizer(BONE_MEAL).ifPresent(fertilizer ->
+				AgriApi.get().getCrop(level, pos).ifPresent(crop -> fertilizer.applyFertilizer(level, pos, crop, BONE_MEAL, random, null))
 		);
 	}
 
 	@Override
 	public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-		AgriApi.getCrop(level, pos).ifPresent(IAgriFertilizable::applyGrowthTick);
+		AgriApi.get().getCrop(level, pos).ifPresent(IAgriFertilizable::applyGrowthTick);
 	}
 
 	@Override
 	public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-		AgriApi.getCrop(level, pos).ifPresent(crop -> {
+		AgriApi.get().getCrop(level, pos).ifPresent(crop -> {
 			if (crop.hasPlant()) {
 				crop.getPlant().spawnParticles(crop, random);
 			}
@@ -481,7 +481,7 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 
 	@Override
 	public int getDirectSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
-		return state.getValue(CROP_STATE).hasPlant() ? AgriApi.getCrop(level, pos).map(crop -> {
+		return state.getValue(CROP_STATE).hasPlant() ? AgriApi.get().getCrop(level, pos).map(crop -> {
 			if (crop.getPlant() != null) {
 				return crop.getPlant().getRedstonePower(crop);
 			}

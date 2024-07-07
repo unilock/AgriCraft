@@ -1,9 +1,8 @@
 package com.agricraft.agricraft.compat.jei;
 
-import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.AgriClientApi;
 import com.agricraft.agricraft.api.plant.AgriPlant;
-import com.agricraft.agricraft.common.util.LangUtils;
+import com.agricraft.agricraft.api.LangUtils;
 import mezz.jei.api.ingredients.IIngredientHelper;
 import mezz.jei.api.ingredients.IIngredientRenderer;
 import mezz.jei.api.ingredients.IIngredientType;
@@ -31,17 +30,17 @@ public class PlantIngredient {
 
 		@Override
 		public String getDisplayName(AgriPlant plant) {
-			return LangUtils.plantName(AgriApi.getPlantId(plant).map(ResourceLocation::toString).orElse("agricraft:unknown")).getString();
+			return LangUtils.plantName(plant.getId().map(ResourceLocation::toString).orElse("agricraft:unknown")).getString();
 		}
 
 		@Override
 		public String getUniqueId(AgriPlant plant, UidContext context) {
-			return AgriApi.getPlantId(plant).map(ResourceLocation::toString).orElse("agricraft:unknown");
+			return plant.getId().map(ResourceLocation::toString).orElse("agricraft:unknown");
 		}
 
 		@Override
 		public ResourceLocation getResourceLocation(AgriPlant plant) {
-			return AgriApi.getPlantId(plant).orElse(ResourceLocation.parse("agricraft:unknown"));
+			return plant.getId().orElse(ResourceLocation.parse("agricraft:unknown"));
 		}
 
 		@Override
@@ -51,18 +50,18 @@ public class PlantIngredient {
 
 		@Override
 		public String getErrorInfo(AgriPlant plant) {
-			return AgriApi.getPlantId(plant).map(ResourceLocation::toString).orElse("agricraft:unknown");
+			return plant.getId().map(ResourceLocation::toString).orElse("agricraft:unknown");
 		}
 	};
 
 	public static final IIngredientRenderer<AgriPlant> RENDERER = new IIngredientRenderer<>() {
 		@Override
 		public void render(GuiGraphics guiGraphics, AgriPlant plant) {
-			Optional<ResourceLocation> optional = AgriApi.getPlantId(plant);
+			Optional<ResourceLocation> optional = plant.getId();
 			if (optional.isPresent()) {
 				ResourceLocation plantId = optional.get();
 				// get the model for the last growth stage and use the particle texture (that is also the crop texture) to render in jei
-				BakedModel model = AgriClientApi.getPlantModel(plantId.toString(), plant.getInitialGrowthStage().total() - 1);
+				BakedModel model = AgriClientApi.get().getPlantModel(plantId.toString(), plant.getInitialGrowthStage().total() - 1);
 
 				TextureAtlasSprite sprite = model.getParticleIcon();
 				guiGraphics.blit(0, 0, 0, 16, 16, sprite);
@@ -72,7 +71,7 @@ public class PlantIngredient {
 		@Override
 		public List<Component> getTooltip(AgriPlant ingredient, TooltipFlag tooltipFlag) {
 			ArrayList<Component> list = new ArrayList<>();
-			AgriApi.getPlantId(ingredient).map(ResourceLocation::toString).ifPresent(id -> {
+			ingredient.getId().map(ResourceLocation::toString).ifPresent(id -> {
 				list.add(LangUtils.plantName(id));
 				Component desc = LangUtils.plantDescription(id);
 				if (desc != null) {

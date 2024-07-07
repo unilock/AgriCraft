@@ -1,16 +1,14 @@
 package com.agricraft.agricraft.api.fertilizer;
 
-import com.agricraft.agricraft.common.util.TagUtils;
+import com.agricraft.agricraft.api.TagUtils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
-import java.util.Optional;
 
 // TODO: @Ketheroth convert nbt to component ?
 public record AgriFertilizerVariant(ExtraCodecs.TagOrElementLocation item/*, CompoundTag nbt*/) {
@@ -26,7 +24,7 @@ public record AgriFertilizerVariant(ExtraCodecs.TagOrElementLocation item/*, Com
 //	}
 
 	public boolean isVariant(ItemStack itemStack) {
-		List<Item> items = TagUtils.getItemsFromLocation(this.item());
+		List<Item> items = TagUtils.items(this.item());
 		if (items.contains(itemStack.getItem())) {
 //			if (this.nbt.isEmpty()) {
 //				return true;

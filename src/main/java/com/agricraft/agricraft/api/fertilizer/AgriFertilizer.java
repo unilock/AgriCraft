@@ -1,14 +1,17 @@
 package com.agricraft.agricraft.api.fertilizer;
 
+import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.crop.AgriGrowthStage;
-import com.agricraft.agricraft.common.util.TagUtils;
+import com.agricraft.agricraft.api.TagUtils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.RandomSource;
@@ -26,6 +29,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class AgriFertilizer {
+
+	public static final ResourceKey<Registry<AgriFertilizer>> REGISTRY_KEY = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(AgriApi.MOD_ID, "fertilizer"));
 
 	public static final Codec<AgriFertilizer> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 			Codec.STRING.listOf().fieldOf("mods").forGetter(agriFertilizer -> agriFertilizer.mods),
@@ -101,11 +106,11 @@ public class AgriFertilizer {
 	}
 
 	public boolean isNeutralOn(ResourceLocation plantId) {
-		return neutralOn.stream().flatMap(tag -> TagUtils.getPlantIdsFromTag(tag)).anyMatch(rl -> rl.equals(plantId));
+		return neutralOn.stream().flatMap(tag -> TagUtils.plants(tag)).anyMatch(rl -> rl.equals(plantId));
 	}
 
 	public boolean isNegativeOn(ResourceLocation plantId) {
-		return negativeOn.stream().flatMap(tag -> TagUtils.getPlantIdsFromTag(tag)).anyMatch(rl -> rl.equals(plantId));
+		return negativeOn.stream().flatMap(tag -> TagUtils.plants(tag)).anyMatch(rl -> rl.equals(plantId));
 	}
 
 	/**
@@ -134,32 +139,32 @@ public class AgriFertilizer {
 		if (fertilizable instanceof AgriCrop crop) {
 			String type = "neutral";
 			for (int i = 0; i < this.potency; i++) {
-				if (this.isNegativeOn(crop.getPlantId())) {
-					if (this.canReduceGrowth() && random.nextBoolean()) {
-						type = "negative";
-						if (!level.isClientSide()) {
-							AgriGrowthStage current = crop.getGrowthStage();
-							AgriGrowthStage previous = current.getPrevious(crop, random);
-							if (current.equals(previous)) {
-								if (this.canKillPlant()) {
-									crop.removeGenome();
+				if (crop.hasPlant()) {
+					if (this.isNegativeOn(crop.getPlantId())) {
+						if (this.canReduceGrowth() && random.nextBoolean()) {
+							type = "negative";
+							if (!level.isClientSide()) {
+								AgriGrowthStage current = crop.getGrowthStage();
+								AgriGrowthStage previous = current.getPrevious(crop, random);
+								if (current.equals(previous)) {
+									if (this.canKillPlant()) {
+										crop.removeGenome();
+									}
+								} else {
+									crop.setGrowthStage(previous);
 								}
-							} else {
-								crop.setGrowthStage(previous);
 							}
 						}
-					}
-				} else {
-					if (crop.hasPlant() && this.canFertilize(crop)) {
-						fertilizable.applyGrowthTick();
-						type = "positive";
-					} else if (crop.isCrossCropSticks() && this.canTriggerMutation()) {
-						fertilizable.applyGrowthTick();
-						type = "positive";
-					} else if (this.canTriggerWeeds()) {
+					} else if (this.canFertilize(crop)) {
 						fertilizable.applyGrowthTick();
 						type = "positive";
 					}
+				} else if (crop.isCrossCropSticks() && this.canTriggerMutation()) {
+					fertilizable.applyGrowthTick();
+					type = "positive";
+				} else if (this.canTriggerWeeds()) {
+					fertilizable.applyGrowthTick();
+					type = "positive";
 				}
 			}
 			this.spawnParticles(level, pos, type, random);

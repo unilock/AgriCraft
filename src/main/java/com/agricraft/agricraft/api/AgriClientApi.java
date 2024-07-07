@@ -1,50 +1,60 @@
 package com.agricraft.agricraft.api;
 
+import com.agricraft.agricraft.api.tools.journal.JournalPage;
 import com.agricraft.agricraft.api.tools.journal.JournalPageDrawer;
-import com.agricraft.agricraft.api.tools.journal.JournalPageDrawers;
 import com.agricraft.agricraft.api.tools.magnifying.MagnifyingInspector;
-import com.agricraft.agricraft.client.gui.MagnifyingGlassOverlay;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.ApiStatus;
 
+import java.util.Collection;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
-/**
- * The AgriCraft Client API v2
- */
-public final class AgriClientApi {
+public interface AgriClientApi {
 
-	private static final ModelResourceLocation AIR_MODEL = new ModelResourceLocation(ResourceLocation.fromNamespaceAndPath("minecraft", "air"), "");
-	private static final String UNKNOWN_SEED = "agricraft:unknown";
-	private static final String UNKNOWN_PLANT = "agricraft:crop/unknown";
+	String UNKNOWN_SEED = "agricraft:unknown";
+	String UNKNOWN_PLANT = "agricraft:crop/unknown";
 
-
-	/**
-	 * Add a magnifying inspector
-	 *
-	 * @param inspector the inspector
-	 */
-	public static void addMagnifyingInspector(MagnifyingInspector inspector) {
-		MagnifyingGlassOverlay.addInspector(inspector);
+	static AgriClientApi get() {
+		return InstanceHolder.instance;
 	}
 
+	static void set(AgriClientApi instance) {
+		InstanceHolder.instance = instance;
+	}
+
+	<T extends JournalPage> void registerJournalPageDrawer(ResourceLocation id, JournalPageDrawer<T> drawer);
+
+	<T extends JournalPage> JournalPageDrawer<T> getJournalPageDrawer(T page);
+
 	/**
-	 * Add a predicate to allow the overlay to render
+	 * Register a predicate to allow the magnifying glass overlay to render
 	 *
 	 * @param predicate the predicate
 	 */
-	public static void addMagnifyingAllowingPredicate(Predicate<Player> predicate) {
-		MagnifyingGlassOverlay.addAllowingPredicate(predicate);
-	}
+	void registerMagnifyingAllowingPredicate(Predicate<Player> predicate);
 
-	public static BakedModel getPlantModel(ResourceLocation plantId, int stage) {
+	Collection<Predicate<Player>> getMagnifyingAllowingPredicates();
+
+	/**
+	 * Register a magnifying inspector
+	 *
+	 * @param inspector the inspector to add
+	 */
+	void registerMagnifyingInspector(MagnifyingInspector inspector);
+
+	Stream<MagnifyingInspector> getMagnifyingInspectors();
+
+
+	default BakedModel getPlantModel(ResourceLocation plantId, int stage) {
 		return getPlantModel(plantId.toString(), stage);
 	}
 
-	public static BakedModel getPlantModel(String plantId, int stage) {
+	default BakedModel getPlantModel(String plantId, int stage) {
 		if (plantId.isEmpty()) {
 			// somehow there is no plant, display nothing
 			return null;
@@ -61,7 +71,7 @@ public final class AgriClientApi {
 		}
 	}
 
-	public static BakedModel getWeedModel(String weedId, int stage) {
+	default BakedModel getWeedModel(String weedId, int stage) {
 		if (weedId.isEmpty()) {
 			// somehow there is no plant, display nothing
 			return null;
@@ -78,7 +88,7 @@ public final class AgriClientApi {
 		}
 	}
 
-	public static BakedModel getSeedModel(String plantId) {
+	default BakedModel getSeedModel(String plantId) {
 		if (plantId.isEmpty()) {
 			plantId = UNKNOWN_SEED;
 		}
@@ -93,8 +103,13 @@ public final class AgriClientApi {
 		return model;
 	}
 
-	public static void registerPageDrawer(ResourceLocation id, JournalPageDrawer<?> pageDrawer) {
-		JournalPageDrawers.registerPageDrawer(id, pageDrawer);
+	@ApiStatus.Internal
+	final class InstanceHolder {
+
+		private static AgriClientApi instance = null;
+
+		private InstanceHolder() {}
+
 	}
 
 }

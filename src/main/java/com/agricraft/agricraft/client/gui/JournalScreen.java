@@ -1,9 +1,9 @@
 package com.agricraft.agricraft.client.gui;
 
 import com.agricraft.agricraft.api.AgriApi;
+import com.agricraft.agricraft.api.AgriClientApi;
 import com.agricraft.agricraft.api.tools.journal.JournalData;
 import com.agricraft.agricraft.api.tools.journal.JournalPage;
-import com.agricraft.agricraft.api.tools.journal.JournalPageDrawers;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -54,10 +54,10 @@ public class JournalScreen extends Screen {
 //		Lighting.setupForFlatItems();
 //		guiGraphics.blit(PAGE_BACKGROUND, journalX, journalY, 0, 0, PAGE_WIDTH, PAGE_HEIGHT, 292, 292);
 		JournalPage page = this.journalData.getPage(this.index);
-		JournalPageDrawers.getPageDrawer(page).drawLeftSheet(guiGraphics, page, journalX + OFFSET_LEFT_PAGE, journalY, this.journalData);
-		JournalPageDrawers.getPageDrawer(page).drawRightSheet(guiGraphics, page, journalX + OFFSET_RIGHT_PAGE, journalY, this.journalData);
-		JournalPageDrawers.getPageDrawer(page).drawLeftTooltip(guiGraphics, page, journalX + OFFSET_LEFT_PAGE, journalY, mouseX - journalX - OFFSET_LEFT_PAGE, mouseY - journalY);
-		JournalPageDrawers.getPageDrawer(page).drawRightTooltip(guiGraphics, page, journalX + OFFSET_RIGHT_PAGE, journalY, mouseX - journalX - OFFSET_RIGHT_PAGE, mouseY - journalY);
+		AgriClientApi.get().getJournalPageDrawer(page).drawLeftSheet(guiGraphics, page, journalX + OFFSET_LEFT_PAGE, journalY, this.journalData);
+		AgriClientApi.get().getJournalPageDrawer(page).drawRightSheet(guiGraphics, page, journalX + OFFSET_RIGHT_PAGE, journalY, this.journalData);
+		AgriClientApi.get().getJournalPageDrawer(page).drawLeftTooltip(guiGraphics, page, journalX + OFFSET_LEFT_PAGE, journalY, mouseX - journalX - OFFSET_LEFT_PAGE, mouseY - journalY);
+		AgriClientApi.get().getJournalPageDrawer(page).drawRightTooltip(guiGraphics, page, journalX + OFFSET_RIGHT_PAGE, journalY, mouseX - journalX - OFFSET_RIGHT_PAGE, mouseY - journalY);
 	}
 
 	@Override

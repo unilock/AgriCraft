@@ -39,11 +39,11 @@ public class SoilsDatagen {
 	}
 
 	private static void mc(BootstrapContext<AgriSoil> context, String soilId, AgriSoil soil) {
-		context.register(ResourceKey.create(AgriApi.AGRISOILS, ResourceLocation.withDefaultNamespace(soilId)), soil);
+		context.register(ResourceKey.create(AgriSoil.REGISTRY_KEY, ResourceLocation.withDefaultNamespace(soilId)), soil);
 	}
 
 	private static void agricraft(BootstrapContext<AgriSoil> context, String soilId, AgriSoil soil) {
-		context.register(ResourceKey.create(AgriApi.AGRISOILS, ResourceLocation.fromNamespaceAndPath("agricraft", soilId)), soil);
+		context.register(ResourceKey.create(AgriSoil.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("agricraft", soilId)), soil);
 	}
 
 }

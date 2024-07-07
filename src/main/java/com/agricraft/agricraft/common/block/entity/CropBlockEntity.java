@@ -2,26 +2,27 @@ package com.agricraft.agricraft.common.block.entity;
 
 import com.agricraft.agricraft.AgriCraft;
 import com.agricraft.agricraft.api.AgriApi;
+import com.agricraft.agricraft.api.LangUtils;
+import com.agricraft.agricraft.api.codecs.AgriSoil;
 import com.agricraft.agricraft.api.config.AgriCraftConfig;
+import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.crop.AgriGrowthStage;
 import com.agricraft.agricraft.api.fertilizer.AgriFertilizer;
-import com.agricraft.agricraft.api.plant.AgriPlant;
-import com.agricraft.agricraft.api.codecs.AgriSoil;
-import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
+import com.agricraft.agricraft.api.genetic.Chromosome;
+import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.plant.AgriWeed;
-import com.agricraft.agricraft.api.requirement.AgriGrowthConditionRegistry;
+import com.agricraft.agricraft.api.registries.AgriCraftStats;
 import com.agricraft.agricraft.api.requirement.AgriGrowthResponse;
-import com.agricraft.agricraft.api.stat.AgriStats;
 import com.agricraft.agricraft.api.tools.magnifying.MagnifyingInspectable;
 import com.agricraft.agricraft.common.block.CropBlock;
 import com.agricraft.agricraft.common.block.CropState;
-import com.agricraft.agricraft.common.registry.ModBlockEntityTypes;
-import com.agricraft.agricraft.common.util.LangUtils;
+import com.agricraft.agricraft.common.registry.AgriBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
@@ -32,18 +33,14 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
@@ -64,7 +61,7 @@ public class CropBlockEntity extends BlockEntity implements AgriCrop, Magnifying
 	private AgriGrowthStage weedGrowthStage = null;
 
 	public CropBlockEntity(BlockPos blockPos, BlockState blockState) {
-		super(ModBlockEntityTypes.CROP.get(), blockPos, blockState);
+		super(AgriBlockEntities.CROP.get(), blockPos, blockState);
 	}
 
 	@Override
@@ -76,7 +73,7 @@ public class CropBlockEntity extends BlockEntity implements AgriCrop, Magnifying
 					.ifPresent(genome -> this.genome = genome);
 			if (this.genome != null) {
 				ResourceLocation location = ResourceLocation.parse(this.genome.species().trait());
-				this.plant = registries.lookup(AgriApi.AGRIPLANTS).flatMap(lookup -> lookup.get(ResourceKey.create(AgriApi.AGRIPLANTS, location))).orElse(null);
+				this.plant = AgriApi.get().getPlantRegistry((RegistryAccess) registries).flatMap(lookup -> lookup.getHolder(location)).orElse(null);
 				int[] growth = tag.getIntArray("growth");
 				this.growthStage = new AgriGrowthStage(growth[0], growth[1]);
 			}
@@ -84,7 +81,7 @@ public class CropBlockEntity extends BlockEntity implements AgriCrop, Magnifying
 		if (tag.contains("weed")) {
 			ResourceLocation location = ResourceLocation.tryParse(tag.getString("weed"));
 			if (location != null) {
-				this.weed = registries.lookup(AgriApi.AGRIWEEDS).flatMap(lookup -> lookup.get(ResourceKey.create(AgriApi.AGRIWEEDS, location))).orElse(null);
+				this.weed = AgriApi.get().getWeedRegistry((RegistryAccess) registries).flatMap(lookup -> lookup.getHolder(location)).orElse(null);
 			}
 			int[] growth = tag.getIntArray("weed_growth");
 			this.weedGrowthStage = new AgriGrowthStage(growth[0], growth[1]);
@@ -147,7 +144,7 @@ public class CropBlockEntity extends BlockEntity implements AgriCrop, Magnifying
 			return;
 		}
 		this.genome = genome;
-		this.level.registryAccess().registry(AgriApi.AGRIPLANTS)
+		AgriApi.get().getPlantRegistry(this.level.registryAccess())
 				.flatMap(reg -> reg.getHolder(ResourceLocation.parse(genome.species().trait())))
 				.ifPresent(holder -> this.plant = holder);
 		if (this.plant != null) {
@@ -241,12 +238,12 @@ public class CropBlockEntity extends BlockEntity implements AgriCrop, Magnifying
 			return AgriGrowthResponse.INFERTILE;
 		}
 		// if there is no condition registered
-		if (AgriGrowthConditionRegistry.getInstance().isEmpty()) {
+		if (AgriApi.get().getGrowthConditionRegistry().size() <= 0) {
 			return AgriGrowthResponse.FERTILE;
 		}
 		// check every growth condition registered and take the one with the highest priority
-		int strength = this.genome.getStatGene(AgriStats.STRENGTH.get()).trait();
-		Optional<AgriGrowthResponse> optional = AgriGrowthConditionRegistry.getInstance().stream()
+		int strength = this.genome.getStatChromosome(AgriCraftStats.STRENGTH.get()).trait();
+		Optional<AgriGrowthResponse> optional = AgriApi.get().getGrowthConditionRegistry().stream()
 				.map(condition -> condition.check(this, this.level, this.getBlockPos(), strength))
 				.reduce((result, element) -> result.priority() >= element.priority() ? result : element);
 		return optional.orElse(AgriGrowthResponse.FERTILE);
@@ -254,7 +251,7 @@ public class CropBlockEntity extends BlockEntity implements AgriCrop, Magnifying
 
 	@Override
 	public Optional<AgriSoil> getSoil() {
-		return AgriApi.getSoil(this.level, getBlockPos().below(), this.level.registryAccess());
+		return AgriApi.get().getSoil(this.level, getBlockPos().below(), this.level.registryAccess());
 	}
 
 	/**
@@ -320,7 +317,7 @@ public class CropBlockEntity extends BlockEntity implements AgriCrop, Magnifying
 			this.executeWeedsGrowthTick();
 		} else if (this.getBlockState().getValue(CropBlock.CROP_STATE) == CropState.DOUBLE_STICKS) {
 			// mutation tick
-			AgriApi.getMutationHandler().getActiveCrossBreedEngine().handleCrossBreedTick(this, this.streamNeighbours(), this.level.random);
+			AgriApi.get().getMutationHandler().getCrossBreedEngine().handleCrossBreedTick(this, this.streamNeighbours(), this.level.random);
 		} else {
 			if (!this.hasPlant()) {
 				return;
@@ -343,7 +340,7 @@ public class CropBlockEntity extends BlockEntity implements AgriCrop, Magnifying
 	protected void executeWeedsGrowthTick() {
 			if (!this.hasWeeds()) {
 				//There aren't weeds yet, try to spawn new weeds
-				AgriApi.getWeedRegistry().flatMap(registry -> registry.entrySet().stream()
+				AgriApi.get().getWeedRegistry().flatMap(registry -> registry.entrySet().stream()
 						.filter(entry -> this.level.getRandom().nextDouble() < entry.getValue().getSpawnChance(this))
 						.findAny()).ifPresent(entry -> this.setWeed(entry.getKey()));
 			} else {
@@ -367,7 +364,7 @@ public class CropBlockEntity extends BlockEntity implements AgriCrop, Magnifying
 
 	@Override
 	public void setWeed(ResourceKey<AgriWeed> weed) {
-		this.level.registryAccess().registry(AgriApi.AGRIWEEDS).flatMap(reg -> reg.getHolder(weed)).ifPresent(holder -> this.weed = holder);
+		this.level.registryAccess().registry(AgriWeed.REGISTRY_KEY).flatMap(reg -> reg.getHolder(weed)).ifPresent(holder -> this.weed = holder);
 		if (this.weed != null && this.checkGrowthSpace(this.weed.value().getWeedHeight(this.weed.value().getInitialGrowthStage()))) {
 			this.weedGrowthStage = this.weed.value().getInitialGrowthStage();
 			this.level.sendBlockUpdated(this.getBlockPos(), this.getBlockState(), this.hasPlant()?this.getBlockState().setValue(CropBlock.LIGHT, this.plant.value().getBrightness(this)):this.getBlockState(), Block.UPDATE_ALL);
@@ -410,7 +407,7 @@ public class CropBlockEntity extends BlockEntity implements AgriCrop, Magnifying
 	public Stream<AgriCrop> streamNeighbours() {
 		return Direction.Plane.HORIZONTAL.stream()
 				.map(dir -> this.getBlockPos().relative(dir))
-				.map(pos -> AgriApi.getCrop(this.level, pos))
+				.map(pos -> AgriApi.get().getCrop(this.level, pos))
 				.filter(Optional::isPresent)
 				.map(Optional::get);
 	}
@@ -440,7 +437,7 @@ public class CropBlockEntity extends BlockEntity implements AgriCrop, Magnifying
 	}
 
 	protected double calculateGrowthRate() {
-		int growth = this.genome.getStatGene(AgriStats.GROWTH.get()).trait();
+		int growth = this.genome.getStatChromosome(AgriCraftStats.GROWTH.get()).trait();
 		double soilFactor = this.getSoil().map(AgriSoil::growthModifier).orElse(1.0D);
 		return soilFactor * (this.plant.value().getGrowthChance(this.growthStage) + growth * this.plant.value().getBonusGrowthChance(this.growthStage) * AgriCraftConfig.GROWTH_MULTIPLIER.get());
 	}
@@ -456,14 +453,13 @@ public class CropBlockEntity extends BlockEntity implements AgriCrop, Magnifying
 					.append(LangUtils.plantName(genome.species().recessive()))
 			);
 			// crop stats
-			AgriStats.STATS.getEntries().stream()
-					.map(DeferredHolder::get)
-					.filter(stat -> !stat.isHidden())
-					.map(stat -> this.genome.getStatGene(stat))
-					.sorted(Comparator.comparing(p -> p.gene().getId()))
-					.map(genePair -> Component.translatable("agricraft.tooltip.magnifying.stat." + genePair.gene().getId(), genePair.dominant(), genePair.recessive()))
-					.map(component -> Component.literal("  ").append(component))
-					.forEach(tooltip::add);
+			AgriApi.get().getStatRegistry().holders()
+					.filter(stat -> !stat.value().isHidden())
+					.sorted(Comparator.comparing(p -> p.key().location()))
+					.forEach(holder -> {
+						Chromosome<Integer> stat = this.genome.getStatChromosome(holder.value());
+						tooltip.add(Component.literal("  ").append(Component.translatable("agricraft.tooltip.magnifying.stat." + holder.key().location().getPath(), stat.dominant(), stat.recessive())));
+					});
 			if (isPlayerSneaking) {
 				tooltip.add(Component.literal("  ").append(Component.translatable("agricraft.tooltip.magnifying.growth", this.growthStage.index() + 1, this.growthStage.total())));
 			}

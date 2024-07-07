@@ -7,7 +7,7 @@ import com.agricraft.agricraft.api.requirement.AgriSeason;
 import com.agricraft.agricraft.api.tools.journal.JournalData;
 import com.agricraft.agricraft.api.tools.journal.JournalPageDrawer;
 import com.agricraft.agricraft.common.item.journal.GrowthReqsPage;
-import com.agricraft.agricraft.common.util.LangUtils;
+import com.agricraft.agricraft.api.LangUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -73,7 +73,7 @@ public class GrowthReqsPageDrawer implements JournalPageDrawer<GrowthReqsPage> {
 		dy = this.drawSoilProperties(guiGraphics, dx, dy, spacing, "nutrients", AgriSoilCondition.Nutrients.values(), NUTRIENTS_OFFSETS, 24);
 
 		// Seasons
-		if (AgriApi.getSeasonLogic().isActive()) {
+		if (AgriApi.get().getSeasonLogic().isActive()) {
 			dy += this.drawScaledText(guiGraphics, SEASONS, dx, dy, 0.65F);
 			dy += this.drawScaledText(guiGraphics, PARAGRAPH_SEASONS, dx, dy, 0.50F);
 

@@ -1,5 +1,8 @@
-package com.agricraft.agricraft.api.tools.journal;
+package com.agricraft.agricraft.client.tools.journal.drawers;
 
+import com.agricraft.agricraft.api.tools.journal.JournalData;
+import com.agricraft.agricraft.api.tools.journal.JournalPage;
+import com.agricraft.agricraft.api.tools.journal.JournalPageDrawer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;

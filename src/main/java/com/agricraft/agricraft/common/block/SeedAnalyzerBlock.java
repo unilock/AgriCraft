@@ -1,7 +1,7 @@
 package com.agricraft.agricraft.common.block;
 
 import com.agricraft.agricraft.common.block.entity.SeedAnalyzerBlockEntity;
-import com.agricraft.agricraft.common.registry.ModBlocks;
+import com.agricraft.agricraft.common.registry.AgriBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -108,7 +108,7 @@ public class SeedAnalyzerBlock extends Block implements EntityBlock {
 	@Override
 	public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
 		List<ItemStack> drops = super.getDrops(state, params);
-		drops.add(ModBlocks.SEED_ANALYZER.get().asItem().getDefaultInstance());
+		drops.add(AgriBlocks.SEED_ANALYZER.get().asItem().getDefaultInstance());
 		BlockEntity blockEntity = params.getParameter(LootContextParams.BLOCK_ENTITY);
 		if (blockEntity instanceof SeedAnalyzerBlockEntity analyzer) {
 			if (analyzer.hasSeed()) {

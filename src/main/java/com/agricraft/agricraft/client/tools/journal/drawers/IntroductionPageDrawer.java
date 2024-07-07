@@ -66,7 +66,7 @@ public class IntroductionPageDrawer implements JournalPageDrawer<IntroductionPag
 		dy += spacing;
 		dy += spacing;
 		// Final paragraph:
-		this.drawScaledText(guiGraphics, DISCOVERED.plainCopy().append(": " + journalData.getDiscoveredSeeds().size() + " / " + AgriApi.getPlantRegistry().map(IdMap::size).orElse(0)), dx, dy, 0.70F);
+		this.drawScaledText(guiGraphics, DISCOVERED.plainCopy().append(": " + journalData.getDiscoveredSeeds().size() + " / " + AgriApi.get().getPlantRegistry().map(IdMap::size).orElse(0)), dx, dy, 0.70F);
 	}
 
 }

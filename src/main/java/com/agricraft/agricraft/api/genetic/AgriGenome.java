@@ -2,21 +2,18 @@ package com.agricraft.agricraft.api.genetic;
 
 import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.plant.AgriPlant;
+import com.agricraft.agricraft.api.registries.AgriCraftGenes;
 import com.agricraft.agricraft.api.stat.AgriStat;
-import com.agricraft.agricraft.api.stat.AgriStats;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.TooltipFlag;
-import net.neoforged.neoforge.registries.DeferredHolder;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -29,17 +26,58 @@ import java.util.Map;
  * Each chromosome has two alleles. The alleles are a form of the gene.
  */
 public class AgriGenome {
+//	public static class GenomeEntry {
+//		public final AgriGene<?> gene;
+//		public final Chromosome<?> chromosome;
+//
+//		public <T> GenomeEntry(AgriGene<T> gene, Chromosome<T> chromosome) {
+//			this.gene = gene;
+//			this.chromosome = chromosome;
+//		}
+//		<T> Pair<AgriGene<T>, Chromosome<T>> cast() {
+//			return Pair.of((AgriGene<T>) gene, (Chromosome<T>) chromosome);
+//		}
+//	}
+//
+//
+//	protected final Map<ResourceLocation, AgriGenomeNext.GenomeEntry> chromosomes;
 
-	public static Codec<Chromosome<?>> CHROMOSOME_CODEC = AgriGenes.GENE_REGISTRY.byNameCodec().dispatch(Chromosome::gene, AgriGenome::createTypedCodec);
-	public static StreamCodec<RegistryFriendlyByteBuf, Chromosome<?>> CHROMOSOME_STREAM_CODEC = ByteBufCodecs.registry(AgriGenes.GENE_REGISTRY_KEY).dispatch(Chromosome::gene, AgriGenome::createTypedStreamCodec);
+	//	public static Codec<Chromosome<?>> CHROMOSOME_CODEC = AgriRegistries.GENE_REGISTRY.byNameCodec().dispatch(Chromosome::gene, AgriGenome::createTypedCodec);
+//	public static StreamCodec<RegistryFriendlyByteBuf, Chromosome<?>> CHROMOSOME_STREAM_CODEC = ByteBufCodecs.registry(AgriGene.REGISTRY_KEY).dispatch(Chromosome::gene, AgriGenome::createTypedStreamCodec);
+
+	//	public static Codec<AgriGenome> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+//			CHROMOSOME_CODEC.listOf().fieldOf("chromosomes").forGetter(agriGenome -> agriGenome.chromosomes.values().stream().toList())
+//	).apply(instance, AgriGenome::new));
+//	public static StreamCodec<RegistryFriendlyByteBuf, AgriGenome> STREAM_CODEC = StreamCodec.composite(
+//			CHROMOSOME_STREAM_CODEC.apply(ByteBufCodecs.list()), genome -> genome.chromosomes.values().stream().toList(),
+//			AgriGenome::new
+//	);
+
+	public static Codec<AgriGene<?>> GENE_CODEC = ResourceLocation.CODEC.comapFlatMap(
+			s -> {
+				AgriGene<?> gene = AgriApi.get().getGeneRegistry().get(s);
+				if (gene == null) {
+					return DataResult.error(() -> "The gene " + s + " is not present in the gene registry");
+				} else {
+					return DataResult.success(gene);
+				}
+			},
+			AgriGene::getId
+	);
+	public static StreamCodec<ByteBuf, AgriGene<?>> GENE_STREAM_CODEC = ResourceLocation.STREAM_CODEC.map(resourceLocation -> AgriApi.get().getGeneRegistry().get(resourceLocation), AgriGene::getId);
 
 	public static Codec<AgriGenome> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-			CHROMOSOME_CODEC.listOf().fieldOf("chromosomes").forGetter(agriGenome -> agriGenome.chromosomes.values().stream().toList())
-	).apply(instance, AgriGenome::new));
-	public static StreamCodec<RegistryFriendlyByteBuf, AgriGenome> STREAM_CODEC = StreamCodec.composite(
-			CHROMOSOME_STREAM_CODEC.apply(ByteBufCodecs.list()), genome -> genome.chromosomes.values().stream().toList(),
-			AgriGenome::new
+			Codec.unboundedMap(GENE_CODEC, Codec.STRING.listOf()).fieldOf("chromosomes").forGetter(genome -> encode(genome.chromosomes))
+	).apply(instance, (e) -> new AgriGenome(decode(e))));
+
+	public static StreamCodec<ByteBuf, AgriGenome> STREAM_CODEC = StreamCodec.composite(
+			ByteBufCodecs.map(HashMap::new,
+					GENE_STREAM_CODEC,
+					ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list())
+			), genome -> encode(genome.chromosomes),
+			map -> new AgriGenome(decode(map))
 	);
+
 
 	protected final Map<AgriGene<?>, Chromosome<?>> chromosomes;
 
@@ -50,62 +88,84 @@ public class AgriGenome {
 
 	public AgriGenome(AgriPlant plant) {
 		this.chromosomes = new HashMap<>();
-		GeneSpecies geneSpecies = AgriGenes.SPECIES.get();
-		String id = AgriApi.getPlantId(plant).map(ResourceLocation::toString).orElse("");
+		GeneSpecies geneSpecies = AgriCraftGenes.SPECIES.get();
+		String id = plant.getId().map(ResourceLocation::toString).orElse("");
 		chromosomes.put(geneSpecies, geneSpecies.chromosome(id));
-		for (DeferredHolder<AgriStat, ? extends AgriStat> entry : AgriStats.STATS.getEntries()) {
-			AgriGenes.getStatGene(entry.get()).ifPresent(gene -> this.chromosomes.put(gene, gene.chromosome(entry.get().getMin())));
-		}
+		AgriApi.get().getStatRegistry().holders()
+				.forEach(stat -> {
+					// this should work, until someone change the type of the gene
+					GeneStat gene = (GeneStat) AgriApi.get().getGeneRegistry().get(stat.key().location());
+					if (gene != null) {
+						this.chromosomes.put(gene, gene.chromosome(stat.value().getMin()));
+					}
+				});
 	}
 
-	private static <T> MapCodec<Chromosome<T>> createTypedCodec(AgriGene<T> gene) {
-		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-				gene.getCodec().fieldOf("r").forGetter(Chromosome::recessive),
-				gene.getCodec().fieldOf("d").forGetter(Chromosome::dominant)
-		).apply(instance, (r, d) -> new Chromosome<>(gene, r, d)));
+	public AgriGenome(Map<AgriGene<?>, Chromosome<?>> map) {
+		this.chromosomes = map;
 	}
-	private static <T> StreamCodec<RegistryFriendlyByteBuf, Chromosome<T>> createTypedStreamCodec(AgriGene<T> gene) {
-		return StreamCodec.composite(
-				gene.getStreamCodec(), Chromosome::recessive,
-				gene.getStreamCodec(), Chromosome::dominant,
-				gene::chromosome
-		);
+
+	private static Map<AgriGene<?>, List<String>> encode(Map<AgriGene<?>, Chromosome<?>> chromosomes) {
+		Map<AgriGene<?>, List<String>> map = new HashMap<>();
+		chromosomes.forEach(((gene, chromosome) -> map.put(gene, List.of(gene.encode(chromosome.recessive()), gene.encode(chromosome.dominant())))));
+		return map;
 	}
+
+	private static Map<AgriGene<?>, Chromosome<?>> decode(Map<AgriGene<?>, List<String>> chromosomes) {
+		Map<AgriGene<?>, Chromosome<?>> map = new HashMap<>();
+		chromosomes.forEach(((gene, chromosome) -> map.put(gene, gene.chromosome(gene.decode(chromosome.get(0)), gene.decode(chromosome.get(1))))));
+		return map;
+	}
+
+//	private static <T> MapCodec<Chromosome<T>> createTypedCodec(AgriGene<T> gene) {
+//		return RecordCodecBuilder.mapCodec(instance -> instance.group(
+//				gene.getCodec().fieldOf("r").forGetter(Chromosome::recessive),
+//				gene.getCodec().fieldOf("d").forGetter(Chromosome::dominant)
+//		).apply(instance, (r, d) -> new Chromosome<>(gene, r, d)));
+//	}
+//
+//	private static <T> StreamCodec<RegistryFriendlyByteBuf, Chromosome<T>> createTypedStreamCodec(AgriGene<T> gene) {
+//		return StreamCodec.composite(
+//				gene.getStreamCodec(), Chromosome::recessive,
+//				gene.getStreamCodec(), Chromosome::dominant,
+//				gene::chromosome
+//		);
+//	}
 
 	public <T> Chromosome<T> getChromosome(AgriGene<T> gene) {
 		return (Chromosome<T>) this.chromosomes.get(gene);
 	}
 
-	public Chromosome<Integer> getStatGene(AgriStat stat) {
-		return this.getChromosome(AgriGenes.getStatGene(stat).get());
+	public Chromosome<Integer> getStatChromosome(AgriStat stat) {
+		return this.getChromosome(stat.getGene());
 	}
 
 	public Chromosome<String> species() {
-		return this.getChromosome(AgriGenes.SPECIES.get());
+		return this.getChromosome(AgriCraftGenes.SPECIES.value());
 	}
 
 	public Chromosome<Integer> gain() {
-		return this.getChromosome(AgriGenes.GAIN.get());
+		return this.getChromosome(AgriCraftGenes.GAIN.get());
 	}
 
 	public Chromosome<Integer> getGrowth() {
-		return this.getChromosome(AgriGenes.GROWTH.get());
+		return this.getChromosome(AgriCraftGenes.GROWTH.get());
 	}
 
 	public Chromosome<Integer> getStrength() {
-		return this.getChromosome(AgriGenes.STRENGTH.get());
+		return this.getChromosome(AgriCraftGenes.STRENGTH.get());
 	}
 
 	public Chromosome<Integer> getFertility() {
-		return this.getChromosome(AgriGenes.FERTILITY.get());
+		return this.getChromosome(AgriCraftGenes.FERTILITY.get());
 	}
 
 	public Chromosome<Integer> getResistance() {
-		return this.getChromosome(AgriGenes.RESISTANCE.get());
+		return this.getChromosome(AgriCraftGenes.RESISTANCE.get());
 	}
 
 	public Chromosome<Integer> getMutativity() {
-		return this.getChromosome(AgriGenes.MUTATIVITY.get());
+		return this.getChromosome(AgriCraftGenes.MUTATIVITY.get());
 	}
 
 	public Collection<Chromosome<?>> chromosomes() {
@@ -114,16 +174,15 @@ public class AgriGenome {
 
 	@SuppressWarnings("unchecked")
 	public Collection<Chromosome<Integer>> getStatChromosomes() {
-		// TODO: @Ketheroth remove the unchecked optional unwrap
-		return AgriStats.STATS.getEntries().stream().map(stat -> AgriGenes.getStatGene(stat.get()).get()).map(this.chromosomes::get).map(c -> (Chromosome<Integer>) c).toList();
+		return AgriApi.get().getStatRegistry().stream().map(AgriStat::getGene).map(this.chromosomes::get).map(c -> (Chromosome<Integer>) c).toList();
 	}
 
 	public void appendHoverText(List<Component> tooltipComponents, TooltipFlag isAdvanced) {
 		if (isAdvanced.isAdvanced()) {
-			this.species().gene().addTooltip(tooltipComponents, this.species().trait());
+			AgriCraftGenes.SPECIES.get().addTooltip(tooltipComponents, this.species().trait());
 		}
 		this.getStatChromosomes().stream()
-				.sorted(Comparator.comparing(pair -> pair.gene().getId()))
+				.sorted(Comparator.comparing(chromosome -> chromosome.gene().getId()))
 				.forEach(pair -> pair.gene().addTooltip(tooltipComponents, pair.trait()));
 	}
 

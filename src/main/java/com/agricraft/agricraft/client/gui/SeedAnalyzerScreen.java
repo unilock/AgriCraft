@@ -3,10 +3,9 @@ package com.agricraft.agricraft.client.gui;
 import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.genetic.Chromosome;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
-import com.agricraft.agricraft.api.genetic.AgriGenes;
-import com.agricraft.agricraft.api.stat.AgriStats;
+import com.agricraft.agricraft.common.registry.AgriRegistries;
 import com.agricraft.agricraft.common.inventory.container.SeedAnalyzerMenu;
-import com.agricraft.agricraft.common.util.LangUtils;
+import com.agricraft.agricraft.api.LangUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -97,8 +96,8 @@ public class SeedAnalyzerScreen extends AbstractContainerScreen<SeedAnalyzerMenu
 				guiGraphics.hLine(DNA_X + 9, DNA_X + 9 + 8, topPos + 26 + lineStart[lineIndex] + k * 5, chromosome.gene().getRecessiveColor());
 			}
 			// text of the gene
-			ResourceLocation key = AgriGenes.GENES.getRegistry().get().getKey(chromosome.gene());
-			Component geneText = AgriStats.STATS.getRegistry().get().getOptional(key).map(LangUtils::statName).orElse(Component.empty());
+			ResourceLocation key = AgriRegistries.GENES.getRegistry().get().getKey(chromosome.gene());
+			Component geneText = AgriRegistries.STATS.getRegistry().get().getOptional(key).map(LangUtils::statName).orElse(Component.empty());
 			Component domText = Component.literal("" + chromosome.dominant());
 			Component recText = Component.literal("" + chromosome.recessive());
 			int w = this.font.width(domText.getString());

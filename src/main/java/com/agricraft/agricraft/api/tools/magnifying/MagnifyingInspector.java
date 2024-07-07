@@ -1,5 +1,6 @@
 package com.agricraft.agricraft.api.tools.magnifying;
 
+import com.agricraft.agricraft.api.AgriClientApi;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
@@ -7,14 +8,17 @@ import net.minecraft.world.phys.HitResult;
 import java.util.Optional;
 
 /**
- * An inspector produce an inspectable that will be used to add components to the magnifying tooltip
+ * An inspector produce an inspectable that will be used to add components to the magnifying tooltip.
+ * You can register new inspectors with {@link AgriClientApi#registerMagnifyingInspector}.
+ * You can register new predicate to allow inspector the overlay to render with {@link AgriClientApi#registerMagnifyingAllowingPredicate}.
  */
 public interface MagnifyingInspector {
 
 	/**
 	 * Determine if something looked by the player is inspectable
-	 * @param level the level the player is in
-	 * @param player the player
+	 *
+	 * @param level     the level the player is in
+	 * @param player    the player
 	 * @param hitResult the hit result of the player
 	 * @return an optional containing the inspectable if any was found
 	 */

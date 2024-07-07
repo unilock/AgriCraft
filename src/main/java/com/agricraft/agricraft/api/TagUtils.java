@@ -1,6 +1,6 @@
-package com.agricraft.agricraft.common.util;
+package com.agricraft.agricraft.api;
 
-import com.agricraft.agricraft.api.AgriApi;
+import com.agricraft.agricraft.api.plant.AgriPlant;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 
 public class TagUtils {
 
-	public static List<Item> getItemsFromLocation(ExtraCodecs.TagOrElementLocation tag) {
+	public static List<Item> items(ExtraCodecs.TagOrElementLocation tag) {
 		if (!tag.tag()) {
 			return List.of(BuiltInRegistries.ITEM.get(tag.id()));
 		} else {
@@ -29,7 +29,7 @@ public class TagUtils {
 		}
 	}
 
-	public static List<Block> getBlocksFromLocation(ExtraCodecs.TagOrElementLocation tag) {
+	public static List<Block> blocks(ExtraCodecs.TagOrElementLocation tag) {
 		if (!tag.tag()) {
 			return List.of(BuiltInRegistries.BLOCK.get(tag.id()));
 		} else {
@@ -41,7 +41,7 @@ public class TagUtils {
 		}
 	}
 
-	public static List<Fluid> getFluidsFromLocation(ExtraCodecs.TagOrElementLocation tag) {
+	public static List<Fluid> fluids(ExtraCodecs.TagOrElementLocation tag) {
 		if (!tag.tag()) {
 			return List.of(BuiltInRegistries.FLUID.get(tag.id()));
 		} else {
@@ -53,12 +53,12 @@ public class TagUtils {
 		}
 	}
 
-	public static Stream<ResourceLocation> getPlantIdsFromTag(ExtraCodecs.TagOrElementLocation tag) {
+	public static Stream<ResourceLocation> plants(ExtraCodecs.TagOrElementLocation tag) {
 		if (!tag.tag()) {
 			return Stream.of(tag.id());
 		} else {
-			return AgriApi.getPlantRegistry().flatMap(registry ->
-							registry.getTag(TagKey.create(AgriApi.AGRIPLANTS, tag.id()))
+			return AgriApi.get().getPlantRegistry().flatMap(registry ->
+							registry.getTag(TagKey.create(AgriPlant.REGISTRY_KEY, tag.id()))
 									.map(named -> named.stream().map(holder -> registry.getKey(holder.value())))
 					)
 					.orElse(Stream.empty());

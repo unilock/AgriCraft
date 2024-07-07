@@ -31,7 +31,7 @@ public class ClipperItem extends Item {
 		}
 		BlockPos pos = context.getClickedPos();
 		Player player = context.getPlayer();
-		return AgriApi.getCrop(level, pos).map(crop -> {
+		return AgriApi.get().getCrop(level, pos).map(crop -> {
 			if (!crop.getPlant().allowsClipping(crop.getGrowthStage(), context.getItemInHand(), player)) {
 				if (player != null) {
 					player.sendSystemMessage(Component.translatable("agricraft.message.clipping_impossible"));

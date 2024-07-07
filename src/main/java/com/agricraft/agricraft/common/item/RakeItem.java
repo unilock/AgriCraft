@@ -43,7 +43,7 @@ public class RakeItem extends Item {
 	@NotNull
 	@Override
 	public InteractionResult useOn(@NotNull UseOnContext context) {
-		return AgriApi.getCrop(context.getLevel(), context.getClickedPos()).map(crop -> {
+		return AgriApi.get().getCrop(context.getLevel(), context.getClickedPos()).map(crop -> {
 			if (crop.getLevel() == null) {
 				return InteractionResult.PASS;
 			}

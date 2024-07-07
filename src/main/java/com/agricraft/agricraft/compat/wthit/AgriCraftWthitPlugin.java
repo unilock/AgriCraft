@@ -4,9 +4,8 @@ import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.codecs.AgriSoil;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.requirement.AgriGrowthResponse;
-import com.agricraft.agricraft.api.stat.AgriStats;
 import com.agricraft.agricraft.common.block.CropBlock;
-import com.agricraft.agricraft.common.util.LangUtils;
+import com.agricraft.agricraft.api.LangUtils;
 import mcp.mobius.waila.api.IBlockAccessor;
 import mcp.mobius.waila.api.IBlockComponentProvider;
 import mcp.mobius.waila.api.IPluginConfig;
@@ -16,7 +15,6 @@ import mcp.mobius.waila.api.IWailaPlugin;
 import mcp.mobius.waila.api.TooltipPosition;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.Comparator;
 import java.util.Optional;
@@ -42,10 +40,9 @@ public class AgriCraftWthitPlugin implements IWailaPlugin {
 						tooltip.addLine(Component.translatable("agricraft.tooltip.jade.species")
 								.append(LangUtils.plantName(crop.getGenome().species().trait()))
 						);
-						AgriStats.STATS.getEntries().stream()
-								.map(DeferredHolder::value)
+						AgriApi.get().getStatRegistry().stream()
 								.filter(stat -> !stat.isHidden())
-								.map(stat -> crop.getGenome().getStatGene(stat))
+								.map(stat -> crop.getGenome().getStatChromosome(stat))
 								.sorted(Comparator.comparing(c -> c.gene().getId()))
 								.map(chromosome -> Component.translatable("agricraft.tooltip.jade.stat." + chromosome.gene().getId(), chromosome.trait()))
 								.forEach(tooltip::addLine);
@@ -72,7 +69,7 @@ public class AgriCraftWthitPlugin implements IWailaPlugin {
 
 		@Override
 		public void appendBody(ITooltip tooltip, IBlockAccessor accessor, IPluginConfig config) {
-			Optional<AgriSoil> soil = AgriApi.getSoil(accessor.getWorld(), accessor.getPosition(), accessor.getWorld().registryAccess());
+			Optional<AgriSoil> soil = AgriApi.get().getSoil(accessor.getWorld(), accessor.getPosition(), accessor.getWorld().registryAccess());
 			if (soil.isPresent() && accessor.getPlayer().isShiftKeyDown()) {
 				AgriSoil soil1 = soil.get();
 				tooltip.addLine(Component.translatable("agricraft.tooltip.magnifying.soil.humidity")

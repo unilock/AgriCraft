@@ -5,7 +5,7 @@ import com.agricraft.agricraft.api.codecs.AgriMutation;
 import com.agricraft.agricraft.api.codecs.AgriRequirement;
 import com.agricraft.agricraft.api.codecs.AgriSoilCondition;
 import com.agricraft.agricraft.api.plant.AgriPlant;
-import com.agricraft.agricraft.api.requirement.AgriGrowthConditionRegistry;
+import com.agricraft.agricraft.api.registries.AgriCraftGrowthConditions;
 import com.agricraft.agricraft.api.requirement.AgriSeason;
 import com.agricraft.agricraft.api.tools.journal.JournalPage;
 import com.google.common.collect.ImmutableList;
@@ -38,28 +38,28 @@ public class PlantPage implements JournalPage {
 
 	public PlantPage(ResourceLocation plantId, List<ResourceLocation> researched) {
 		this.plantId = plantId;
-		this.plant = AgriApi.getPlant(plantId).orElse(AgriPlant.NO_PLANT);
+		this.plant = AgriApi.get().getPlant(plantId).orElse(AgriPlant.NO_PLANT);
 		this.researched = researched;
 		this.brightnessMask = new boolean[16];
 		AgriRequirement req = this.plant.getGrowthRequirements();
 		for (int light = 0; light < this.brightnessMask.length; light++) {
-			this.brightnessMask[light] = AgriGrowthConditionRegistry.getLight().apply(this.plant, 1, light).isFertile();
+			this.brightnessMask[light] = AgriCraftGrowthConditions.LIGHT.get().apply(this.plant, 1, light).isFertile();
 		}
 		this.humidityMask = new boolean[AgriSoilCondition.Humidity.values().length - 1];
 		for (int humidity = 0; humidity < this.humidityMask.length; humidity++) {
-			this.humidityMask[humidity] = AgriGrowthConditionRegistry.getHumidity().apply(this.plant, 1, AgriSoilCondition.Humidity.values()[humidity]).isFertile();
+			this.humidityMask[humidity] = AgriCraftGrowthConditions.HUMIDITY.get().apply(this.plant, 1, AgriSoilCondition.Humidity.values()[humidity]).isFertile();
 		}
 		this.acidityMask = new boolean[AgriSoilCondition.Acidity.values().length - 1];
 		for (int acidity = 0; acidity < this.acidityMask.length; acidity++) {
-			this.acidityMask[acidity] = AgriGrowthConditionRegistry.getAcidity().apply(this.plant, 1, AgriSoilCondition.Acidity.values()[acidity]).isFertile();
+			this.acidityMask[acidity] = AgriCraftGrowthConditions.ACIDITY.get().apply(this.plant, 1, AgriSoilCondition.Acidity.values()[acidity]).isFertile();
 		}
 		this.nutrientsMask = new boolean[AgriSoilCondition.Nutrients.values().length - 1];
 		for (int nutrients = 0; nutrients < this.nutrientsMask.length; nutrients++) {
-			this.nutrientsMask[nutrients] = AgriGrowthConditionRegistry.getNutrients().apply(this.plant, 1, AgriSoilCondition.Nutrients.values()[nutrients]).isFertile();
+			this.nutrientsMask[nutrients] = AgriCraftGrowthConditions.NUTRIENTS.get().apply(this.plant, 1, AgriSoilCondition.Nutrients.values()[nutrients]).isFertile();
 		}
 		this.seasonMask = new boolean[AgriSeason.values().length - 1];
 		for (int season = 0; season < this.seasonMask.length; season++) {
-			this.seasonMask[season] = AgriGrowthConditionRegistry.getSeason().apply(this.plant, 1, AgriSeason.values()[season]).isFertile();
+			this.seasonMask[season] = AgriCraftGrowthConditions.SEASON.get().apply(this.plant, 1, AgriSeason.values()[season]).isFertile();
 		}
 		this.products = new ArrayList<>();
 		this.plant.getAllPossibleProducts(products::add);
@@ -123,7 +123,7 @@ public class PlantPage implements JournalPage {
 	}
 
 	protected Stream<List<ResourceLocation>> gatherMutationSprites(Predicate<AgriMutation> filter) {
-		Optional<Registry<AgriMutation>> optional = AgriApi.getMutationRegistry();
+		Optional<Registry<AgriMutation>> optional = AgriApi.get().getMutationRegistry();
 		if (optional.isEmpty()) {
 			return Stream.empty();
 		}
