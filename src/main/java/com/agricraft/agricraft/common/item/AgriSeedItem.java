@@ -5,12 +5,15 @@ import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
 import com.agricraft.agricraft.client.bewlr.AgriSeedBEWLR;
+import com.agricraft.agricraft.common.block.CropBlock;
+import com.agricraft.agricraft.common.block.CropState;
 import com.agricraft.agricraft.common.block.entity.SeedAnalyzerBlockEntity;
 import com.agricraft.agricraft.common.registry.AgriBlocks;
 import com.agricraft.agricraft.common.registry.AgriDataComponents;
 import com.agricraft.agricraft.common.registry.AgriItems;
 import com.agricraft.agricraft.api.LangUtils;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -86,11 +89,13 @@ public class AgriSeedItem extends BlockItem {
 	public InteractionResult place(BlockPlaceContext context) {
 		InteractionResult result = super.place(context);
 		Level level = context.getLevel();
-		if (result.consumesAction() && !level.isClientSide) {
-			AgriApi.get().getCrop(level, context.getClickedPos()).ifPresent(crop -> {
+		if (result.consumesAction()) {
+			BlockPos pos = context.getClickedPos();
+			AgriApi.get().getCrop(level, pos).ifPresent(crop -> {
 				AgriGenome genome = context.getItemInHand().get(AgriDataComponents.GENOME);
 				if (genome != null) {
 					crop.plantGenome(genome);
+					level.setBlockAndUpdate(pos, level.getBlockState(pos).setValue(CropBlock.CROP_STATE, CropState.PLANT));
 				}
 			});
 		}
@@ -100,9 +105,6 @@ public class AgriSeedItem extends BlockItem {
 	@Override
 	public InteractionResult useOn(UseOnContext context) {
 		Level level = context.getLevel();
-		if (level.isClientSide) {
-			return InteractionResult.PASS;
-		}
 		ItemStack heldItem = context.getItemInHand();
 		// if crop sticks were clicked, attempt to plant the seed
 		Optional<AgriCrop> optionalAgriCrop = AgriApi.get().getCrop(level, context.getClickedPos());

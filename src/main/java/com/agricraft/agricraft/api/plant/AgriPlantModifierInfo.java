@@ -17,8 +17,11 @@ public record AgriPlantModifierInfo(ResourceLocation id, String value) {
 		this(id, value.orElse(""));
 	}
 
-	public AgriPlantModifierInfo(ResourceLocation id) {
-		this(id, "");
+	public static AgriPlantModifierInfo of(String id) {
+		return new AgriPlantModifierInfo(ResourceLocation.parse(id), "");
+	}
+	public static AgriPlantModifierInfo of(String id, String value) {
+		return new AgriPlantModifierInfo(ResourceLocation.parse(id), value);
 	}
 
 }

@@ -26,32 +26,6 @@ import java.util.Map;
  * Each chromosome has two alleles. The alleles are a form of the gene.
  */
 public class AgriGenome {
-//	public static class GenomeEntry {
-//		public final AgriGene<?> gene;
-//		public final Chromosome<?> chromosome;
-//
-//		public <T> GenomeEntry(AgriGene<T> gene, Chromosome<T> chromosome) {
-//			this.gene = gene;
-//			this.chromosome = chromosome;
-//		}
-//		<T> Pair<AgriGene<T>, Chromosome<T>> cast() {
-//			return Pair.of((AgriGene<T>) gene, (Chromosome<T>) chromosome);
-//		}
-//	}
-//
-//
-//	protected final Map<ResourceLocation, AgriGenomeNext.GenomeEntry> chromosomes;
-
-	//	public static Codec<Chromosome<?>> CHROMOSOME_CODEC = AgriRegistries.GENE_REGISTRY.byNameCodec().dispatch(Chromosome::gene, AgriGenome::createTypedCodec);
-//	public static StreamCodec<RegistryFriendlyByteBuf, Chromosome<?>> CHROMOSOME_STREAM_CODEC = ByteBufCodecs.registry(AgriGene.REGISTRY_KEY).dispatch(Chromosome::gene, AgriGenome::createTypedStreamCodec);
-
-	//	public static Codec<AgriGenome> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-//			CHROMOSOME_CODEC.listOf().fieldOf("chromosomes").forGetter(agriGenome -> agriGenome.chromosomes.values().stream().toList())
-//	).apply(instance, AgriGenome::new));
-//	public static StreamCodec<RegistryFriendlyByteBuf, AgriGenome> STREAM_CODEC = StreamCodec.composite(
-//			CHROMOSOME_STREAM_CODEC.apply(ByteBufCodecs.list()), genome -> genome.chromosomes.values().stream().toList(),
-//			AgriGenome::new
-//	);
 
 	public static Codec<AgriGene<?>> GENE_CODEC = ResourceLocation.CODEC.comapFlatMap(
 			s -> {
@@ -116,21 +90,6 @@ public class AgriGenome {
 		chromosomes.forEach(((gene, chromosome) -> map.put(gene, gene.chromosome(gene.decode(chromosome.get(0)), gene.decode(chromosome.get(1))))));
 		return map;
 	}
-
-//	private static <T> MapCodec<Chromosome<T>> createTypedCodec(AgriGene<T> gene) {
-//		return RecordCodecBuilder.mapCodec(instance -> instance.group(
-//				gene.getCodec().fieldOf("r").forGetter(Chromosome::recessive),
-//				gene.getCodec().fieldOf("d").forGetter(Chromosome::dominant)
-//		).apply(instance, (r, d) -> new Chromosome<>(gene, r, d)));
-//	}
-//
-//	private static <T> StreamCodec<RegistryFriendlyByteBuf, Chromosome<T>> createTypedStreamCodec(AgriGene<T> gene) {
-//		return StreamCodec.composite(
-//				gene.getStreamCodec(), Chromosome::recessive,
-//				gene.getStreamCodec(), Chromosome::dominant,
-//				gene::chromosome
-//		);
-//	}
 
 	public <T> Chromosome<T> getChromosome(AgriGene<T> gene) {
 		return (Chromosome<T>) this.chromosomes.get(gene);

@@ -20,6 +20,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
@@ -285,7 +286,7 @@ public class AgriPlant {
 		this.getModifiers().forEach(modifier -> modifier.onEntityCollision(crop, entity));
 	}
 
-	public Optional<InteractionResult> onRightClickPre(AgriCrop crop, ItemStack stack, @Nullable Entity entity) {
+	public Optional<ItemInteractionResult> onRightClickPre(AgriCrop crop, ItemStack stack, @Nullable Entity entity) {
 		return this.getModifiers()
 				.map(modifier -> modifier.onRightClickPre(crop, stack, entity))
 				.filter(Optional::isPresent)
@@ -293,7 +294,7 @@ public class AgriPlant {
 				.findFirst();
 	}
 
-	public Optional<InteractionResult> onRightClickPost(AgriCrop crop, ItemStack stack, @Nullable Entity entity) {
+	public Optional<ItemInteractionResult> onRightClickPost(AgriCrop crop, ItemStack stack, @Nullable Entity entity) {
 		return this.getModifiers()
 				.map(modifier -> modifier.onRightClickPost(crop, stack, entity))
 				.filter(Optional::isPresent)

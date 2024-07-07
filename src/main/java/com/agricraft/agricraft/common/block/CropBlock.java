@@ -20,6 +20,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -264,6 +265,26 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 			return ItemInteractionResult.FAIL;
 		}
 		AgriCrop crop = optional.get();
+		// plant pre logic
+		if (crop.hasPlant()) {
+			Optional<ItemInteractionResult> result = crop.getPlant().onRightClickPre(crop, heldItem, player);
+			if (result.isPresent()) {
+				return result.get();
+			}
+		}
+		// block logic
+		ItemInteractionResult result = rightClickLogic(heldItem, state, level, pos, player, hand, crop);
+		// plant post logic
+		if (crop.hasPlant()) {
+			Optional<ItemInteractionResult> override = crop.getPlant().onRightClickPost(crop, heldItem, player);
+			if (override.isPresent()) {
+				return override.get();
+			}
+		}
+		return result;
+	}
+
+	protected ItemInteractionResult rightClickLogic(ItemStack heldItem, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, AgriCrop crop) {
 		// do nothing from off hand
 		if (hand == InteractionHand.OFF_HAND/* || heldItem.isEmpty()*/) {
 			return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
@@ -278,6 +299,7 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 					ItemInteractionResult result = fertilizer.applyFertilizer(level, pos, crop, heldItem, level.random, player);
 					if (result == ItemInteractionResult.CONSUME || result == ItemInteractionResult.SUCCESS) {
 						crop.onApplyFertilizer(fertilizer, level.random);
+						crop.getPlant().onFertilized(crop, heldItem, level.random);
 					}
 					return result;
 				}
@@ -392,7 +414,11 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 
 	@Override
 	public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-		AgriApi.get().getCrop(level, pos).ifPresent(IAgriFertilizable::applyGrowthTick);
+		AgriApi.get().getCrop(level, pos).ifPresent(agriCrop -> {
+			agriCrop.getPlant().onRandomTick(agriCrop, random);
+			agriCrop.applyGrowthTick();
+		});
+
 	}
 
 	@Override
@@ -400,6 +426,15 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 		AgriApi.get().getCrop(level, pos).ifPresent(crop -> {
 			if (crop.hasPlant()) {
 				crop.getPlant().spawnParticles(crop, random);
+			}
+		});
+	}
+
+	@Override
+	protected void attack(BlockState state, Level level, BlockPos pos, Player player) {
+		AgriApi.get().getCrop(level, pos).ifPresent(crop -> {
+			if (crop.hasPlant()) {
+				crop.getPlant().onBroken(crop, player);
 			}
 		});
 	}
@@ -426,6 +461,16 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 	}
 
 	@Override
+	protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
+		super.entityInside(state, level, pos, entity);
+		AgriApi.get().getCrop(level, pos).ifPresent(crop -> {
+			if (crop.hasPlant()) {
+				crop.getPlant().onEntityCollision(crop, entity);
+			}
+		});
+	}
+
+	@Override
 	public ItemStack pickupBlock(@Nullable Player player, LevelAccessor level, BlockPos pos, BlockState state) {
 		if (state.getValue(BlockStateProperties.WATERLOGGED)) {
 			level.setBlock(pos, state.setValue(BlockStateProperties.WATERLOGGED, false), 3);
@@ -435,13 +480,18 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 	}
 
 	@Override
-	public Optional<SoundEvent> getPickupSound() {
-		// TODO: @Ketheroth wrap CropBlock in loader specific block to have the blockstate passed in
-//		if (state.getValue(BlockStateProperties.WATERLOGGED)) {
-//			return Fluids.WATER.getPickupSound()
-//		}
+	public Optional<SoundEvent> getPickupSound(BlockState state) {
+		if (state.getValue(BlockStateProperties.WATERLOGGED)) {
+			return Fluids.WATER.getPickupSound();
+		}
 		return Fluids.WATER.getPickupSound();
 	}
+
+	@Override
+	public Optional<SoundEvent> getPickupSound() {
+		return Optional.empty();
+	}
+
 	@Override
 	public boolean canPlaceLiquid(@Nullable Player player, BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
 		return !state.getValue(BlockStateProperties.WATERLOGGED);

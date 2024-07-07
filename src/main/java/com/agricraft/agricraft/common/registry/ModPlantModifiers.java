@@ -10,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -74,7 +75,7 @@ public interface ModPlantModifiers {
 		if (block instanceof FungusBlock fungus) {
 			return Optional.of(new IAgriPlantModifier() {
 				@Override
-				public Optional<InteractionResult> onRightClickPre(AgriCrop crop, @NotNull ItemStack stack, @Nullable Entity entity) {
+				public Optional<ItemInteractionResult> onRightClickPre(AgriCrop crop, @NotNull ItemStack stack, @Nullable Entity entity) {
 					Level level = crop.getLevel();
 					if (stack.isEmpty()
 							|| stack.getItem() != Items.BONE_MEAL
@@ -86,7 +87,7 @@ public interface ModPlantModifiers {
 					}
 					fungus.performBonemeal(((ServerLevel) level), level.random, crop.getBlockPos(), crop.getBlockState());
 					level.levelEvent(2005, crop.getBlockPos(), 0);
-					return Optional.of(InteractionResult.SUCCESS);
+					return Optional.of(ItemInteractionResult.SUCCESS);
 				}
 			});
 		}
@@ -104,7 +105,7 @@ public interface ModPlantModifiers {
 	}));
 	DeferredHolder<AgriPlantModifierFactory, AgriPlantModifierFactory> REDSTONE = AgriRegistries.PLANT_MODIFIER_FACTORIES.register("redstone", () -> info -> Optional.of(new IAgriPlantModifier() {
 		@Override
-		public int getBrightness(AgriCrop crop) {
+		public int getRedstonePower(AgriCrop crop) {
 			return (int) (15 * crop.getGrowthPercent());
 		}
 	}));
@@ -139,7 +140,7 @@ public interface ModPlantModifiers {
 		if (block instanceof BonemealableBlock sapling) {
 			return Optional.of(new IAgriPlantModifier() {
 				@Override
-				public Optional<InteractionResult> onRightClickPre(AgriCrop crop, @NotNull ItemStack stack, @Nullable Entity entity) {
+				public Optional<ItemInteractionResult> onRightClickPre(AgriCrop crop, @NotNull ItemStack stack, @Nullable Entity entity) {
 					Level level = crop.getLevel();
 					if (stack.isEmpty()
 							|| stack.getItem() != Items.BONE_MEAL
@@ -160,10 +161,10 @@ public interface ModPlantModifiers {
 						// if we couldn't grow the tree, put back the crop instead of the sapling
 						serverLevel.setBlockAndUpdate(crop.getBlockPos(), crop.getBlockState());
 						serverLevel.getBlockEntity(crop.getBlockPos()).loadWithComponents(before, level.registryAccess());
-						return Optional.of(InteractionResult.FAIL);
+						return Optional.of(ItemInteractionResult.FAIL);
 					}
 					serverLevel.levelEvent(2005, crop.getBlockPos(), 0);
-					return Optional.of(InteractionResult.SUCCESS);
+					return Optional.of(ItemInteractionResult.SUCCESS);
 				}
 			});
 		}

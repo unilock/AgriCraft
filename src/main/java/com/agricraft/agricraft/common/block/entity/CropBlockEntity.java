@@ -150,9 +150,9 @@ public class CropBlockEntity extends BlockEntity implements AgriCrop, Magnifying
 		if (this.plant != null) {
 			this.growthStage = this.plant.value().getInitialGrowthStage();
 		}
-		level.setBlock(this.getBlockPos(), this.hasCropSticks() ?
+		level.setBlockAndUpdate(this.getBlockPos(), this.hasCropSticks() ?
 				this.getBlockState().setValue(CropBlock.CROP_STATE, CropState.PLANT_STICKS).setValue(CropBlock.LIGHT, this.plant.value().getBrightness(this))
-				: this.getBlockState().setValue(CropBlock.LIGHT, this.plant.value().getBrightness(this)), 3);
+				: this.getBlockState().setValue(CropBlock.LIGHT, this.plant.value().getBrightness(this)));
 		this.plant.value().onPlanted(this, null);
 	}
 
@@ -433,6 +433,7 @@ public class CropBlockEntity extends BlockEntity implements AgriCrop, Magnifying
 		double b = this.level.random.nextDouble();
 		if (a > b) {
 			this.setGrowthStage(this.growthStage.getNext(this, this.level.random));
+			this.getPlant().onGrowth(this);
 		}
 	}
 

@@ -105,6 +105,7 @@ public class AgriCrossBreedEngineImpl implements AgriCrossBreedEngine {
 			if (random.nextDouble() < parent.getPlant().getSpreadChance(parent.getGrowthStage())) {
 				AgriGenome clone = this.getCloner().clone(target, parent.getGenome(), random);
 				target.plantGenome(clone);
+				target.getPlant().onSpawned(target);
 				return true;
 			}
 		}
@@ -117,6 +118,7 @@ public class AgriCrossBreedEngineImpl implements AgriCrossBreedEngine {
 		AgriGenome genome = this.getCombiner().combine(target, a.getGenome(), b.getGenome(), random);
 		// Spawn the child
 		target.plantGenome(genome);
+		target.getPlant().onSpawned(target);
 		return true;
 	}
 
