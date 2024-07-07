@@ -90,10 +90,10 @@ dependencies {
 //	localRuntime "mcp.mobius.waila:wthit:neo-${wthit_version}"
 //	localRuntime "lol.bai:badpackets:neo-${badpackets_version}"
 
-	implementation "curse.maven:biomes-o-plenty-220318:5437861"  // Biomes O' Plenty 1.21-21.0.0.7
+	implementation "curse.maven:biomes-o-plenty-220318:5489686"  // Biomes O' Plenty 1.21-21.0.0.11
 	compileOnly "curse.maven:serene-seasons-291874:5429913"  // Serene Seasons 1.21-10.0.0.2
 //	localRuntime "curse.maven:serene-seasons-291874:5429913"  // Serene Seasons 1.21-10.0.0.2
-	localRuntime "curse.maven:glitchcore-955399:5429863"  // GlitchCore 1.21-2.0.0.1 (serene season / biomes o' plenty dep)
+	localRuntime "curse.maven:glitchcore-955399:5483773"  // GlitchCore 1.21-2.0.0.2 (serene season / biomes o' plenty dep)
 	localRuntime "curse.maven:terrablender-940057:5429865"  // TerraBlender 1.21-4.0.0.1 (biomes o' plenty dep)
 
 }

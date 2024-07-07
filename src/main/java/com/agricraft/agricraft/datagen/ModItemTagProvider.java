@@ -30,6 +30,9 @@ public class ModItemTagProvider extends ItemTagsProvider {
 		this.tag(tag("nuggets/quartz")).add(AgriItems.QUARTZ_SHARD.get());
 		this.tag(Tags.Items.NUGGETS).addTags(tag("nuggets/coal"), tag("nuggets/copper"), tag("nuggets/diamond"), tag("nuggets/emerald"), tag("nuggets/quartz"));
 		this.tag(ItemTags.CHICKEN_FOOD).add(AgriItems.SEED.get());
+
+		// this won't work until https://github.com/neoforged/NeoForge/pull/1256 is merged or https://bugs.mojang.com/browse/MC-274244 is fixed
+		this.tag(ItemTags.VILLAGER_PLANTABLE_SEEDS).add(AgriItems.SEED.get());
 	}
 
 	private static TagKey<Item> tag(String path) {
