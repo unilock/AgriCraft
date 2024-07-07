@@ -1,6 +1,7 @@
 package com.agricraft.agricraft.common.item;
 
 import com.agricraft.agricraft.api.AgriApi;
+import com.agricraft.agricraft.api.event.ModifyJournalPagesEvent;
 import com.agricraft.agricraft.api.tools.journal.JournalData;
 import com.agricraft.agricraft.api.tools.journal.JournalPage;
 import com.agricraft.agricraft.client.ClientUtil;
@@ -31,6 +32,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -72,13 +74,6 @@ public class JournalItem extends Item {
 			return seedAnalyzer.insertJournal(heldItem, context.getPlayer()) ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
 		}
 		return super.useOn(context);
-	}
-
-	@Override
-	public ItemStack getDefaultInstance() {
-		ItemStack stack = new ItemStack(this);
-//		researchPlant(stack, new ResourceLocation("minecraft:wheat"));
-		return stack;
 	}
 
 	public static void researchPlant(ItemStack journal, ResourceLocation plantId) {
@@ -139,17 +134,17 @@ public class JournalItem extends Item {
 		}
 
 		public void initializePages() {
-			this.pages.clear();
-			this.pages.add(new FrontPage());
-			this.pages.add(new IntroductionPage());
-			this.pages.add(new GeneticsPage());
-			this.pages.add(new GrowthReqsPage());
+			ArrayList<JournalPage> pages = new ArrayList<>();
+			pages.add(new FrontPage());
+			pages.add(new IntroductionPage());
+			pages.add(new GeneticsPage());
+			pages.add(new GrowthReqsPage());
 			for (ResourceLocation plant : this.plants) {
 				if (AgriApi.get().getPlant(plant).isEmpty()) {
 					continue;
 				}
 				PlantPage plantPage = new PlantPage(plant, plants);
-				this.pages.add(plantPage);
+				pages.add(plantPage);
 				List<List<ResourceLocation>> mutations = plantPage.getMutationsOffPage();
 				int size = mutations.size();
 				if (size > 0) {
@@ -164,7 +159,9 @@ public class JournalItem extends Item {
 					}
 				}
 			}
-			// TODO: @Ketheroth send modify page event
+			ModifyJournalPagesEvent event = NeoForge.EVENT_BUS.post(new ModifyJournalPagesEvent(pages));
+			this.pages.clear();
+			this.pages.addAll(event.pages());
 		}
 
 		@Override

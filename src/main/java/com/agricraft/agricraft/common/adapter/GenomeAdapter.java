@@ -8,7 +8,6 @@ import net.minecraft.world.level.ItemLike;
 
 import java.util.Optional;
 
-// TODO: @Ketheroth move to minecraft plugin
 public class GenomeAdapter implements AgriAdapter<AgriGenome> {
 
 	@Override
