@@ -41,7 +41,7 @@ public class DatagenEventHandler {
 
 	private static final boolean biomesoplenty = true;
 	private static final boolean immersiveengineering = false;
-	private static final boolean pamhc2crops = false;
+	private static final boolean pamhc2crops = true;
 
 	@SubscribeEvent
 	public static void onGatherData(GatherDataEvent event) {

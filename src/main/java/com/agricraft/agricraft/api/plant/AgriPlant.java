@@ -365,10 +365,10 @@ public class AgriPlant {
 		double spreadChance = 0.1;
 		boolean cloneable = true;
 		List<AgriProduct> products = new ArrayList<>();
-		List<AgriProduct> clipProducts = List.of();
+		List<AgriProduct> clipProducts = new ArrayList<>();
 		AgriRequirement requirement = AgriRequirement.NO_REQUIREMENT;
-		List<AgriPlantModifierInfo> modifiers = List.of();
-		List<AgriParticleEffect> particleEffects = List.of();
+		List<AgriPlantModifierInfo> modifiers = new ArrayList<>();
+		List<AgriParticleEffect> particleEffects = new ArrayList<>();
 
 		public static Builder from(AgriPlant plant) {
 			return new Builder().mods(plant.mods.toArray(new String[0]))
@@ -398,12 +398,19 @@ public class AgriPlant {
 			return this;
 		}
 
+		public Builder clearSeeds() {
+			this.seeds.clear();
+			return this;
+		}
+
 		public Builder stages(Integer... stages) {
+			this.stages.clear();
 			Collections.addAll(this.stages, stages);
 			return this;
 		}
 
 		public Builder stages16() {
+			this.stages.clear();
 			for (int i = 2; i < 17; i += 2) {
 				this.stages.add(i);
 			}
@@ -432,8 +439,18 @@ public class AgriPlant {
 			return this;
 		}
 
+		public Builder clearProducts() {
+			this.products.clear();
+			return this;
+		}
+
 		public Builder clips(AgriProduct... clips) {
-			this.clipProducts = List.of(clips);
+			Collections.addAll(this.clipProducts, clips);
+			return this;
+		}
+
+		public Builder clearClips() {
+			this.clipProducts.clear();
 			return this;
 		}
 
@@ -443,12 +460,22 @@ public class AgriPlant {
 		}
 
 		public Builder modifiers(AgriPlantModifierInfo... modifiers) {
-			this.modifiers = List.of(modifiers);
+			Collections.addAll(this.modifiers, modifiers);
+			return this;
+		}
+
+		public Builder clearModifiers() {
+			this.modifiers.clear();
 			return this;
 		}
 
 		public Builder particles(AgriParticleEffect... particles) {
-			this.particleEffects = List.of(particles);
+			Collections.addAll(this.particleEffects, particles);
+			return this;
+		}
+
+		public Builder clearParticles() {
+			this.particleEffects.clear();
 			return this;
 		}
 

@@ -143,16 +143,6 @@ public class AgriSeedItem extends BlockItem {
 	}
 
 	@Override
-	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-		consumer.accept(new IClientItemExtensions() {
-			@Override
-			public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-				return AgriSeedBEWLR.INSTANCE;
-			}
-		});
-	}
-
-	@Override
 	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
 		AgriGenome genome = stack.get(AgriDataComponents.GENOME);
 		if (genome != null) {

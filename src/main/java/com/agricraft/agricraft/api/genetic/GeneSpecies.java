@@ -41,7 +41,7 @@ public class GeneSpecies implements AgriGene<String> {
 
 	@Override
 	public void addTooltip(List<Component> tooltipComponents, String trait) {
-		tooltipComponents.add(Component.translatable("agricraft.gene.species").append(": " + trait).withStyle(ChatFormatting.DARK_GRAY));
+		tooltipComponents.add(Component.translatable("agricraft.gene.agricraft.species").append(": " + trait).withStyle(ChatFormatting.DARK_GRAY));
 	}
 
 	@Override

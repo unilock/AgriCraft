@@ -125,7 +125,7 @@ public class GiveSeedCommand {
 		AgriGenome genome = new AgriGenome(chromosomes);
 		ItemStack itemStack = AgriSeedItem.toStack(genome);
 		if (giveItemStack(itemStack, source.getPlayer(), source.getLevel())) {
-			source.sendSuccess(() -> Component.translatable("agricraft.command.seed_distinct", plant, distincts), true);
+			source.sendSuccess(() -> Component.translatable("agricraft.command.seed_distinct", plant.toString(), distincts), true);
 			return 1;
 		}
 		return 0;

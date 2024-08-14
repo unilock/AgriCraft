@@ -5,6 +5,7 @@ import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.AgriClientApi;
 import com.agricraft.agricraft.client.ber.CropBlockEntityRenderer;
 import com.agricraft.agricraft.client.ber.SeedAnalyzerEntityRenderer;
+import com.agricraft.agricraft.client.bewlr.AgriSeedBEWLR;
 import com.agricraft.agricraft.client.gui.MagnifyingGlassOverlay;
 import com.agricraft.agricraft.client.gui.SeedAnalyzerScreen;
 import com.agricraft.agricraft.common.item.SeedBagItem;
@@ -14,6 +15,7 @@ import com.agricraft.agricraft.common.registry.AgriBlocks;
 import com.agricraft.agricraft.common.registry.AgriItems;
 import com.agricraft.agricraft.common.registry.AgriMenuTypes;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -29,6 +31,8 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 
 import java.util.Map;
@@ -94,6 +98,16 @@ public class AgriCraftClient {
 	public static void registerBer(EntityRenderersEvent.RegisterRenderers event) {
 		event.registerBlockEntityRenderer(AgriBlockEntities.CROP.get(), CropBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(AgriBlockEntities.SEED_ANALYZER.get(), SeedAnalyzerEntityRenderer::new);
+	}
+
+	@SubscribeEvent
+	public static void registerBewlr(RegisterClientExtensionsEvent event) {
+		event.registerItem(new IClientItemExtensions() {
+			@Override
+			public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+				return AgriSeedBEWLR.INSTANCE;
+			}
+		}, AgriItems.SEED.get());
 	}
 
 	@SubscribeEvent

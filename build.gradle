@@ -3,7 +3,7 @@ plugins {
 	id 'eclipse'
 	id 'idea'
 	id 'maven-publish'
-	id 'net.neoforged.gradle.userdev' version '7.0.+'
+	id 'net.neoforged.gradle.userdev' version '7.0.154'
 }
 
 repositories {
@@ -33,7 +33,7 @@ repositories {
 }
 
 base {
-	archivesName = mod_id
+	archivesName = mod_id + "-" + minecraft_version
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -63,7 +63,8 @@ runs {
 	data {
 		programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(),
 				'--existing', file('src/main/resources/').getAbsolutePath(),
-				'--existing-mod', 'biomesoplenty'
+				'--existing-mod', 'biomesoplenty',
+				'--existing-mod', 'pamhc2crops'
 	}
 }
 
@@ -85,6 +86,9 @@ dependencies {
 
 	compileOnly "curse.maven:jade-324717:5427895"  // Jade-1.21-neoforge-15.0.4-api
 	localRuntime "curse.maven:jade-324717:5427817"  // Jade-1.21-neoforge-15.0.4
+
+	compileOnly "curse.maven:pamhc2crops-361385:5581644"  // pamhc2crops-NEOFORGE-1.21.0-1.0.0
+	localRuntime "curse.maven:pamhc2crops-361385:5581644"  // pamhc2crops-NEOFORGE-1.21.0-1.0.0
 
 	compileOnly "mcp.mobius.waila:wthit-api:neo-${wthit_version}"  // What The Hell Is That
 //	localRuntime "mcp.mobius.waila:wthit:neo-${wthit_version}"

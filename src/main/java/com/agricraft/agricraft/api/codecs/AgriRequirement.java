@@ -5,6 +5,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,8 +61,21 @@ public record AgriRequirement(AgriSoilCondition<AgriSoilCondition.Humidity> soil
 		AgriListCondition biomes = AgriListCondition.EMPTY;
 		AgriListCondition dimensions = AgriListCondition.EMPTY;
 		List<AgriSeason> seasons = List.of(AgriSeason.SPRING, AgriSeason.SUMMER, AgriSeason.AUTUMN, AgriSeason.WINTER);
-		List<AgriBlockCondition> blockConditions = List.of();
+		List<AgriBlockCondition> blockConditions = new ArrayList<>();
 		AgriFluidCondition fluidCondition = AgriFluidCondition.EMPTY;
+
+		public static Builder from(AgriRequirement requirement) {
+			return new Builder()
+					.humidity(requirement.soilHumidity.value(), requirement.soilHumidity.type(), requirement.soilHumidity.toleranceFactor())
+					.acidity(requirement.soilAcidity.value(), requirement.soilAcidity.type(), requirement.soilAcidity.toleranceFactor())
+					.nutrients(requirement.soilNutrients.value(), requirement.soilNutrients.type(), requirement.soilNutrients.toleranceFactor())
+					.light(requirement.minLight, requirement.maxLight, requirement.lightToleranceFactor)
+					.biomes(requirement.biomes.ignoreFromStrength(), requirement.biomes.blacklist(), requirement.biomes.values().toArray(new ResourceLocation[0]))
+					.dimensions(requirement.dimensions.ignoreFromStrength(), requirement.dimensions.blacklist(), requirement.dimensions.values().toArray(new ResourceLocation[0]))
+					.seasons(requirement.seasons().toArray(new AgriSeason[0]))
+					.blocks(requirement.blockConditions.toArray(new AgriBlockCondition[0]))
+					.fluid(requirement.fluidCondition);
+		}
 
 		public AgriRequirement build() {
 			return new AgriRequirement(humidity, acidity, nutrients, minLight, maxLight, lightToleranceFactor, biomes, dimensions, seasons, blockConditions, fluidCondition);
@@ -98,8 +113,8 @@ public record AgriRequirement(AgriSoilCondition<AgriSoilCondition.Humidity> soil
 			return this;
 		}
 
-		public Builder biomes(int ingnoreFromStrength, boolean blacklist, ResourceLocation... biomes) {
-			this.biomes = new AgriListCondition(List.of(biomes), blacklist, ingnoreFromStrength);
+		public Builder biomes(int ignoreFromStrength, boolean blacklist, ResourceLocation... biomes) {
+			this.biomes = new AgriListCondition(List.of(biomes), blacklist, ignoreFromStrength);
 			return this;
 		}
 
@@ -113,8 +128,8 @@ public record AgriRequirement(AgriSoilCondition<AgriSoilCondition.Humidity> soil
 			return this;
 		}
 
-		public Builder dimensions(int ingnoreFromStrength, boolean blacklist, ResourceLocation... dimensions) {
-			this.dimensions = new AgriListCondition(List.of(dimensions), blacklist, ingnoreFromStrength);
+		public Builder dimensions(int ignoreFromStrength, boolean blacklist, ResourceLocation... dimensions) {
+			this.dimensions = new AgriListCondition(List.of(dimensions), blacklist, ignoreFromStrength);
 			return this;
 		}
 
@@ -124,7 +139,12 @@ public record AgriRequirement(AgriSoilCondition<AgriSoilCondition.Humidity> soil
 		}
 
 		public Builder blocks(AgriBlockCondition... blocks) {
-			this.blockConditions = List.of(blocks);
+			Collections.addAll(this.blockConditions, blocks);
+			return this;
+		}
+
+		public Builder clearBlocks() {
+			this.blockConditions.clear();
 			return this;
 		}
 

@@ -1,8 +1,6 @@
 package com.agricraft.agricraft;
 
 import com.agricraft.agricraft.api.AgriApi;
-import com.agricraft.agricraft.common.adapter.FertilizerAdapter;
-import com.agricraft.agricraft.common.adapter.GenomeAdapter;
 import com.agricraft.agricraft.api.config.AgriCraftConfig;
 import com.agricraft.agricraft.common.commands.DumpRegistriesCommand;
 import com.agricraft.agricraft.common.commands.GiveSeedCommand;
@@ -27,6 +25,8 @@ import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
@@ -54,6 +54,7 @@ public class AgriCraft {
 		NeoForge.EVENT_BUS.addListener(AgriCraft::onRegisterCommands);
 		NeoForge.EVENT_BUS.addListener(AgriCraft::onRightClick);
 		modContainer.registerConfig(ModConfig.Type.COMMON, AgriCraftConfig.SPEC);
+		modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
 	}
 
 	public static void onCommonSetup(FMLCommonSetupEvent event) {
