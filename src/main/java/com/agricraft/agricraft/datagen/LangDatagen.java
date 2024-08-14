@@ -43,6 +43,26 @@ public class LangDatagen {
 		lang.add("description.agricraft.biomesoplenty.wilted_lily", "That's what happens when you don't water your plants.");
 	}
 
+	public static void farmersdelight(LanguageProvider lang) {
+		lang.add("plant.agricraft.farmersdelight.cabbage", "Cabbage");
+		lang.add("plant.agricraft.farmersdelight.onion", "Onions");
+		lang.add("plant.agricraft.farmersdelight.tomato", "Tomato Vine");
+		lang.add("plant.agricraft.farmersdelight.rice", "Rice Crops");
+
+		lang.add("seed.agricraft.farmersdelight.cabbage", "Cabbage Seeds");
+		lang.add("seed.agricraft.farmersdelight.onion", "Onion");
+		lang.add("seed.agricraft.farmersdelight.tomato", "Tomato Seeds");
+		lang.add("seed.agricraft.farmersdelight.rice", "Rice");
+
+		lang.add("description.agricraft.farmersdelight.cabbage", "Full of vitamin K.");
+		lang.add("description.agricraft.farmersdelight.onion", "Goes well with pickles.");
+		lang.add("description.agricraft.farmersdelight.tomato", "Flood the fields.");
+		lang.add("description.agricraft.farmersdelight.rice", "A red and plump fruit.");
+
+		lang.add("soil.agricraft.farmersdelight.rich_farmland", "Rich farmland");
+		lang.add("soil.agricraft.farmersdelight.rich_soil", "Rich soil");
+	}
+
 	public static void immersiveengineering(LanguageProvider lang) {
 		lang.add("plant.agricraft.immersiveengineering.hemp", "Industrial Hemp");
 		lang.add("seed.agricraft.immersiveengineering.hemp", "Industrial Hemp Seeds");

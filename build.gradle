@@ -64,7 +64,8 @@ runs {
 		programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(),
 				'--existing', file('src/main/resources/').getAbsolutePath(),
 				'--existing-mod', 'biomesoplenty',
-				'--existing-mod', 'pamhc2crops'
+				'--existing-mod', 'pamhc2crops',
+				'--existing-mod', 'farmersdelight'
 	}
 }
 
@@ -99,6 +100,8 @@ dependencies {
 //	localRuntime "curse.maven:serene-seasons-291874:5429913"  // Serene Seasons 1.21-10.0.0.2
 	localRuntime "curse.maven:glitchcore-955399:5483773"  // GlitchCore 1.21-2.0.0.2 (serene season / biomes o' plenty dep)
 	localRuntime "curse.maven:terrablender-940057:5429865"  // TerraBlender 1.21-4.0.0.1 (biomes o' plenty dep)
+
+	implementation "curse.maven:farmers_delight-398521:5566383"  // Farmer's Delight 1.2.4 - 1.21
 
 }
 

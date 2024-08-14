@@ -1,6 +1,5 @@
 package com.agricraft.agricraft.datagen;
 
-import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.codecs.AgriSoil;
 import com.agricraft.agricraft.api.codecs.AgriSoilVariant;
 import net.minecraft.data.worldgen.BootstrapContext;
@@ -46,4 +45,12 @@ public class SoilsDatagen {
 		context.register(ResourceKey.create(AgriSoil.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("agricraft", soilId)), soil);
 	}
 
+	public static void registerFarmersDelight(BootstrapContext<AgriSoil> context) {
+		r(context, "farmersdelight", "rich_soil", AgriSoil.builder().variants(AgriSoilVariant.builder().block("farmersdelight:rich_soil").build()).humidity(DAMP).acidity(NEUTRAL).nutrients(VERY_HIGH).growthModifier(1.8).build());
+		r(context, "farmersdelight", "rich_farmland", AgriSoil.builder().variants(AgriSoilVariant.builder().block("farmersdelight:rich_soil_farmland").build()).humidity(WET).acidity(SLIGHTLY_ACIDIC).nutrients(VERY_HIGH).growthModifier(1.8).build());
+	}
+
+	private static void r(BootstrapContext<AgriSoil> context, String modid, String soilId, AgriSoil soil) {
+		context.register(ResourceKey.create(AgriSoil.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(modid, soilId)), soil);
+	}
 }

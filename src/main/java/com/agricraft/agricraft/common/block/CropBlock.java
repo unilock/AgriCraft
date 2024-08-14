@@ -447,11 +447,11 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 			return drops;
 		}
 		CropState cropState = state.getValue(CROP_STATE);
-		if (cropState.hasSticks()) {
-			drops.add(CropStickVariant.toItem(state.getValue(STICK_VARIANT), cropState == CropState.DOUBLE_STICKS ? 2 : 1));
-		}
-		// ask the block entity for the harvest products
 		if (tile instanceof AgriCrop crop) {
+			if (cropState.hasSticks() && !(crop.hasWeeds() && AgriCraftConfig.WEEDS_DESTROY_CROP_STICKS.get())) {
+				drops.add(CropStickVariant.toItem(state.getValue(STICK_VARIANT), cropState == CropState.DOUBLE_STICKS ? 2 : 1));
+			}
+			// ask the block entity for the harvest products
 			crop.getHarvestProducts(drops::add);
 			if (crop.hasPlant() && (crop.isFullyGrown() || !AgriCraftConfig.ONLY_MATURE_SEED_DROPS.get())) {
 				drops.add(AgriSeedItem.toStack(crop.getGenome()));

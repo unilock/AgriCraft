@@ -40,6 +40,7 @@ import java.util.function.Consumer;
 public class DatagenEventHandler {
 
 	private static final boolean biomesoplenty = true;
+	private static final boolean farmersdelight = true;
 	private static final boolean immersiveengineering = false;
 	private static final boolean pamhc2crops = true;
 
@@ -74,6 +75,9 @@ public class DatagenEventHandler {
 
 		if (biomesoplenty) {
 			addExtraDataPackProvider("biomesoplenty", new RegistrySetBuilder().add(AgriPlant.REGISTRY_KEY, PlantsDatagen::registerBiomesOPlenty).add(AgriMutation.REGISTRY_KEY, MutationsDatagen::registerBiomesOPlenty), ModelsDatagen::registerBiomesOPlentyPlant, ModelsDatagen::registerBiomesOPlentySeed, LangDatagen::biomesoplenty, event);
+		}
+		if (farmersdelight) {
+			addExtraDataPackProvider("farmersdelight", new RegistrySetBuilder().add(AgriPlant.REGISTRY_KEY, PlantsDatagen::registerFarmersDelight).add(AgriMutation.REGISTRY_KEY, MutationsDatagen::registerFarmersDelight).add(AgriSoil.REGISTRY_KEY, SoilsDatagen::registerFarmersDelight), ModelsDatagen::registerFarmersDelightPlant, ModelsDatagen::registerFarmersDelightSeed, LangDatagen::farmersdelight, event);
 		}
 		if (immersiveengineering) {
 			addExtraDataPackProvider("immersiveengineering", new RegistrySetBuilder().add(AgriPlant.REGISTRY_KEY, PlantsDatagen::registerImmersiveEngineering).add(AgriMutation.REGISTRY_KEY, MutationsDatagen::registerImmersiveEngineering), ModelsDatagen::registerImmersiveEngineeringPlant, ModelsDatagen::registerImmersiveEngineeringSeed, LangDatagen::immersiveengineering, event);

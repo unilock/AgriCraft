@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "com.agricraft.agricraft.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"FarmersDelightMixin"
+	],
+	"client": [],
+	"server": [],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

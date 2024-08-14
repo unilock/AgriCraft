@@ -187,6 +187,34 @@ public class ModelsDatagen {
 				.forEach(name -> m.withExistingParent(name, "minecraft:item/generated").texture("layer0", "agricraft:seed/biomesoplenty/" + name));
 	}
 
+	public static void registerFarmersDelightPlant(ModelProvider<BlockModelBuilder> m) {
+		m.withExistingParent("cabbage_stage0", "agricraft:crop/crop_cross").texture("crop", "farmersdelight:block/cabbages_stage0");
+		m.withExistingParent("cabbage_stage1", "agricraft:crop/crop_cross").texture("crop", "farmersdelight:block/cabbages_stage1");
+		m.withExistingParent("cabbage_stage2", "agricraft:crop/crop_cross").texture("crop", "farmersdelight:block/cabbages_stage2");
+		m.withExistingParent("cabbage_stage3", "agricraft:crop/crop_cross").texture("crop", "farmersdelight:block/cabbages_stage3");
+		m.withExistingParent("cabbage_stage4", "agricraft:crop/crop_cross").texture("crop", "farmersdelight:block/cabbages_stage4");
+		m.withExistingParent("cabbage_stage5", "agricraft:crop/crop_cross").texture("crop", "farmersdelight:block/cabbages_stage5");
+		m.withExistingParent("cabbage_stage6", "agricraft:crop/crop_cross").texture("crop", "farmersdelight:block/cabbages_stage6");
+		m.withExistingParent("cabbage_stage7", "agricraft:crop/crop_cross").texture("crop", "farmersdelight:block/cabbages_stage7");
+		with4TexturesIn8stage(m, "onion", "agricraft:crop/crop_hash", "farmersdelight:block/onions");
+		with4TexturesIn8stage(m, "tomato", "agricraft:crop/crop_cross", "farmersdelight:block/tomatoes");
+		m.withExistingParent("rice_stage0", "agricraft:crop/crop_cross").texture("crop", "farmersdelight:block/rice_stage0");
+		m.withExistingParent("rice_stage1", "agricraft:crop/crop_cross").texture("crop", "farmersdelight:block/rice_stage1");
+		m.withExistingParent("rice_stage2", "agricraft:crop/crop_cross").texture("crop", "farmersdelight:block/rice_stage2");
+		m.withExistingParent("rice_stage3", "agricraft:crop/crop_cross").texture("crop", "farmersdelight:block/rice_stage3");
+		m.withExistingParent("rice_stage4", "agricraft:crop/tall_crop_cross").texture("crop", "farmersdelight:block/rice_supporting").texture("crop_top", "farmersdelight:block/rice_panicles_stage0");
+		m.withExistingParent("rice_stage5", "agricraft:crop/tall_crop_cross").texture("crop", "farmersdelight:block/rice_supporting").texture("crop_top", "farmersdelight:block/rice_panicles_stage1");
+		m.withExistingParent("rice_stage6", "agricraft:crop/tall_crop_cross").texture("crop", "farmersdelight:block/rice_supporting").texture("crop_top", "farmersdelight:block/rice_panicles_stage2");
+		m.withExistingParent("rice_stage7", "agricraft:crop/tall_crop_cross").texture("crop", "farmersdelight:block/rice_supporting").texture("crop_top", "farmersdelight:block/rice_panicles_stage3");
+	}
+
+	public static void registerFarmersDelightSeed(ModelProvider<ItemModelBuilder> m) {
+		m.withExistingParent("cabbage", "farmersdelight:item/cabbage_seeds");
+		m.withExistingParent("onion", "farmersdelight:item/onion");
+		m.withExistingParent("rice", "farmersdelight:item/rice");
+		m.withExistingParent("tomato", "farmersdelight:item/tomato_seeds");
+	}
+
 	public static void registerImmersiveEngineeringPlant(ModelProvider<BlockModelBuilder> m) {
 		m.withExistingParent("hemp_stage0", "agricraft:crop/crop_hash").texture("crop", "immersiveengineering:block/hemp/bottom0");
 		m.withExistingParent("hemp_stage1", "agricraft:crop/crop_hash").texture("crop", "immersiveengineering:block/hemp/bottom0");

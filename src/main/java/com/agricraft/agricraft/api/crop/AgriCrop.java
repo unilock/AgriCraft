@@ -27,7 +27,7 @@ public interface AgriCrop extends AgriGenomeProvider, IAgriFertilizable {
 	boolean hasPlant();
 
 	/**
-	 * @return true if the crop has a plant
+	 * @return true if the crop has weeds
 	 */
 	boolean hasWeeds();
 

@@ -97,10 +97,10 @@ public class SeedBagItem extends Item {
 		}
 		// at this point, either there are no seeds in the bag, or the seed to be inserted has the same species as the ones inside
 		int size = size(seedBag);
-		if (size >= AgriCraftConfig.SEED_BAG_CAPACTITY.get()) {
+		if (size >= AgriCraftConfig.SEED_BAG_CAPACITY.get()) {
 			return 0;
 		}
-		int insertedCount = Math.min(AgriCraftConfig.SEED_BAG_CAPACTITY.get() - size, insertedStack.getCount());
+		int insertedCount = Math.min(AgriCraftConfig.SEED_BAG_CAPACITY.get() - size, insertedStack.getCount());
 		ImmutableList.Builder<BagEntry> builder = ImmutableList.builder();
 		Stream.concat(data.plants().stream(), Stream.of(new BagEntry(insertedCount, genome))).sorted(SORTERS.get(data.sorter())).forEach(builder::add);
 		Data newData = new Data(builder.build(), data.sorter());
@@ -167,7 +167,7 @@ public class SeedBagItem extends Item {
 
 	public static boolean isFilled(ItemStack stack) {
 		Data data = stack.get(AgriDataComponents.SEED_BAG_DATA);
-		return data != null && data.size() == AgriCraftConfig.SEED_BAG_CAPACTITY.get();
+		return data != null && data.size() == AgriCraftConfig.SEED_BAG_CAPACITY.get();
 	}
 
 	private static void playRemoveOneSound(Entity entity) {

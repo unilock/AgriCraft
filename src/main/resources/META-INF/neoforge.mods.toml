@@ -15,6 +15,9 @@ description='''
 Agricultural farming extended
 '''
 
+[[mixins]]
+config="agricraft.mixins.json"
+
 [[dependencies.agricraft]]
 modId="neoforge"
 type="required"

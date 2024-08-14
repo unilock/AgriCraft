@@ -73,6 +73,13 @@ public class MutationsDatagen {
 		r(context, "biomesoplenty", "wilted_lily", new AgriMutation("biomesoplenty:wilted_lily", "minecraft:lily_of_the_valley", "minecraft:brown_mushroom", 0.5));
 	}
 
+	public static void registerFarmersDelight(BootstrapContext<AgriMutation> context) {
+		r(context, "farmersdelight", "cabbage", new AgriMutation("farmersdelight:cabbage", "farmersdelight:onion", "minecraft:seagrass", 0.5));
+		r(context, "farmersdelight", "onion", new AgriMutation("farmersdelight:onion", "minecraft:allium", "minecraft:potato", 0.5));
+		r(context, "farmersdelight", "rice", new AgriMutation("farmersdelight:rice", "minecraft:seagrass", "minecraft:wheat", 0.5));
+		r(context, "farmersdelight", "tomato", new AgriMutation("farmersdelight:tomato", "minecraft:wheat", "minecraft:beetroot", 0.5));
+	}
+
 	public static void registerImmersiveEngineering(BootstrapContext<AgriMutation> context) {
 		r(context, "immersiveengineering", "hemp", new AgriMutation("immersiveengineering:hemp", "minecraft:pumpkin", "minecraft:wheat", 0.5));
 	}

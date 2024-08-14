@@ -49,9 +49,9 @@ public final class AgriCraftConfig {
 			.comment("Set to false if you wish to disable drops from raking weeds.")
 			.define("raking_drops_items", true);
 //	public static boolean animalAttraction = false;
-	public static final ModConfigSpec.IntValue SEED_BAG_CAPACTITY = BUILDER
+	public static final ModConfigSpec.IntValue SEED_BAG_CAPACITY = BUILDER
 			.comment("The amount of seeds one seed bag can hold.")
-			.defineInRange("seed_bag_capactity", 64, 0, 256);
+			.defineInRange("seed_bag_capacity", 64, 0, 256);
 	public static final ModConfigSpec.IntValue SEED_BAG_ENCHANT_COST = BUILDER
 			.comment("Enchantment cost in player levels to enchant the seed bag.")
 			.defineInRange("seed_bag_enchant_cost", 10, 0, 30);
