@@ -43,11 +43,11 @@ public class DatagenEventHandler {
 	private static final boolean farmersdelight = true;
 	private static final boolean immersiveengineering = false;
 	private static final boolean pamhc2crops = true;
+	public static final boolean farmingforblockheads = true;
 
 	@SubscribeEvent
 	public static void onGatherData(GatherDataEvent event) {
 		DataGenerator generator = event.getGenerator();
-		generator.addProvider(event.includeServer(), (DataProvider.Factory<RecipeProvider>) output -> new ModRecipeProvider(output, event.getLookupProvider()));
 		generator.addProvider(event.includeServer(), (DataProvider.Factory<ItemTagsProvider>) output -> new ModItemTagProvider(output, event.getLookupProvider(), CompletableFuture.completedFuture(null)));
 		generator.addProvider(event.includeServer(), (DataProvider.Factory<BlockTagsProvider>) output -> new ModBlockTagProvider(output, event.getLookupProvider(), event.getExistingFileHelper()));
 		generator.addProvider(event.includeServer(), (DataProvider.Factory<ModDataMapsProvider>) output -> new ModDataMapsProvider(output, event.getLookupProvider()));
@@ -86,6 +86,7 @@ public class DatagenEventHandler {
 			addExtraDataPackProvider("pamhc2crops", new RegistrySetBuilder().add(AgriPlant.REGISTRY_KEY, PlantsDatagen::registerPamsHarvestCraft2).add(AgriMutation.REGISTRY_KEY, MutationsDatagen::registerPamsHarvestCraft2), ModelsDatagen::registerPamsHarvestCraft2Plant, ModelsDatagen::registerPamsHarvestCraft2Seed, LangDatagen::pamhc2crops, event);
 		}
 
+		generator.addProvider(event.includeServer(), (DataProvider.Factory<RecipeProvider>) output -> new ModRecipeProvider(output, event.getLookupProvider()));
 	}
 
 	private static <T extends ModelBuilder<T>> void addProvider(String modid, String folder, Consumer<ModelProvider<T>> consumer, BiFunction<ResourceLocation, ExistingFileHelper, T> builderFromModId, DataGenerator generator, ExistingFileHelper existingFileHelper, boolean includeClient) {

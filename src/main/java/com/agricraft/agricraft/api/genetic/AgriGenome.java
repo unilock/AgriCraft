@@ -61,10 +61,13 @@ public class AgriGenome {
 	}
 
 	public AgriGenome(AgriPlant plant) {
+		this(plant.getId().orElse(ResourceLocation.fromNamespaceAndPath("agricraft", "")));
+	}
+
+	public AgriGenome(ResourceLocation species) {
 		this.chromosomes = new HashMap<>();
 		GeneSpecies geneSpecies = AgriCraftGenes.SPECIES.get();
-		String id = plant.getId().map(ResourceLocation::toString).orElse("");
-		chromosomes.put(geneSpecies, geneSpecies.chromosome(id));
+		chromosomes.put(geneSpecies, geneSpecies.chromosome(species.toString()));
 		AgriApi.get().getStatRegistry().holders()
 				.forEach(stat -> {
 					// this should work, until someone change the type of the gene

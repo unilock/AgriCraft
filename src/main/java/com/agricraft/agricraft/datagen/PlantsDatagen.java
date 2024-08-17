@@ -9,13 +9,14 @@ import com.agricraft.agricraft.api.codecs.AgriSeed;
 import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.plant.AgriPlantModifierInfo;
 import com.agricraft.agricraft.api.requirement.AgriSeason;
-import com.agricraft.agricraft.common.registry.ModPlantModifiers;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static com.agricraft.agricraft.api.codecs.AgriSoilCondition.Acidity.HIGHLY_ACIDIC;
 import static com.agricraft.agricraft.api.codecs.AgriSoilCondition.Acidity.HIGHLY_ALKALINE;
@@ -40,6 +41,11 @@ import static com.agricraft.agricraft.api.requirement.AgriSeason.SUMMER;
 import static com.agricraft.agricraft.api.requirement.AgriSeason.WINTER;
 
 public class PlantsDatagen {
+
+	/**
+	 * this is used for easy generation of farmingforblockheads market data. see {@link ModRecipeProvider#buildRecipes(RecipeOutput, HolderLookup.Provider)}.
+	 */
+	public static final List<ResourceLocation> GENERATED_PLANTS = new ArrayList<>();
 
 	public static void registerPlants(BootstrapContext<AgriPlant> context) {
 		// AgriSeed.builder().chances(0.0, 1.0, 0.0).build()
@@ -243,6 +249,7 @@ public class PlantsDatagen {
 
 	public static void r(BootstrapContext<AgriPlant> context, String modid, String plantId, AgriPlant plant) {
 		context.register(ResourceKey.create(AgriPlant.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(modid, plantId)), plant);
+		GENERATED_PLANTS.add(ResourceLocation.fromNamespaceAndPath(modid, plantId));
 	}
 
 	public static AgriPlant.Builder flower(String product, String clip, AgriSeason... seasons) {

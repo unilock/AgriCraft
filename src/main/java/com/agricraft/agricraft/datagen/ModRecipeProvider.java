@@ -1,6 +1,12 @@
 package com.agricraft.agricraft.datagen;
 
+import com.agricraft.agricraft.AgriCraft;
+import com.agricraft.agricraft.api.AgriApi;
+import com.agricraft.agricraft.api.genetic.AgriGenome;
+import com.agricraft.agricraft.api.plant.AgriPlant;
+import com.agricraft.agricraft.common.item.AgriSeedItem;
 import com.agricraft.agricraft.common.registry.AgriItems;
+import com.agricraft.agricraft.datagen.farmingforblockheads.MarketRecipeBuilder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
@@ -16,6 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.common.Tags;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -157,6 +164,19 @@ public class ModRecipeProvider extends RecipeProvider {
 				.unlockedBy("has_shard", has(AgriItems.QUARTZ_SHARD.get()))
 				.define('s', AgriItems.QUARTZ_SHARD.get())
 				.save(output, ResourceLocation.parse("agricraft:quartz"));
+	}
+
+	@Override
+	protected void buildRecipes(RecipeOutput output, HolderLookup.Provider holderLookup) {
+		super.buildRecipes(output, holderLookup);
+		if (DatagenEventHandler.farmingforblockheads) {
+			Optional<HolderLookup.RegistryLookup<AgriPlant>> lookup = holderLookup.lookup(AgriPlant.REGISTRY_KEY);
+			ResourceLocation category = ResourceLocation.fromNamespaceAndPath("agricraft", "seeds");
+			for (ResourceLocation id : PlantsDatagen.GENERATED_PLANTS) {
+				new MarketRecipeBuilder(AgriSeedItem.toStack(new AgriGenome(id)), category, ResourceLocation.fromNamespaceAndPath("agricraft", "any"))
+						.save(output, ResourceLocation.fromNamespaceAndPath("agricraft", "market/agricraft/" + id.getNamespace() + "/" + id.getPath()));
+			}
+		}
 	}
 
 }

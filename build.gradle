@@ -30,6 +30,13 @@ repositories {
 			includeGroup "mcp.mobius.waila"
 		}
 	}
+	maven {
+		name = "Blay09's maven"
+		url "https://maven.twelveiterations.com/repository/maven-public/"
+		content {
+			includeGroup "net.blay09.mods"
+		}
+	}
 }
 
 base {
@@ -65,7 +72,9 @@ runs {
 				'--existing', file('src/main/resources/').getAbsolutePath(),
 				'--existing-mod', 'biomesoplenty',
 				'--existing-mod', 'pamhc2crops',
-				'--existing-mod', 'farmersdelight'
+				'--existing-mod', 'farmersdelight',
+				'--existing-mod', 'ars_nouveau',
+				'--existing-mod', 'farmingforblockheads'
 	}
 }
 
@@ -80,7 +89,7 @@ dependencies {
 
 	compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
 	compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
-//	localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+	localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 
 	compileOnly "dev.emi:emi-neoforge:${emi_version}:api"
 	localRuntime "dev.emi:emi-neoforge:${emi_version}"
@@ -102,6 +111,15 @@ dependencies {
 	localRuntime "curse.maven:terrablender-940057:5429865"  // TerraBlender 1.21-4.0.0.1 (biomes o' plenty dep)
 
 	implementation "curse.maven:farmers_delight-398521:5566383"  // Farmer's Delight 1.2.4 - 1.21
+
+	implementation "curse.maven:ars_nouveau-401955:5606650"  // ars_nouveau-1.21.0-5.0.7-all.jar
+	implementation "curse.maven:curios-continuation-1037991:5546342"  // curios-neoforge-9.0.5+1.21.jar (ars nouveau dep)
+	implementation "curse.maven:geckolib-388172:5605715"  // geckolib-neoforge-1.21-4.5.8.jar (ars nouveau dep)
+
+//	implementation "net.blay09.mods:farmingforblockheads-neoforge:21.0.4+1.21"  // farmingforblockheads-neoforge-1.21.1-21.1.1.jar
+//	implementation "net.blay09.mods:balm-neoforge:21.0.9+1.21"  // farmingforblockheads-neoforge-1.21.1-21.1.1.jar
+	implementation "curse.maven:farming_for_blockheads-261924:5623479"  // farmingforblockheads-neoforge-1.21.1-21.1.1.jar
+	implementation "curse.maven:balm-531761:5623449"  // balm-neoforge-1.21.1-21.0.15.jar (farming for blockheads dep)
 
 }
 
