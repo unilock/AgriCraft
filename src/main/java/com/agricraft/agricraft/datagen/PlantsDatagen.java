@@ -114,6 +114,7 @@ public class PlantsDatagen {
 		r(context, "biomesoplenty", "rose", flower("minecraft:red_dye", "biomesoplenty:rose", SPRING).build());
 		r(context, "biomesoplenty", "toadstool", new AgriPlant.Builder().seeds(AgriSeed.builder().item("biomesoplenty:toadstool").build()).stages16().chances(0.75, 0.025, 0.1).products(AgriProduct.builder().item("biomesoplenty:toadstool").count(2, 5, 1.0).build()).requirement(AgriRequirement.builder().humidity(DAMP, EQUAL, 0.15).acidity(NEUTRAL, EQUAL, 0.2).nutrients(MEDIUM, EQUAL_OR_LOWER, 0.2).light(0, 10, 0.5).seasons(SPRING, SUMMER, AUTUMN, WINTER).build()).build());
 		r(context, "biomesoplenty", "violet", flower("minecraft:purple_dye", "biomesoplenty:violet", SUMMER).build());
+		r(context, "biomesoplenty", "white_lavender", flower("minecraft:white_dye", "biomesoplenty:white_lavender", SPRING, SUMMER, AUTUMN).build());
 		r(context, "biomesoplenty", "wilted_lily", flower("minecraft:gray_dye", "biomesoplenty:wilted_lily", AUTUMN, WINTER).build());
 	}
 

@@ -47,7 +47,7 @@ public class SoilsDatagen {
 
 	public static void registerFarmersDelight(BootstrapContext<AgriSoil> context) {
 		r(context, "farmersdelight", "rich_soil", AgriSoil.builder().variants(AgriSoilVariant.builder().block("farmersdelight:rich_soil").build()).humidity(DAMP).acidity(NEUTRAL).nutrients(VERY_HIGH).growthModifier(1.8).build());
-		r(context, "farmersdelight", "rich_farmland", AgriSoil.builder().variants(AgriSoilVariant.builder().block("farmersdelight:rich_soil_farmland").build()).humidity(WET).acidity(SLIGHTLY_ACIDIC).nutrients(VERY_HIGH).growthModifier(1.8).build());
+		r(context, "farmersdelight", "rich_soil_farmland", AgriSoil.builder().variants(AgriSoilVariant.builder().block("farmersdelight:rich_soil_farmland").build()).humidity(WET).acidity(SLIGHTLY_ACIDIC).nutrients(VERY_HIGH).growthModifier(1.8).build());
 	}
 
 	private static void r(BootstrapContext<AgriSoil> context, String modid, String soilId, AgriSoil soil) {
