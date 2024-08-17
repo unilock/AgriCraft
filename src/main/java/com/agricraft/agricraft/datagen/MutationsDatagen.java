@@ -73,6 +73,65 @@ public class MutationsDatagen {
 		r(context, "biomesoplenty", "wilted_lily", new AgriMutation("biomesoplenty:wilted_lily", "minecraft:lily_of_the_valley", "minecraft:brown_mushroom", 0.5));
 	}
 
+	public static void registerCroptopia(BootstrapContext<AgriMutation> context) {
+		croptopia(context, "artichoke", "croptopia:asparagus", "croptopia:lettuce");
+		croptopia(context, "asparagus", "minecraft:carrot", "croptopia:corn");
+		croptopia(context, "barley", "minecraft:sugar_cane", "minecraft:wheat");
+		croptopia(context, "basil", "minecraft:sugar_cane", "minecraft:potato");
+		croptopia(context, "bellpepper", "croptopia:basil", "croptopia:chile_pepper");
+		croptopia(context, "blackbean", "minecraft:pumpkin", "minecraft:potato");
+		croptopia(context, "blackberry", "croptopia:strawberry", "croptopia:soybean");
+		croptopia(context, "blueberry", "croptopia:strawberry", "croptopia:soybean");
+		croptopia(context, "broccoli", "croptopia:lettuce", "croptopia:soybean");
+		croptopia(context, "cabbage", "croptopia:onion", "minecraft:seagrass");
+		croptopia(context, "cantaloupe", "minecraft:melon", "croptopia:strawberry");
+		croptopia(context, "cauliflower", "croptopia:cabbage", "croptopia:lettuce");
+		croptopia(context, "celery", "minecraft:wheat", "croptopia:soybean");
+		croptopia(context, "chile_pepper", "croptopia:tomato", "croptopia:onion");
+		croptopia(context, "coffee", "minecraft:sugar_cane", "croptopia:greenbean");
+		croptopia(context, "corn", "croptopia:barley", "croptopia:rice");
+		croptopia(context, "cranberry", "croptopia:blueberry", "croptopia:grape");
+		croptopia(context, "cucumber", "minecraft:sea_pickle", "croptopia:soybean");
+		croptopia(context, "currant", "croptopia:blackberry", "croptopia:strawberry");
+		croptopia(context, "eggplant", "croptopia:zucchini", "croptopia:tomato");
+		croptopia(context, "elderberry", "croptopia:blackberry", "croptopia:currant");
+		croptopia(context, "garlic", "croptopia:onion", "croptopia:ginger");
+		croptopia(context, "ginger", "croptopia:peanut", "minecraft:bamboo");
+		croptopia(context, "grape", "croptopia:blueberry", "croptopia:cantaloupe");
+		croptopia(context, "greenbean", "minecraft:pumpkin", "minecraft:potato");
+		croptopia(context, "greenonion", "croptopia:onion", "croptopia:onion");
+		croptopia(context, "honeydew", "minecraft:melon", "croptopia:oat");
+		croptopia(context, "hops", "croptopia:barley", "croptopia:cauliflower");
+		croptopia(context, "kale", "croptopia:cabbage", "croptopia:cauliflower");
+		croptopia(context, "kiwi", "croptopia:cantaloupe", "croptopia:strawberry");
+		croptopia(context, "leek", "croptopia:celery", "minecraft:carrot");
+		croptopia(context, "lettuce", "croptopia:soybean", "croptopia:celery");
+		croptopia(context, "mustard", "croptopia:chile_pepper", "croptopia:greenbean");
+		croptopia(context, "oat", "croptopia:corn", "croptopia:rice");
+		croptopia(context, "olive", "croptopia:blackberry", "croptopia:greenbean");
+		croptopia(context, "onion", "minecraft:allium", "minecraft:potato");
+		croptopia(context, "peanut", "croptopia:greenbean", "croptopia:corn");
+		croptopia(context, "pineapple", "croptopia:corn", "croptopia:spinach");
+		croptopia(context, "radish", "minecraft:beetroot", "minecraft:carrot");
+		croptopia(context, "raspberry", "croptopia:strawberry", "croptopia:soybean");
+		croptopia(context, "rhubarb", "minecraft:sugar_cane", "croptopia:lettuce");
+		croptopia(context, "rice", "croptopia:barley", "minecraft:wheat");
+		croptopia(context, "rutabaga", "minecraft:beetroot", "croptopia:turnip");
+		croptopia(context, "saguaro", "minecraft:sugar_cane", "minecraft:cactus");
+		croptopia(context, "soybean", "croptopia:greenbean", "croptopia:rice");
+		croptopia(context, "spinach", "croptopia:lettuce", "minecraft:cactus");
+		croptopia(context, "squash", "croptopia:eggplant", "minecraft:pumpkin");
+		croptopia(context, "strawberry", "minecraft:sweet_berries", "croptopia:soybean");
+		croptopia(context, "sweetpotato", "minecraft:sugar_cane", "minecraft:potato");
+		croptopia(context, "tomatillo", "croptopia:tomato", "croptopia:cucumber");
+		croptopia(context, "tomato", "croptopia:sweetpotato", "minecraft:carrot");
+		croptopia(context, "turmeric", "croptopia:ginger", "croptopia:rice");
+		croptopia(context, "turnip", "minecraft:beetroot", "croptopia:radish");
+		croptopia(context, "vanilla", "minecraft:sugar_cane", "croptopia:turmeric");
+		croptopia(context, "yam", "croptopia:sweetpotato", "minecraft:potato");
+		croptopia(context, "zucchini", "minecraft:pumpkin", "croptopia:cucumber");
+	}
+
 	public static void registerFarmersDelight(BootstrapContext<AgriMutation> context) {
 		r(context, "farmersdelight", "cabbage", new AgriMutation("farmersdelight:cabbage", "farmersdelight:onion", "minecraft:seagrass", 0.5));
 		r(context, "farmersdelight", "onion", new AgriMutation("farmersdelight:onion", "minecraft:allium", "minecraft:potato", 0.5));
@@ -194,6 +253,10 @@ public class MutationsDatagen {
 
 	private static void agricraft(BootstrapContext<AgriMutation> context, String mutationId, AgriMutation mutation) {
 		r(context, "agricraft", mutationId, mutation);
+	}
+
+	private static void croptopia(BootstrapContext<AgriMutation> context, String name, String parent1, String parent2) {
+		r(context, "croptopia", name, new AgriMutation("croptopia:" + name, parent1, parent2, 0.5));
 	}
 
 	private static void pamhc2crops(BootstrapContext<AgriMutation> context, String name, String parent1, String parent2) {

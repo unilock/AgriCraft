@@ -40,6 +40,7 @@ import java.util.function.Consumer;
 public class DatagenEventHandler {
 
 	private static final boolean biomesoplenty = true;
+	private static final boolean croptopia = true;
 	private static final boolean farmersdelight = true;
 	private static final boolean immersiveengineering = false;
 	private static final boolean pamhc2crops = true;
@@ -84,6 +85,9 @@ public class DatagenEventHandler {
 		}
 		if (pamhc2crops) {
 			addExtraDataPackProvider("pamhc2crops", new RegistrySetBuilder().add(AgriPlant.REGISTRY_KEY, PlantsDatagen::registerPamsHarvestCraft2).add(AgriMutation.REGISTRY_KEY, MutationsDatagen::registerPamsHarvestCraft2), ModelsDatagen::registerPamsHarvestCraft2Plant, ModelsDatagen::registerPamsHarvestCraft2Seed, LangDatagen::pamhc2crops, event);
+		}
+		if (croptopia) {
+			addExtraDataPackProvider("croptopia", new RegistrySetBuilder().add(AgriPlant.REGISTRY_KEY, PlantsDatagen::registerCroptopia).add(AgriMutation.REGISTRY_KEY, MutationsDatagen::registerCroptopia), ModelsDatagen::registerCroptopiaPlant, ModelsDatagen::registerCroptopiaSeed, LangDatagen::croptopia, event);
 		}
 
 		generator.addProvider(event.includeServer(), (DataProvider.Factory<RecipeProvider>) output -> new ModRecipeProvider(output, event.getLookupProvider()));

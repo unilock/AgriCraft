@@ -17,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static com.agricraft.agricraft.api.codecs.AgriSoilCondition.Acidity.HIGHLY_ACIDIC;
 import static com.agricraft.agricraft.api.codecs.AgriSoilCondition.Acidity.HIGHLY_ALKALINE;
@@ -114,6 +115,26 @@ public class PlantsDatagen {
 		r(context, "biomesoplenty", "toadstool", new AgriPlant.Builder().seeds(AgriSeed.builder().item("biomesoplenty:toadstool").build()).stages16().chances(0.75, 0.025, 0.1).products(AgriProduct.builder().item("biomesoplenty:toadstool").count(2, 5, 1.0).build()).requirement(AgriRequirement.builder().humidity(DAMP, EQUAL, 0.15).acidity(NEUTRAL, EQUAL, 0.2).nutrients(MEDIUM, EQUAL_OR_LOWER, 0.2).light(0, 10, 0.5).seasons(SPRING, SUMMER, AUTUMN, WINTER).build()).build());
 		r(context, "biomesoplenty", "violet", flower("minecraft:purple_dye", "biomesoplenty:violet", SUMMER).build());
 		r(context, "biomesoplenty", "wilted_lily", flower("minecraft:gray_dye", "biomesoplenty:wilted_lily", AUTUMN, WINTER).build());
+	}
+
+	public static void registerCroptopia(BootstrapContext<AgriPlant> context) {
+		Stream.of("artichoke", "asparagus", "barley", "basil", "bellpepper", "blackberry", "blueberry",
+						"cantaloupe", "cranberry", "elderberry", "ginger", "mustard", "oat", "soybean", "tea",
+						"tomato", "turmeric", "vanilla", "zucchini")
+				.forEach(name -> croptopia(context, name, croptopiaCrop(name, SPRING, SUMMER)));
+		Stream.of("cabbage", "celery", "garlic", "leek", "lettuce", "onion", "radish", "spinach")
+				.forEach(name -> croptopia(context, name, croptopiaCrop(name, SPRING)));
+		Stream.of("blackbean", "greenbean", "greenonion", "honeydew", "kiwi", "pepper", "pineapple",
+						"raspberry", "rice", "saguaro", "strawberry", "tomatillo")
+				.forEach(name -> croptopia(context, name, croptopiaCrop(name, SUMMER)));
+		Stream.of("broccoli", "cauliflower", "corn", "cucumber", "currant", "eggplant", "grape", "hops", "kale",
+						"olive", "peanut", "sweetpotato")
+				.forEach(name -> croptopia(context, name, croptopiaCrop(name, AUTUMN)));
+		Stream.of("rhubarb", "rutabaga", "squash", "yam")
+				.forEach(name -> croptopia(context, name, croptopiaCrop(name, WINTER)));
+		croptopia(context, "coffee", new AgriPlant.Builder().seeds(AgriSeed.builder().item("croptopia:coffee_seed").chances(0.0, 1.0, 0.0).build()).stages16().chances(0.75, 0.025, 0.1).products(AgriProduct.builder().item("croptopia:coffee_beans").count(1, 3, 0.95).build()).requirement(AgriRequirement.builder().humidity(WET, EQUAL, 0.15).acidity(SLIGHTLY_ACIDIC, EQUAL, 0.2).nutrients(HIGH, EQUAL_OR_HIGHER, 0.1).light(10, 16, 0.5).seasons(SUMMER).build()).build());
+		croptopia(context, "chile_pepper", croptopiaCrop("chile_pepper", SPRING, AUTUMN));
+		croptopia(context, "turnip", croptopiaCrop("chile_pepper", SPRING, WINTER));
 	}
 
 	public static void registerFarmersDelight(BootstrapContext<AgriPlant> context) {
@@ -227,12 +248,29 @@ public class PlantsDatagen {
 		hcVegetable(context, "sunchoke", SPRING, AUTUMN);
 	}
 
+	public static void r(BootstrapContext<AgriPlant> context, String modid, String plantId, AgriPlant plant) {
+		context.register(ResourceKey.create(AgriPlant.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(modid, plantId)), plant);
+		GENERATED_PLANTS.add(ResourceLocation.fromNamespaceAndPath(modid, plantId));
+	}
+
 	private static void minecraft(BootstrapContext<AgriPlant> context, String plantId, AgriPlant plant) {
 		r(context, "minecraft", plantId, plant);
 	}
 
 	private static void agricraft(BootstrapContext<AgriPlant> context, String plantId, AgriPlant plant) {
 		r(context, "agricraft", plantId, plant);
+	}
+
+	private static void croptopia(BootstrapContext<AgriPlant> context, String plantId, AgriPlant plant) {
+		r(context, "croptopia", plantId, plant);
+	}
+
+	public static AgriPlant croptopiaCrop(String seed, String product, AgriSeason... seasons) {
+		return new AgriPlant.Builder().seeds(AgriSeed.builder().item("croptopia:" + seed).chances(0.0, 1.0, 0.0).build()).stages16().chances(0.75, 0.025, 0.1).products(AgriProduct.builder().item("croptopia:" + product).count(1, 3, 0.95).build()).requirement(AgriRequirement.builder().humidity(WET, EQUAL, 0.15).acidity(SLIGHTLY_ACIDIC, EQUAL, 0.2).nutrients(HIGH, EQUAL_OR_HIGHER, 0.1).light(10, 16, 0.5).seasons(seasons).build()).build();
+	}
+
+	public static AgriPlant croptopiaCrop(String product, AgriSeason... seasons) {
+		return croptopiaCrop(product + "_seed", product, seasons);
 	}
 
 	public static void hcVegetable(BootstrapContext<AgriPlant> context, String name, AgriSeason... seasons) {
@@ -247,17 +285,12 @@ public class PlantsDatagen {
 		r(context, "pamhc2crops", name, hcCrop(name).requirement(AgriRequirement.builder().humidity(ARID, EQUAL, 0.34).acidity(NEUTRAL, EQUAL, 0.2).nutrients(LOW, EQUAL_OR_HIGHER, 0.1).light(10, 16, 0.5).seasons(SUMMER).build()).build());
 	}
 
-	public static void r(BootstrapContext<AgriPlant> context, String modid, String plantId, AgriPlant plant) {
-		context.register(ResourceKey.create(AgriPlant.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(modid, plantId)), plant);
-		GENERATED_PLANTS.add(ResourceLocation.fromNamespaceAndPath(modid, plantId));
+	public static AgriPlant.Builder hcCrop(String name) {
+		return new AgriPlant.Builder().seeds(AgriSeed.builder().item("pamhc2crops:" + name + "seeditem").build()).stages16().chances(0.75, 0.025, 0.1).products(AgriProduct.builder().item("pamhc2crops:" + name + "item").count(1, 5, 0.9).build());
 	}
 
 	public static AgriPlant.Builder flower(String product, String clip, AgriSeason... seasons) {
 		return new AgriPlant.Builder().stages(2, 3, 5, 6, 8, 9, 11, 12).chances(0.75, 0.025, 0.1).products(AgriProduct.builder().item(product).count(1, 1, 0.75).build()).clips(AgriProduct.builder().item(clip).count(0, 1, 0.5).build()).requirement(AgriRequirement.builder().humidity(DAMP, EQUAL, 0.2).acidity(SLIGHTLY_ACIDIC, EQUAL, 0.2).nutrients(VERY_HIGH, EQUAL_OR_HIGHER, 0.2).light(10, 16, 0.5).seasons(seasons).build());
-	}
-
-	public static AgriPlant.Builder hcCrop(String name) {
-		return new AgriPlant.Builder().seeds(AgriSeed.builder().item("pamhc2crops:" + name + "seeditem").build()).stages16().chances(0.75, 0.025, 0.1).products(AgriProduct.builder().item("pamhc2crops:" + name + "item").count(1, 5, 0.9).build());
 	}
 
 	public static AgriPlant.Builder vegetable(String seed, String product, AgriSeason... seasons) {

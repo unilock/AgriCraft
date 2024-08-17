@@ -378,10 +378,13 @@
 
   "agricraft.datapacks.biomesoplenty": "Biomes O'Plenty extra crops (data)",
   "agricraft.resourcepacks.biomesoplenty": "Biomes O'Plenty extra crops (resources)",
+  "agricraft.datapacks.croptopia": "Croptopia extra crops (data)",
+  "agricraft.resourcepacks.croptopia": "Croptopia extra crops (resources)",
+  "agricraft.datapacks.farmersdelight": "Farmer's Delight extra crops (data)",
+  "agricraft.resourcepacks.farmersdelight": "Farmer's Delight extra crops (resources)",
   "agricraft.datapacks.immersiveengineering": "Immersive Engineering extra crops (data)",
   "agricraft.resourcepacks.immersiveengineering": "Immersive Engineering extra crops (resources)",
   "agricraft.datapacks.pamhc2crops": "Pam's HarvestCraft 2 - Crops extra crops (data)",
-  "agricraft.resourcepacks.pamhc2crops": "Pam's HarvestCraft 2 - Crops extra crops (resources)",
-  "agricraft.datapacks.farmersdelight": "Farmer's Delight extra crops (data)",
-  "agricraft.resourcepacks.farmersdelight": "Farmer's Delight extra crops (resources)"
+  "agricraft.resourcepacks.pamhc2crops": "Pam's HarvestCraft 2 - Crops extra crops (resources)"
+
 }

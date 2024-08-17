@@ -2,6 +2,8 @@ package com.agricraft.agricraft.datagen;
 
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
+import java.util.stream.Stream;
+
 public class LangDatagen {
 
 	public static void biomesoplenty(LanguageProvider lang) {
@@ -41,6 +43,22 @@ public class LangDatagen {
 		lang.add("description.agricraft.biomesoplenty.violet", "A delicate flower growing in meadows.");
 		lang.add("description.agricraft.biomesoplenty.white_lavender", "A delicate lavender");
 		lang.add("description.agricraft.biomesoplenty.wilted_lily", "That's what happens when you don't water your plants.");
+	}
+
+	public static void croptopia(LanguageProvider lang) {
+		Stream.of("artichoke", "asparagus", "barley", "basil", "bellpepper", "blackbean", "blackberry",
+						"blueberry", "broccoli", "cabbage", "cantaloupe", "cauliflower", "celery", "chile_pepper",
+						"coffee", "corn", "cranberry", "cucumber", "currant", "eggplant", "elderberry", "garlic",
+						"ginger", "grape", "greenbean", "greenonion", "honeydew", "hops", "kale", "kiwi", "leek",
+						"lettuce", "mustard", "oat", "olive", "onion", "peanut", "pepper", "pineapple", "radish",
+						"raspberry", "rhubarb", "rice", "rutabaga", "saguaro", "soybean", "spinach", "squash",
+						"strawberry", "sweetpotato", "tea", "tomatillo", "tomato", "turmeric", "turnip", "yam",
+						"zucchini")
+				.forEach(name -> {
+					lang.add("plant.agricraft.croptopia." + name, "block.croptopia." + name + "_crop");
+					lang.add("seed.agricraft.croptopia." + name, "item.croptopia." + name + "_seed");
+				});
+		lang.add("seed.agricraft.croptopia.vanilla", "item.croptopia.vanilla_seeds");  // somehow vanilla has an 's' to its seed
 	}
 
 	public static void farmersdelight(LanguageProvider lang) {
@@ -194,7 +212,7 @@ public class LangDatagen {
 		lang.add("seed.agricraft.pamhc2crops.cotton", "Cotton Seeds");
 		lang.add("seed.agricraft.pamhc2crops.cranberry", "Cranberry Seeds");
 		lang.add("seed.agricraft.pamhc2crops.cucumber", "Cucumber Seeds");
-		lang.add("seed.agricraft.pamhc2crops.eggseed", "Eggseed Seeds");
+		lang.add("seed.agricraft.pamhc2crops.eggplant", "Eggplant Seeds");
 		lang.add("seed.agricraft.pamhc2crops.elderberry", "Elderberry Seeds");
 		lang.add("seed.agricraft.pamhc2crops.flax", "Flax Seeds");
 		lang.add("seed.agricraft.pamhc2crops.garlic", "Garlic Seeds");

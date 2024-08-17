@@ -187,6 +187,32 @@ public class ModelsDatagen {
 				.forEach(name -> m.withExistingParent(name, "minecraft:item/generated").texture("layer0", "agricraft:seed/biomesoplenty/" + name));
 	}
 
+	public static void registerCroptopiaPlant(ModelProvider<BlockModelBuilder> m) {
+		List.of("artichoke", "broccoli", "cabbage", "celery", "corn", "lettuce", "tea")
+				.forEach(name -> with4TexturesIn8stage(m, name, "agricraft:crop/crop_cross", "croptopia:block/" + name + "_crop"));
+		List.of("asparagus", "barley", "basil", "bellpepper", "blackbean", "blackberry", "blueberry",
+						"broccoli", "cantaloupe", "cauliflower", "chile_pepper", "coffee", "cranberry", "cucumber",
+						"currant", "eggplant", "elderberry", "garlic", "ginger", "grape", "greenbean", "greenonion",
+						"honeydew", "hops", "kale", "kiwi", "leek", "mustard", "oat", "olive", "onion", "peanut",
+						"pepper", "pineapple", "radish", "raspberry", "rhubarb", "rice", "rutabaga", "saguaro",
+						"soybean", "spinach", "squash", "strawberry", "sweetpotato", "tomatillo", "tomato", "turmeric",
+						"turnip", "vanilla", "yam", "zucchini")
+				.forEach(name -> with4TexturesIn8stage(m, name, "agricraft:crop/crop_hash", "croptopia:block/" + name + "_crop"));
+	}
+
+	public static void registerCroptopiaSeed(ModelProvider<ItemModelBuilder> m) {
+		List.of("artichoke", "asparagus", "barley", "basil", "bellpepper", "blackbean", "blackberry",
+						"blueberry", "broccoli", "cabbage", "cantaloupe", "cauliflower", "celery", "chile_pepper",
+						"coffee", "corn", "cranberry", "cucumber", "currant", "eggplant", "elderberry", "garlic",
+						"ginger", "grape", "greenbean", "greenonion", "honeydew", "hops", "kale", "kiwi", "leek",
+						"lettuce", "mustard", "oat", "olive", "onion", "peanut", "pepper", "pineapple", "radish",
+						"raspberry", "rhubarb", "rice", "rutabaga", "saguaro", "soybean", "spinach", "squash",
+						"strawberry", "sweetpotato", "tea", "tomatillo", "tomato", "turmeric", "turnip", "yam",
+						"zucchini")
+				.forEach(name -> m.withExistingParent(name, "minecraft:item/generated").texture("layer0", "croptopia:item/" + name + "_seed"));
+		m.withExistingParent("vanilla", "minecraft:item/generated").texture("layer0", "croptopia:item/vanilla_seeds");  // help me for this is the only one with an 's'
+	}
+
 	public static void registerFarmersDelightPlant(ModelProvider<BlockModelBuilder> m) {
 		m.withExistingParent("cabbage_stage0", "agricraft:crop/crop_cross").texture("crop", "farmersdelight:block/cabbages_stage0");
 		m.withExistingParent("cabbage_stage1", "agricraft:crop/crop_cross").texture("crop", "farmersdelight:block/cabbages_stage1");
