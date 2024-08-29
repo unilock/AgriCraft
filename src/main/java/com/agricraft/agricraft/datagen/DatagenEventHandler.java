@@ -4,14 +4,20 @@ import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.codecs.AgriMutation;
 import com.agricraft.agricraft.api.codecs.AgriSoil;
 import com.agricraft.agricraft.api.fertilizer.AgriFertilizer;
+import com.agricraft.agricraft.api.genetic.AgriGenome;
 import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.plant.AgriWeed;
+import com.agricraft.agricraft.common.item.AgriSeedItem;
+import com.agricraft.agricraft.datagen.farmingforblockheads.MarketRecipeBuilder;
 import net.minecraft.DetectedVersion;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistrySetBuilder;
+import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.metadata.PackMetadataGenerator;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.network.chat.Component;
@@ -39,12 +45,12 @@ import java.util.function.Consumer;
 @EventBusSubscriber(modid = AgriApi.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public class DatagenEventHandler {
 
+	public static final boolean farmingforblockheads = true;
 	private static final boolean biomesoplenty = true;
 	private static final boolean croptopia = true;
 	private static final boolean farmersdelight = true;
 	private static final boolean immersiveengineering = false;
 	private static final boolean pamhc2crops = true;
-	public static final boolean farmingforblockheads = true;
 
 	@SubscribeEvent
 	public static void onGatherData(GatherDataEvent event) {
@@ -160,6 +166,28 @@ public class DatagenEventHandler {
 				translations.accept(this);
 			}
 		});
+
+		if (DatagenEventHandler.pamhc2crops) {
+			generator.addProvider(event.includeServer(), (DataProvider.Factory<RecipeProvider>) output -> new RecipeProvider(dataOutput, event.getLookupProvider()) {
+				@Override
+				protected void buildRecipes(RecipeOutput recipeOutput, HolderLookup.Provider holderLookup) {
+					super.buildRecipes(recipeOutput, holderLookup);
+					if (PlantsDatagen.GENERATED_PLANTS.containsKey(modid)) {
+						ResourceLocation category = ResourceLocation.fromNamespaceAndPath("agricraft", "seeds");
+						ResourceLocation preset = ResourceLocation.fromNamespaceAndPath("agricraft", "any");
+						for (String id : PlantsDatagen.GENERATED_PLANTS.get(modid)) {
+							new MarketRecipeBuilder(AgriSeedItem.toStack(new AgriGenome(ResourceLocation.fromNamespaceAndPath(modid, id))), category, preset)
+									.save(recipeOutput, ResourceLocation.fromNamespaceAndPath("agricraft", "market/agricraft/" + modid + "/" + id));
+						}
+					}
+				}
+
+				@Override
+				public String getName() {
+					return "Recipes for " + modid;
+				}
+			});
+		}
 	}
 
 }

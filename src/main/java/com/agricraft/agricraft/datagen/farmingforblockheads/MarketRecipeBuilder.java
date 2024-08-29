@@ -42,7 +42,6 @@ public class MarketRecipeBuilder implements RecipeBuilder {
 
 	@Override
 	public void save(RecipeOutput output, ResourceLocation id) {
-		AgriCraft.LOGGER.info(id.toString());
 		output.accept(id, new MarketRecipe(result, category, preset, Optional.empty()), null);
 	}
 

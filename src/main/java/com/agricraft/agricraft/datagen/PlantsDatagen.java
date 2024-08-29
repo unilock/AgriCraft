@@ -16,7 +16,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static com.agricraft.agricraft.api.codecs.AgriSoilCondition.Acidity.HIGHLY_ACIDIC;
@@ -46,7 +48,7 @@ public class PlantsDatagen {
 	/**
 	 * this is used for easy generation of farmingforblockheads market data. see {@link ModRecipeProvider#buildRecipes(RecipeOutput, HolderLookup.Provider)}.
 	 */
-	public static final List<ResourceLocation> GENERATED_PLANTS = new ArrayList<>();
+	public static final Map<String, List<String>> GENERATED_PLANTS = new HashMap<>();
 
 	public static void registerPlants(BootstrapContext<AgriPlant> context) {
 		// AgriSeed.builder().chances(0.0, 1.0, 0.0).build()
@@ -251,7 +253,13 @@ public class PlantsDatagen {
 
 	public static void r(BootstrapContext<AgriPlant> context, String modid, String plantId, AgriPlant plant) {
 		context.register(ResourceKey.create(AgriPlant.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(modid, plantId)), plant);
-		GENERATED_PLANTS.add(ResourceLocation.fromNamespaceAndPath(modid, plantId));
+		if (GENERATED_PLANTS.containsKey(modid)) {
+			GENERATED_PLANTS.get(modid).add(plantId);
+		} else {
+			ArrayList<String> list = new ArrayList<>();
+			list.add(plantId);
+			GENERATED_PLANTS.put(modid, list);
+		}
 	}
 
 	private static void minecraft(BootstrapContext<AgriPlant> context, String plantId, AgriPlant plant) {

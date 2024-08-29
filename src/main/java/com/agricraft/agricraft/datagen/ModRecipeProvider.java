@@ -170,11 +170,15 @@ public class ModRecipeProvider extends RecipeProvider {
 	protected void buildRecipes(RecipeOutput output, HolderLookup.Provider holderLookup) {
 		super.buildRecipes(output, holderLookup);
 		if (DatagenEventHandler.farmingforblockheads) {
-			Optional<HolderLookup.RegistryLookup<AgriPlant>> lookup = holderLookup.lookup(AgriPlant.REGISTRY_KEY);
 			ResourceLocation category = ResourceLocation.fromNamespaceAndPath("agricraft", "seeds");
-			for (ResourceLocation id : PlantsDatagen.GENERATED_PLANTS) {
-				new MarketRecipeBuilder(AgriSeedItem.toStack(new AgriGenome(id)), category, ResourceLocation.fromNamespaceAndPath("agricraft", "any"))
-						.save(output, ResourceLocation.fromNamespaceAndPath("agricraft", "market/agricraft/" + id.getNamespace() + "/" + id.getPath()));
+			ResourceLocation preset = ResourceLocation.fromNamespaceAndPath("agricraft", "any");
+			for (String id : PlantsDatagen.GENERATED_PLANTS.get("agricraft")) {
+				new MarketRecipeBuilder(AgriSeedItem.toStack(new AgriGenome(ResourceLocation.fromNamespaceAndPath("agricraft", id))), category, preset)
+						.save(output, ResourceLocation.fromNamespaceAndPath("agricraft", "market/agricraft/agricraft/" + id));
+			}
+			for (String id : PlantsDatagen.GENERATED_PLANTS.get("minecraft")) {
+				new MarketRecipeBuilder(AgriSeedItem.toStack(new AgriGenome(ResourceLocation.fromNamespaceAndPath("minecraft", id))), category, preset)
+						.save(output, ResourceLocation.fromNamespaceAndPath("agricraft", "market/agricraft/minecraft/" + id));
 			}
 		}
 	}
