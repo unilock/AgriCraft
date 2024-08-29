@@ -50,6 +50,7 @@ public class DatagenEventHandler {
 	private static final boolean croptopia = true;
 	private static final boolean farmersdelight = true;
 	private static final boolean immersiveengineering = false;
+	private static final boolean mysticalagriculture = true;
 	private static final boolean pamhc2crops = true;
 
 	@SubscribeEvent
@@ -88,6 +89,9 @@ public class DatagenEventHandler {
 		}
 		if (immersiveengineering) {
 			addExtraDataPackProvider("immersiveengineering", new RegistrySetBuilder().add(AgriPlant.REGISTRY_KEY, PlantsDatagen::registerImmersiveEngineering).add(AgriMutation.REGISTRY_KEY, MutationsDatagen::registerImmersiveEngineering), ModelsDatagen::registerImmersiveEngineeringPlant, ModelsDatagen::registerImmersiveEngineeringSeed, LangDatagen::immersiveengineering, event);
+		}
+		if (mysticalagriculture) {
+			addExtraDataPackProvider("mysticalagriculture", new RegistrySetBuilder().add(AgriPlant.REGISTRY_KEY, PlantsDatagen::registerMysticalAgriculture).add(AgriSoil.REGISTRY_KEY, SoilsDatagen::registerMysticalAgriculture).add(AgriFertilizer.REGISTRY_KEY, FertilizersDatagen::registerMysticalAgriculture), ModelsDatagen::registerMysticalAgriculturePlant, ModelsDatagen::registerMysticalAgricultureSeed, LangDatagen::mysticalagriculture, event);
 		}
 		if (pamhc2crops) {
 			addExtraDataPackProvider("pamhc2crops", new RegistrySetBuilder().add(AgriPlant.REGISTRY_KEY, PlantsDatagen::registerPamsHarvestCraft2).add(AgriMutation.REGISTRY_KEY, MutationsDatagen::registerPamsHarvestCraft2), ModelsDatagen::registerPamsHarvestCraft2Plant, ModelsDatagen::registerPamsHarvestCraft2Seed, LangDatagen::pamhc2crops, event);

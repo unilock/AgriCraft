@@ -74,7 +74,8 @@ runs {
 				'--existing-mod', 'pamhc2crops',
 				'--existing-mod', 'farmersdelight',
 				'--existing-mod', 'farmingforblockheads',
-				'--existing-mod', 'croptopia'
+				'--existing-mod', 'croptopia',
+				'--existing-mod', 'mysticalagriculture'
 	}
 }
 
@@ -117,6 +118,9 @@ dependencies {
 
 	implementation "curse.maven:croptopia-415438:5571647"  // Croptopia-1.21-NEO-FORGE-3.0.9
 	implementation "curse.maven:epherolib-885449:5549595"  // EpheroLib-1.21-NEO-FORGE-1.2.0 (Croptopia dep)
+
+	implementation "curse.maven:mystical_agriculture-246640:5663085"  // MysticalAgriculture-1.21.1-8.0.4
+	implementation "curse.maven:cucumber-272335:5663120"  // Cucumber-1.21.1-8.0.3 (Mystical Agriculture dep)
 
 }
 

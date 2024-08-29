@@ -151,6 +151,37 @@ public class PlantsDatagen {
 		r(context, "immersiveengineering", "hemp", new AgriPlant.Builder().seeds(AgriSeed.builder().item("immersiveengineering:seed").chances(0.0, 1.0, 0.0).build()).stages(6, 10, 10, 12, 12, 16, 16, 32).chances(0.75, 0.025, 0.1).products(AgriProduct.builder().item("immersiveengineering:hemp_fiber").count(1, 2, 0.85).build()).requirement(AgriRequirement.builder().humidity(WET, EQUAL, 0.15).acidity(SLIGHTLY_ACIDIC, EQUAL, 0.2).nutrients(HIGH, EQUAL_OR_HIGHER, 0.1).light(10, 16, 0.5).build()).build());
 	}
 
+	public static void registerMysticalAgriculture(BootstrapContext<AgriPlant> context) {
+		Stream.of("air", "earth", "water", "fire", "inferium", "stone", "dirt", "wood", "ice", "deepslate",
+						"nature", "dye", "nether", "coal", "coral", "honey", "amethyst", "pig", "chicken", "cow",
+						"sheep", "squid", "fish", "slime", "turtle", "armadillo", "iron", "copper", "nether_quartz",
+						"glowstone", "redstone", "obsidian", "prismarine", "zombie", "skeleton", "creeper", "spider",
+						"rabbit", "gold", "lapis_lazuli", "end", "experience", "breeze", "blaze", "ghast", "enderman",
+						"diamond", "emerald", "netherite", "wither_skeleton",
+						"rubber", "silicon", "sulfur", "aluminum", "saltpeter", "tin", "bronze", "zinc", "brass",
+						"silver", "lead", "graphite", "steel", "nickel", "constantan", "electrum", "invar", "uranium",
+						"platinum", "iridium", "apatite", "ruby", "sapphire", "peridot", "soulium",
+						"blizz", "blitz", "basalz", "signalum", "lumium", "enderium",  // thermal expansion
+						"flux_infused_ingot", "flux_infused_gem",  // redstone arsenal
+						"hop_graphite",  // immersive engineering
+						"amethyst_bronze", "slimesteel", "pig_iron", "cobalt", "rose_gold", "manyullyn", "queens_slime", "hepatizon",  // thinker's construct
+						"grains_of_infinity", "copper_alloy", "redstone_alloy", "conductive_alloy", "soularium", "dark_steel", "pulsating_alloy", "energetic_alloy", "vibrant_alloy", "end_steel",  // enderio
+						"mystical_flower", "manasteel", "elementium", "terrasteel",  // botania
+						"osmium", "fluorite", "refined_glowstone", "refined_obsidian",  // mekanism
+						"marble", "limestone", "basalt",  // chisel
+						"steeleaf", "ironwood", "knightmetal", "fiery_ingot",  // twilight forest
+						"menril",  // integrateddynamics
+						"aquamarine", "starmetal", "rock_crystal",  // astralsorcery
+						"compressed_iron",  // pneumaticcraft
+						"draconium",  // draconic evolution
+						"yellorium", "cyanite",  // big reactores
+						"sky_stone", "certus_quartz", "fluix",  // applied energestic 2
+						"quartz_enriched_iron",  // refined storage
+						"energized_steel", "blazing_crystal", "niotic_crystal", "spirited_crystal", "uraninite"  // powah
+				)
+				.forEach(name -> mysticalagriculture(context, name));
+	}
+
 	public static void registerPamsHarvestCraft2(BootstrapContext<AgriPlant> context) {
 		hcSandy(context, "agave");
 		hcVegetable(context, "amaranth", AUTUMN);
@@ -272,6 +303,10 @@ public class PlantsDatagen {
 
 	private static void croptopia(BootstrapContext<AgriPlant> context, String plantId, AgriPlant plant) {
 		r(context, "croptopia", plantId, plant);
+	}
+
+	private static void mysticalagriculture(BootstrapContext<AgriPlant> context, String plantId) {
+		r(context, "mysticalagriculture", plantId, new AgriPlant.Builder().seeds(AgriSeed.builder().item("mysticalagriculture:" + plantId + "_seeds").build()).stages16().harvest(3).cloneable(false).chances(0.65, 0.025, 0.1).products(AgriProduct.builder().item("mysticalagriculture:" + plantId + "_essence").count(1, 1, 0.75).build()).requirement(AgriRequirement.builder().humidity(WET, EQUAL, 0.2).acidity(SLIGHTLY_ACIDIC, EQUAL, 0.2).nutrients(HIGH, EQUAL_OR_HIGHER, 0.2).light(10, 16, 0.5).build()).build());
 	}
 
 	public static AgriPlant croptopiaCrop(String seed, String product, AgriSeason... seasons) {

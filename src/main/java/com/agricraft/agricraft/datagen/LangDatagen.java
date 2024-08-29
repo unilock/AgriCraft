@@ -77,6 +77,33 @@ public class LangDatagen {
 		lang.add("description.agricraft.immersiveengineering.hemp", "Testing 1, 2, 3.");
 	}
 
+	public static void mysticalagriculture(LanguageProvider lang) {
+		Stream.of("air", "earth", "water", "fire", "inferium", "stone", "dirt", "wood", "ice", "deepslate",
+						"nature", "dye", "nether", "coal", "coral", "honey", "amethyst", "pig", "chicken", "cow",
+						"sheep", "squid", "fish", "slime", "turtle", "armadillo", "iron", "copper", "nether_quartz",
+						"glowstone", "redstone", "obsidian", "prismarine", "zombie", "skeleton", "creeper", "spider",
+						"rabbit", "gold", "lapis_lazuli", "end", "experience", "breeze", "blaze", "ghast", "enderman",
+						"diamond", "emerald", "netherite", "wither_skeleton", "rubber", "silicon", "sulfur", "aluminum",
+						"saltpeter", "tin", "bronze", "zinc", "brass", "silver", "lead", "graphite", "steel", "nickel",
+						"constantan", "electrum", "invar", "uranium", "platinum", "iridium", "apatite", "ruby",
+						"sapphire", "peridot", "soulium", "blizz", "blitz", "basalz", "signalum", "lumium", "enderium",
+						"flux_infused_ingot", "flux_infused_gem", "hop_graphite", "amethyst_bronze", "slimesteel",
+						"pig_iron", "cobalt", "rose_gold", "manyullyn", "queens_slime", "hepatizon",
+						"grains_of_infinity", "copper_alloy", "redstone_alloy", "conductive_alloy", "soularium",
+						"dark_steel", "pulsating_alloy", "energetic_alloy", "vibrant_alloy", "end_steel",
+						"mystical_flower", "manasteel", "elementium", "terrasteel", "osmium", "fluorite",
+						"refined_glowstone", "refined_obsidian", "marble", "limestone", "basalt", "steeleaf",
+						"ironwood", "knightmetal", "fiery_ingot", "menril", "aquamarine", "starmetal", "rock_crystal",
+						"compressed_iron", "draconium", "yellorium", "cyanite", "sky_stone", "certus_quartz", "fluix",
+						"quartz_enriched_iron", "energized_steel", "blazing_crystal", "niotic_crystal",
+						"spirited_crystal", "uraninite"
+				)
+				.forEach(name -> {
+					lang.add("plant.agricraft.mysticalagriculture." + name, "crop.mysticalagriculture." + name);
+					lang.add("seed.agricraft.mysticalagriculture." + name, "crop.mysticalagriculture." + name);
+				});
+	}
+
 	public static void pamhc2crops(LanguageProvider lang) {
 		Stream.of("agave", "alfalfa", "aloe", "amaranth", "arrowroot", "artichoke", "asparagus", "barley",
 						"barrelcactus", "bean", "bellpepper", "blackberry", "blueberry", "bokchoy", "broccoli",

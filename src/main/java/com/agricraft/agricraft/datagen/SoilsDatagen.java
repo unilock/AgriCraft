@@ -45,12 +45,25 @@ public class SoilsDatagen {
 		context.register(ResourceKey.create(AgriSoil.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("agricraft", soilId)), soil);
 	}
 
+	private static void mysticalagriculture(BootstrapContext<AgriSoil> context, String soilId, double growthModifier) {
+		context.register(ResourceKey.create(AgriSoil.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("mysticalagriculture", soilId)), AgriSoil.builder().variants(AgriSoilVariant.builder().block("mysticalagriculture:" + soilId).build()).humidity(WET).acidity(SLIGHTLY_ACIDIC).nutrients(HIGH).growthModifier(growthModifier).build());
+	}
+
 	public static void registerFarmersDelight(BootstrapContext<AgriSoil> context) {
 		r(context, "farmersdelight", "rich_soil", AgriSoil.builder().variants(AgriSoilVariant.builder().block("farmersdelight:rich_soil").build()).humidity(DAMP).acidity(NEUTRAL).nutrients(VERY_HIGH).growthModifier(1.8).build());
 		r(context, "farmersdelight", "rich_soil_farmland", AgriSoil.builder().variants(AgriSoilVariant.builder().block("farmersdelight:rich_soil_farmland").build()).humidity(WET).acidity(SLIGHTLY_ACIDIC).nutrients(VERY_HIGH).growthModifier(1.8).build());
 	}
 
+	public static void registerMysticalAgriculture(BootstrapContext<AgriSoil> context) {
+		mysticalagriculture(context, "inferium_farmland", 1.0);
+		mysticalagriculture(context, "prudentium_farmland", 1.0);
+		mysticalagriculture(context, "tertium_farmland", 1.0);
+		mysticalagriculture(context, "imperium_farmland", 1.0);
+		mysticalagriculture(context, "supremium_farmland", 1.0);
+	}
+
 	private static void r(BootstrapContext<AgriSoil> context, String modid, String soilId, AgriSoil soil) {
 		context.register(ResourceKey.create(AgriSoil.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(modid, soilId)), soil);
 	}
+
 }

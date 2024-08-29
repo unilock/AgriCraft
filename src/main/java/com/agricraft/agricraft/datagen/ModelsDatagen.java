@@ -5,6 +5,7 @@ import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
 import net.neoforged.neoforge.client.model.generators.ModelProvider;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 public class ModelsDatagen {
 
@@ -256,6 +257,60 @@ public class ModelsDatagen {
 		m.withExistingParent("hemp", "immersiveengineering:item/hemp");
 	}
 
+
+	public static void registerMysticalAgriculturePlant(ModelProvider<BlockModelBuilder> m) {
+		Stream.of("pig", "chicken", "cow", "sheep", "squid", "fish", "slime", "turtle", "armadillo", "zombie",
+						"skeleton", "creeper", "spider", "rabbit", "blaze", "ghast", "enderman", "wither_skeleton",
+						"blizz", "blitz", "basalz"
+				)
+				.forEach(name -> mysticalAgriculture(m, name, "mysticalagriculture:block/mystical_mob_crop", "mysticalagriculture:block/flower/" + name + "_flower"));
+		Stream.of("inferium", "stone", "dirt", "wood", "ice", "deepslate", "nature", "dye", "nether", "coal",
+						"coral", "honey", "amethyst", "iron", "copper", "nether_quartz", "glowstone", "redstone",
+						"obsidian", "prismarine", "gold", "lapis_lazuli", "end", "experience", "breeze", "diamond",
+						"emerald", "netherite", "rubber", "silicon", "sulfur", "aluminum", "saltpeter", "tin", "bronze",
+						"zinc", "brass", "silver", "lead", "graphite", "steel", "nickel", "constantan", "electrum",
+						"invar", "uranium", "platinum", "iridium", "apatite", "ruby", "sapphire", "peridot", "soulium",
+						"signalum", "lumium", "enderium", "flux_infused_ingot", "flux_infused_gem", "hop_graphite",
+						"amethyst_bronze", "slimesteel", "pig_iron", "cobalt", "rose_gold", "manyullyn", "queens_slime",
+						"hepatizon", "grains_of_infinity", "copper_alloy", "redstone_alloy", "conductive_alloy",
+						"soularium", "dark_steel", "pulsating_alloy", "energetic_alloy", "vibrant_alloy", "end_steel",
+						"mystical_flower", "manasteel", "elementium", "terrasteel", "osmium", "fluorite",
+						"refined_glowstone", "refined_obsidian", "marble", "limestone", "basalt", "steeleaf",
+						"ironwood", "knightmetal", "fiery_ingot", "menril", "aquamarine", "starmetal", "rock_crystal",
+						"compressed_iron", "draconium", "yellorium", "cyanite", "sky_stone", "certus_quartz", "fluix",
+						"quartz_enriched_iron", "energized_steel", "blazing_crystal", "niotic_crystal",
+						"spirited_crystal", "uraninite"
+				)
+				.forEach(name -> mysticalAgriculture(m, name, "mysticalagriculture:block/mystical_resource_crop", "mysticalagriculture:block/flower/" + name + "_flower"));
+		Stream.of("air", "earth", "water", "fire"
+				)
+				.forEach(name -> mysticalAgriculture(m, name, "mysticalagriculture:block/mystical_resource_crop", "mysticalagriculture:block/flower_ingot"));
+	}
+
+	public static void registerMysticalAgricultureSeed(ModelProvider<ItemModelBuilder> m) {
+		Stream.of("air", "earth", "water", "fire", "inferium", "stone", "dirt", "wood", "ice", "deepslate",
+						"nature", "dye", "nether", "coal", "coral", "honey", "amethyst", "pig", "chicken", "cow",
+						"sheep", "squid", "fish", "slime", "turtle", "armadillo", "iron", "copper", "nether_quartz",
+						"glowstone", "redstone", "obsidian", "prismarine", "zombie", "skeleton", "creeper", "spider",
+						"rabbit", "gold", "lapis_lazuli", "end", "experience", "breeze", "blaze", "ghast", "enderman",
+						"diamond", "emerald", "netherite", "wither_skeleton", "rubber", "silicon", "sulfur", "aluminum",
+						"saltpeter", "tin", "bronze", "zinc", "brass", "silver", "lead", "graphite", "steel", "nickel",
+						"constantan", "electrum", "invar", "uranium", "platinum", "iridium", "apatite", "ruby",
+						"sapphire", "peridot", "soulium", "blizz", "blitz", "basalz", "signalum", "lumium", "enderium",
+						"flux_infused_ingot", "flux_infused_gem", "hop_graphite", "amethyst_bronze", "slimesteel",
+						"pig_iron", "cobalt", "rose_gold", "manyullyn", "queens_slime", "hepatizon",
+						"grains_of_infinity", "copper_alloy", "redstone_alloy", "conductive_alloy", "soularium",
+						"dark_steel", "pulsating_alloy", "energetic_alloy", "vibrant_alloy", "end_steel",
+						"mystical_flower", "manasteel", "elementium", "terrasteel", "osmium", "fluorite",
+						"refined_glowstone", "refined_obsidian", "marble", "limestone", "basalt", "steeleaf",
+						"ironwood", "knightmetal", "fiery_ingot", "menril", "aquamarine", "starmetal", "rock_crystal",
+						"compressed_iron", "draconium", "yellorium", "cyanite", "sky_stone", "certus_quartz", "fluix",
+						"quartz_enriched_iron", "energized_steel", "blazing_crystal", "niotic_crystal",
+						"spirited_crystal", "uraninite"
+				)
+				.forEach(name -> m.withExistingParent(name, "mysticalagriculture:item/" + name + "_seeds"));
+	}
+
 	public static void registerPamsHarvestCraft2Plant(ModelProvider<BlockModelBuilder> m) {
 		List.of("agave", "amaranth", "arrowroot", "artichoke", "asparagus", "barley", "bean", "bellpepper", "blackberry",
 						"blueberry", "broccoli", "brusselsprout", "cabbage", "cactusfruit", "candleberry", "cantaloupe", "cassava",
@@ -313,6 +368,17 @@ public class ModelsDatagen {
 		m.withExistingParent(name + "_stage5", parent).texture("crop", baseTexture + "_stage2");
 		m.withExistingParent(name + "_stage6", parent).texture("crop", baseTexture + "_stage2");
 		m.withExistingParent(name + "_stage7", parent).texture("crop", mature);
+	}
+
+	private static void mysticalAgriculture(ModelProvider<BlockModelBuilder> m, String name, String baseTexture, String flowerTexture) {
+		m.withExistingParent(name + "_stage0", baseTexture + "_0");
+		m.withExistingParent(name + "_stage1", baseTexture + "_1");
+		m.withExistingParent(name + "_stage2", baseTexture + "_2");
+		m.withExistingParent(name + "_stage3", baseTexture + "_3");
+		m.withExistingParent(name + "_stage4", baseTexture + "_4");
+		m.withExistingParent(name + "_stage5", baseTexture + "_5");
+		m.withExistingParent(name + "_stage6", baseTexture + "_6");
+		m.withExistingParent(name + "_stage7", baseTexture + "_7").texture("flower", flowerTexture);
 	}
 
 }

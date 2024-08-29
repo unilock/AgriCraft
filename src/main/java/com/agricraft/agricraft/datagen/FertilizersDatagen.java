@@ -1,6 +1,5 @@
 package com.agricraft.agricraft.datagen;
 
-import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.fertilizer.AgriFertilizer;
 import com.agricraft.agricraft.api.fertilizer.AgriFertilizerParticle;
 import com.agricraft.agricraft.api.fertilizer.AgriFertilizerVariant;
@@ -30,6 +29,20 @@ public class FertilizersDatagen {
 						"agricraft:osmonium", "agricraft:petinia", "agricraft:platiolus", "agricraft:plombean",
 						"agricraft:quartzanthemum", "agricraft:redstodendron")
 				.build());
+	}
+
+	public static void registerMysticalAgriculture(BootstrapContext<AgriFertilizer> context) {
+		context.register(
+				ResourceKey.create(AgriFertilizer.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("mysticalagriculture", "mystical_fertilizer")),
+				new AgriFertilizer.Builder()
+						.variants(new AgriFertilizerVariant.Builder().item("mysticalagriculture:mystical_fertilizer").build())
+						.potency(5)
+						.triggerMutation(false)
+						.triggerWeeds(false)
+						.particles(new AgriFertilizerParticle("minecraft:happy_villager", 0.6, 0.4, 0.6, 2, List.of("positive")),
+								new AgriFertilizerParticle("minecraft:smoke", 0.6, 0.4, 0.6, 2, List.of("negative")))
+						.build()
+		);
 	}
 
 }

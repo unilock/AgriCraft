@@ -42,10 +42,20 @@ public class CropBlockEntityRenderer implements BlockEntityRenderer<CropBlockEnt
 			String plantId = blockEntity.getPlantId().toString();
 			BakedModel plantModel = AgriClientApi.get().getPlantModel(plantId, stage.index());
 			if (plantModel != null) {
+				int color = Minecraft.getInstance().getBlockColors().getColor(blockEntity.getBlockState(), blockEntity.getLevel(), blockEntity.getBlockPos(), 0);
 				// render the computed plant model
-				Minecraft.getInstance().getBlockRenderer().getModelRenderer().renderModel(poseStack.last(),
-						buffer.getBuffer(RenderType.cutoutMipped()),
-						blockEntity.getBlockState(), plantModel, 1, 1, 1, packedLight, packedOverlay);
+				if (color == -1) {
+					Minecraft.getInstance().getBlockRenderer().getModelRenderer().renderModel(poseStack.last(),
+							buffer.getBuffer(RenderType.cutoutMipped()),
+							blockEntity.getBlockState(), plantModel, 1, 1, 1, packedLight, packedOverlay);
+				} else {
+					float r = (color >> 16 & 0xFF) / 255.0F;
+					float g = (color >> 8 & 0xFF) / 255.0F;
+					float b = (color & 0xFF) / 255.0F;
+					Minecraft.getInstance().getBlockRenderer().getModelRenderer().renderModel(poseStack.last(),
+							buffer.getBuffer(RenderType.cutoutMipped()),
+							blockEntity.getBlockState(), plantModel, r, g, b, packedLight, packedOverlay);
+				}
 			}
 		}
 		if (blockEntity.hasWeeds()) {
