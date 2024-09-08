@@ -143,6 +143,10 @@ public class AgriPlant {
 		return this.seeds.stream().anyMatch(seed -> seed.isVariant(stack));
 	}
 
+	public Stream<AgriSeed> seeds() {
+		return this.seeds.stream();
+	}
+
 	public AgriRequirement getGrowthRequirements(/*AgriGrowthStage growthStage*/) {
 		return this.requirement;
 	}

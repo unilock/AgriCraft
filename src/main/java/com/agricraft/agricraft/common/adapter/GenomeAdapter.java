@@ -33,12 +33,12 @@ public class GenomeAdapter implements AgriAdapter<AgriGenome> {
 	}
 
 	public boolean match(ItemStack itemStack) {
-		return AgriApi.get().getPlantRegistry().map(registry -> registry.stream().anyMatch(seed -> seed.isSeedItem(itemStack))).orElse(false);
+		return AgriApi.get().getPlantRegistry().map(registry -> registry.stream().anyMatch(plant -> plant.seeds().anyMatch(seed -> seed.isVariant(itemStack) && seed.overridePlanting()))).orElse(false);
 	}
 
 	public Optional<AgriGenome> convert(ItemStack itemStack) {
 		return AgriApi.get().getPlantRegistry().flatMap(registry -> registry.stream()
-				.filter(plant -> plant.isSeedItem(itemStack))
+				.filter(plant -> plant.seeds().anyMatch(seed -> seed.isVariant(itemStack) && seed.overridePlanting()))
 				.findFirst()
 				.map(AgriGenome::new));
 

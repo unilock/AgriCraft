@@ -49,28 +49,36 @@ public class VanillaSeedConversion {
 			}
 		}
 
-		if (!AgriCraftConfig.CONVERTS_SEED_ONLY_IN_ANALYZER.get()) {
-			BlockPos cropPos = pos.relative(blockHitResult.getDirection());
-			Optional<AgriSoil> optionalSoil = AgriApi.get().getSoil(player.level(), cropPos.below());
-			if (optionalSoil.isPresent()) {
-				Optional<AgriCrop> optionalCrop = AgriApi.get().getCrop(player.level(), cropPos);
-				if (optionalCrop.isPresent()) {
-					if (!optionalCrop.get().hasPlant() && !optionalCrop.get().isCrossCropSticks()) {
-						Optional<AgriGenome> genome = AgriApi.get().getGenomeAdapter(heldItem).flatMap(adapter -> adapter.valueOf(heldItem));
-						if (genome.isPresent()) {
-							plantSeedOnCrop(player, hand, optionalCrop.get(), AgriSeedItem.toStack(genome.get()));
-							return true;
-						}
-					} else {
-						return false;
-					}
-				} else if (player.level().getBlockState(cropPos).isAir() && AgriCraftConfig.PLANT_OFF_CROP_STICKS.get()) {
+		if (AgriCraftConfig.CONVERTS_SEED_ONLY_IN_ANALYZER.get()) {
+			return false;
+		}
+
+		BlockPos cropPos = pos.relative(blockHitResult.getDirection());
+		Optional<AgriSoil> optionalSoil = AgriApi.get().getSoil(player.level(), cropPos.below());
+
+		if (optionalSoil.isPresent()) {
+			Optional<AgriCrop> optionalCrop = AgriApi.get().getCrop(player.level(), cropPos);
+			if (optionalCrop.isPresent()) {
+				if (!optionalCrop.get().hasPlant() && !optionalCrop.get().isCrossCropSticks()) {
 					Optional<AgriGenome> genome = AgriApi.get().getGenomeAdapter(heldItem).flatMap(adapter -> adapter.valueOf(heldItem));
 					if (genome.isPresent()) {
+						plantSeedOnCrop(player, hand, optionalCrop.get(), AgriSeedItem.toStack(genome.get()));
+						return true;
+					}
+				} else {
+					return false;
+				}
+			} else {
+				Optional<AgriGenome> genome = AgriApi.get().getGenomeAdapter(heldItem).flatMap(adapter -> adapter.valueOf(heldItem));
+				if (AgriCraftConfig.PLANT_OFF_CROP_STICKS.get()) {
+					if (player.level().getBlockState(cropPos).isAir() && genome.isPresent()) {
 						player.level().setBlock(cropPos, AgriBlocks.CROP.get().defaultBlockState().setValue(CropBlock.CROP_STATE, CropState.PLANT), 3);
 						plantSeedOnCrop(player, hand, AgriApi.get().getCrop(player.level(), cropPos).get(), AgriSeedItem.toStack(genome.get()));
 						return true;
 					}
+				} else {
+					// Stop the player from planting vanilla seeds that have AgriCraft counterparts
+					return genome.isPresent();
 				}
 			}
 		}
