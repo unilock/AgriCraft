@@ -22,7 +22,7 @@ import java.util.function.Predicate;
  * Display a tooltip in the world when holding a magnifying glass or having a magnifying helmet equipped.
  * The tooltip shows information about the genome of the plant.
  * <br>
- * You can register a new predicate to allow the tooltip to be rendered with {@link #addAllowingPredicate}
+ * You can register a new predicate to allow the tooltip to be rendered with {@link com.agricraft.agricraft.api.AgriClientApi#registerMagnifyingAllowingPredicate}
  * You can add text to the tooltip by implementing the interface {@link MagnifyingInspectable}
  */
 public class MagnifyingGlassOverlay {

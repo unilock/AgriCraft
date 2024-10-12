@@ -11,23 +11,17 @@ import net.minecraft.world.item.ItemStack;
 import java.util.List;
 
 // TODO: @Ketheroth convert nbt to component ?
-public record AgriSeed(ExtraCodecs.TagOrElementLocation item, boolean overridePlanting/*, CompoundTag nbt*/,
-                       double grassDropChance, double seedDropChance, double seedDropBonus) {
-	// TODO: @Ketheroth move drop chances in AgriPlant to make it usable for the default agricraft seed
+public record AgriSeed(ExtraCodecs.TagOrElementLocation item, boolean overridePlanting/*, CompoundTag nbt*/) {
 
 	public static final Codec<AgriSeed> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 			ExtraCodecs.TAG_OR_ELEMENT_ID.fieldOf("item").forGetter(seed -> seed.item),
-			Codec.BOOL.fieldOf("override_planting").forGetter(seed -> seed.overridePlanting),
-//			CompoundTag.CODEC.optionalFieldOf("nbt").forGetter(seed -> seed.nbt.isEmpty() ? Optional.empty() : Optional.of(seed.nbt)),
-			Codec.DOUBLE.fieldOf("grass_drop_chance").forGetter(plant -> plant.grassDropChance),
-			Codec.DOUBLE.fieldOf("seed_drop_bonus").forGetter(plant -> plant.seedDropBonus),
-			Codec.DOUBLE.fieldOf("seed_drop_chance").forGetter(plant -> plant.seedDropChance)
+			Codec.BOOL.fieldOf("override_planting").forGetter(seed -> seed.overridePlanting)
+//			CompoundTag.CODEC.optionalFieldOf("nbt").forGetter(seed -> seed.nbt.isEmpty() ? Optional.empty() : Optional.of(seed.nbt))
 	).apply(instance, AgriSeed::new));
 
-//	public AgriSeed(ExtraCodecs.TagOrElementLocation item, boolean overridePlanting, Optional<CompoundTag> nbt,
-//	                double grassDropChance, double seedDropChance, double seedDropBonus) {
+//	public AgriSeed(ExtraCodecs.TagOrElementLocation item, boolean overridePlanting, Optional<CompoundTag> nbt) {
 		// codec use
-//		this(item, overridePlanting, nbt.orElse(new CompoundTag()), grassDropChance, seedDropChance, seedDropBonus);
+//		this(item, overridePlanting, nbt.orElse(new CompoundTag()));
 //	}
 
 	public static Builder builder() {
@@ -56,12 +50,9 @@ public record AgriSeed(ExtraCodecs.TagOrElementLocation item, boolean overridePl
 		ExtraCodecs.TagOrElementLocation item;
 		boolean overridePlanting = true;
 //		CompoundTag nbt = new CompoundTag();
-		double grassDropChance = 0;
-		double seedDropChance = 1.0;
-		double seedDropBonus = 0.0;
 
 		public AgriSeed build() {
-			return new AgriSeed(item, overridePlanting/*, nbt*/, grassDropChance, seedDropChance, seedDropBonus);
+			return new AgriSeed(item, overridePlanting/*, nbt*/);
 		}
 
 		public Builder item(String location) {
@@ -88,13 +79,6 @@ public record AgriSeed(ExtraCodecs.TagOrElementLocation item, boolean overridePl
 //			this.nbt = nbt;
 //			return this;
 //		}
-
-		public Builder chances(double grass, double seed, double seedBonus) {
-			this.grassDropChance = grass;
-			this.seedDropChance = seed;
-			this.seedDropBonus = seedBonus;
-			return this;
-		}
 
 		public Builder overridePlanting(boolean overridePlanting) {
 			this.overridePlanting = overridePlanting;

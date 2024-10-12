@@ -172,6 +172,7 @@
   "agricraft.configuration.raking_drops_items": "Raking weeds drops items",
   "agricraft.configuration.seed_bag_capacity": "Seed bag capacity",
   "agricraft.configuration.seed_bag_enchant_cost": "Seed bag enchant cost",
+  "agricraft.configuration.allow_grass_drop_resets": "Allow grass drop resets",
   "agricraft.configuration.stats": "Plant stats",
   "agricraft.configuration.gain_min": "Min Gain",
   "agricraft.configuration.gain_max": "Max Gain",

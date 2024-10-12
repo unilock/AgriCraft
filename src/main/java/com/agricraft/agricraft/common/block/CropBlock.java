@@ -372,7 +372,7 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 			level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
 		}
 		if (!state.canSurvive(level, pos)) {
-			if (level.isClientSide() && level.getBlockEntity(pos) instanceof AgriCrop crop) {
+			if (level.isClientSide() && level.getBlockEntity(pos) instanceof AgriCrop crop && crop.hasPlant()) {
 				// we handle the break particles ourselves to mimic the used model and spawn their particles instead of ours
 				String plant = crop.getPlantId().toString().replace(":", ":crop/") + "_stage" + crop.getGrowthStage().index();
 				if (level.isClientSide()) {
@@ -415,7 +415,9 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 	@Override
 	public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
 		AgriApi.get().getCrop(level, pos).ifPresent(agriCrop -> {
-			agriCrop.getPlant().onRandomTick(agriCrop, random);
+			if (agriCrop.hasPlant()) {
+				agriCrop.getPlant().onRandomTick(agriCrop, random);
+			}
 			agriCrop.applyGrowthTick();
 		});
 
@@ -454,7 +456,11 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 			// ask the block entity for the harvest products
 			crop.getHarvestProducts(drops::add);
 			if (crop.hasPlant() && (crop.isFullyGrown() || !AgriCraftConfig.ONLY_MATURE_SEED_DROPS.get())) {
-				drops.add(AgriSeedItem.toStack(crop.getGenome()));
+				double dropChance = crop.getPlant().getSeedDropChance(crop.getGrowthStage());
+				double dropBonus = crop.getPlant().getBonusSeedDropChance(crop.getGrowthStage());
+				if (dropChance + dropBonus * crop.getGrowthStage().index() >= params.getLevel().random.nextDouble()) {
+					drops.add(AgriSeedItem.toStack(crop.getGenome()));
+				}
 			}
 		}
 		return drops;

@@ -10,6 +10,7 @@ import com.agricraft.agricraft.api.plant.AgriPlantModifierFactory;
 import com.agricraft.agricraft.api.plant.AgriWeed;
 import com.agricraft.agricraft.api.requirement.AgriGrowthCondition;
 import com.agricraft.agricraft.api.stat.AgriStat;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
@@ -17,8 +18,10 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.jetbrains.annotations.ApiStatus;
 
 public interface AgriRegistries {
@@ -30,6 +33,7 @@ public interface AgriRegistries {
 	DeferredRegister.DataComponents DATA_COMPONENTS = DeferredRegister.createDataComponents(AgriApi.MOD_ID);
 	DeferredRegister<CreativeModeTab> CREATIVE_MODE_TAB = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, AgriApi.MOD_ID);
 	DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(Registries.RECIPE_SERIALIZER, AgriApi.MOD_ID);
+	DeferredRegister<MapCodec<? extends IGlobalLootModifier>> GLOBAL_LOOT_MODIFIERS = DeferredRegister.create(NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, AgriApi.MOD_ID);
 
 	DeferredRegister<AgriStat> STATS = DeferredRegister.create(AgriStat.REGISTRY_KEY, AgriApi.MOD_ID);
 	DeferredRegister<AgriGene<?>> GENES = DeferredRegister.create(AgriGene.REGISTRY_KEY, AgriApi.MOD_ID);
@@ -56,6 +60,7 @@ public interface AgriRegistries {
 		AgriDataComponents.register();
 		AgriTabs.register();
 		AgriRecipeSerializers.register();
+		AgriGlobalLootModifiers.register();
 		ModStats.register();
 		ModGenes.register();
 		ModGrowthConditions.register();
@@ -69,6 +74,7 @@ public interface AgriRegistries {
 		DATA_COMPONENTS.register(bus);
 		CREATIVE_MODE_TAB.register(bus);
 		RECIPE_SERIALIZERS.register(bus);
+		GLOBAL_LOOT_MODIFIERS.register(bus);
 		STATS.register(bus);
 		GENES.register(bus);
 		GROWTH_CONDITIONS.register(bus);

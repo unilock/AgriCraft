@@ -55,7 +55,9 @@ public final class AgriCraftConfig {
 	public static final ModConfigSpec.IntValue SEED_BAG_ENCHANT_COST = BUILDER
 			.comment("Enchantment cost in player levels to enchant the seed bag.")
 			.defineInRange("seed_bag_enchant_cost", 10, 0, 30);
-//	public static boolean allowGrassDropResets = false;
+	public static final ModConfigSpec.BooleanValue ALLOW_GRASS_DROP_RESETS = BUILDER
+			.comment("Set to false if AgriCraft loot modifiers are not allowed to reset grass drops (this overrides the \"reset\" property in the loot modifier entries")
+			.define("allow_grass_drop_resets", true);
 
 
 	public static final ModConfigSpec.IntValue GAIN_MIN = BUILDER.pop().push("stats")

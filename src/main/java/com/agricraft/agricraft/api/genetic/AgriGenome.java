@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.ToIntFunction;
 
 
 /**
@@ -170,6 +171,63 @@ public class AgriGenome {
 	@Override
 	public int hashCode() {
 		return chromosomes.hashCode();
+	}
+
+	public static class Builder {
+
+		private final HashMap<AgriGene<?>, Chromosome<?>> chromosomes;
+
+		public Builder() {
+			chromosomes = new HashMap<>();
+		}
+
+		public Builder(String species) {
+			chromosomes = new HashMap<>();
+			GeneSpecies geneSpecies = AgriCraftGenes.SPECIES.get();
+			chromosomes.put(geneSpecies, geneSpecies.chromosome(species));
+		}
+
+		public Builder species(String species) {
+			GeneSpecies geneSpecies = AgriCraftGenes.SPECIES.get();
+			chromosomes.put(geneSpecies, geneSpecies.chromosome(species));
+			return this;
+		}
+
+		public Builder add(AgriGene<?> gene, Chromosome<?> chromosome) {
+			chromosomes.put(gene, chromosome);
+			return this;
+		}
+
+		public Builder stat(AgriStat stat) {
+			return this.stat(stat, stat.getMin());
+		}
+
+		public Builder stat(AgriStat stat, int value) {
+			GeneStat gene = stat.getGene();
+			if (gene != null) {
+				chromosomes.put(gene, gene.chromosome(value));
+			}
+			return this;
+		}
+
+		public Builder randomStats(ToIntFunction<AgriStat> randomizer) {
+			AgriApi.get().getStatRegistry().holders()
+					.forEach(stat -> {
+						// this should work, until someone change the type of the gene
+						GeneStat gene = (GeneStat) AgriApi.get().getGeneRegistry().get(stat.key().location());
+						if (gene != null) {
+							int first = randomizer.applyAsInt(stat.value());
+							int second = randomizer.applyAsInt(stat.value());
+							chromosomes.put(gene, gene.chromosome(first, second));
+						}
+					});
+			return this;
+		}
+
+		public AgriGenome build() {
+			return new AgriGenome(chromosomes);
+		}
+
 	}
 
 }

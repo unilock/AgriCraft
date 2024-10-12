@@ -1,6 +1,7 @@
 package com.agricraft.agricraft.api.plant;
 
 import com.agricraft.agricraft.api.AgriApi;
+import com.agricraft.agricraft.api.TagUtils;
 import com.agricraft.agricraft.api.codecs.AgriParticleEffect;
 import com.agricraft.agricraft.api.codecs.AgriProduct;
 import com.agricraft.agricraft.api.codecs.AgriRequirement;
@@ -8,7 +9,6 @@ import com.agricraft.agricraft.api.codecs.AgriSeed;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.crop.AgriGrowthStage;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
-import com.agricraft.agricraft.api.TagUtils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
@@ -19,7 +19,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -51,6 +50,8 @@ public class AgriPlant {
 			Codec.DOUBLE.fieldOf("growth_bonus").forGetter(plant -> plant.growthBonus),
 			Codec.BOOL.fieldOf("cloneable").forGetter(plant -> plant.cloneable),
 			Codec.DOUBLE.fieldOf("spread_chance").forGetter(plant -> plant.spreadChance),
+			Codec.DOUBLE.optionalFieldOf("seed_drop_chance").forGetter(plant -> plant.seedDropChance == 1.0 ? Optional.empty() : Optional.of(plant.seedDropChance)),
+			Codec.DOUBLE.optionalFieldOf("seed_drop_bonus").forGetter(plant -> plant.seedDropBonus == 0.0 ? Optional.empty() : Optional.of(plant.seedDropBonus)),
 			AgriProduct.CODEC.listOf().optionalFieldOf("products").forGetter(plant -> plant.products.isEmpty() ? Optional.empty() : Optional.of(plant.products)),
 			AgriProduct.CODEC.listOf().optionalFieldOf("clipProducts").forGetter(plant -> plant.clipProducts.isEmpty() ? Optional.empty() : Optional.of(plant.clipProducts)),
 			AgriRequirement.CODEC.fieldOf("requirement").forGetter(plant -> plant.requirement),
@@ -69,6 +70,8 @@ public class AgriPlant {
 	private final double growthBonus;
 	private final boolean cloneable;
 	private final double spreadChance;
+	private final double seedDropChance;
+	private final double seedDropBonus;
 	private final List<AgriProduct> products;
 	private final List<AgriProduct> clipProducts;
 	private final AgriRequirement requirement;
@@ -77,8 +80,8 @@ public class AgriPlant {
 	private List<IAgriPlantModifier> modifiers;
 
 	public AgriPlant(List<String> mods, List<AgriSeed> seeds, List<Integer> stages,
-	                 int harvestStage,
-	                 double growthChance, double growthBonus, boolean cloneable, double spreadChance,
+	                 int harvestStage, double growthChance, double growthBonus, boolean cloneable,
+	                 double spreadChance, double seedDropChance, double seedDropBonus,
 	                 List<AgriProduct> products, List<AgriProduct> clipProducts, AgriRequirement requirement,
 	                 List<AgriPlantModifierInfo> modifierInfos, List<AgriParticleEffect> particleEffects) {
 		this.mods = mods;
@@ -89,6 +92,8 @@ public class AgriPlant {
 		this.growthBonus = growthBonus;
 		this.cloneable = cloneable;
 		this.spreadChance = spreadChance;
+		this.seedDropChance = seedDropChance;
+		this.seedDropBonus = seedDropBonus;
 		this.products = products;
 		this.clipProducts = clipProducts;
 		this.requirement = requirement;
@@ -98,9 +103,11 @@ public class AgriPlant {
 
 	public AgriPlant(List<String> mods, List<AgriSeed> seeds, List<Integer> stages, int harvestStage,
 	                 double growthChance, double growthBonus, boolean cloneable, double spreadChance,
+	                 Optional<Double> seedDropChance, Optional<Double> seedDropBonus,
 	                 Optional<List<AgriProduct>> products, Optional<List<AgriProduct>> clipProducts, AgriRequirement requirement,
 	                 Optional<List<AgriPlantModifierInfo>> modifierInfos, Optional<List<AgriParticleEffect>> particleEffects) {
-		this(mods, seeds, stages, harvestStage, growthChance, growthBonus, cloneable, spreadChance,
+		this(mods, seeds, stages, harvestStage, growthChance, growthBonus, cloneable,
+				spreadChance, seedDropChance.orElse(1.0), seedDropBonus.orElse(0.0),
 				products.orElse(List.of()), clipProducts.orElse(List.of()), requirement,
 				modifierInfos.orElse(List.of()), particleEffects.orElse(List.of()));
 	}
@@ -117,12 +124,13 @@ public class AgriPlant {
 		return this.growthBonus;
 	}
 
-//	public double getSeedDropChance(AgriGrowthStage growthStage) {
-//		return this.seeds.stream().mapToDouble(AgriSeed::seedDropChance).max().orElse(0);
-//	}
-//	public double getBonusSeedDropChance(AgriGrowthStage growthStage) {
-//		return this.seeds.stream().mapToDouble(AgriSeed::seedDropBonus).max().orElse(0);
-//	}
+	public double getSeedDropChance(AgriGrowthStage growthStage) {
+		return this.seedDropChance;
+	}
+
+	public double getBonusSeedDropChance(AgriGrowthStage growthStage) {
+		return this.seedDropBonus;
+	}
 
 	public AgriGrowthStage getInitialGrowthStage() {
 		return new AgriGrowthStage(0, this.stages.size());
@@ -367,6 +375,8 @@ public class AgriPlant {
 		double growthChance = 0.75;
 		double growthBonus = 0.025;
 		double spreadChance = 0.1;
+		double seedDropChance = 1.0;
+		double seedDropBonus = 0.0;
 		boolean cloneable = true;
 		List<AgriProduct> products = new ArrayList<>();
 		List<AgriProduct> clipProducts = new ArrayList<>();
@@ -389,7 +399,7 @@ public class AgriPlant {
 		}
 
 		public AgriPlant build() {
-			return new AgriPlant(mods, seeds, stages, harvestStage, growthChance, growthBonus, cloneable, spreadChance, products, clipProducts, requirement, modifiers, particleEffects);
+			return new AgriPlant(mods, seeds, stages, harvestStage, growthChance, growthBonus, cloneable, spreadChance, seedDropChance, seedDropBonus, products, clipProducts, requirement, modifiers, particleEffects);
 		}
 
 		public Builder mods(String... mods) {
@@ -430,6 +440,12 @@ public class AgriPlant {
 			this.growthChance = growth;
 			this.growthBonus = growthBonus;
 			this.spreadChance = spread;
+			return this;
+		}
+
+		public Builder seedChances(double drop, double dropBonus) {
+			this.seedDropChance = drop;
+			this.seedDropBonus = dropBonus;
 			return this;
 		}
 

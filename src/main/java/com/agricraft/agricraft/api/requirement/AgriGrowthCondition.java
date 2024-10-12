@@ -34,4 +34,6 @@ public interface AgriGrowthCondition<T> {
 	 */
 	AgriGrowthResponse apply(AgriPlant plant, int strength, T value);
 
+	// TODO: @Ketheroth void notMetDescription(Consumer<Component> consumer);
+
 }

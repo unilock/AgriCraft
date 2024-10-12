@@ -33,6 +33,7 @@ import net.neoforged.neoforge.client.model.generators.ModelProvider;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.GlobalLootModifierProvider;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
@@ -101,6 +102,7 @@ public class DatagenEventHandler {
 		}
 
 		generator.addProvider(event.includeServer(), (DataProvider.Factory<RecipeProvider>) output -> new ModRecipeProvider(output, event.getLookupProvider()));
+		generator.addProvider(event.includeServer(), (DataProvider.Factory<GlobalLootModifierProvider>) output -> new ModGlobalLootModifierProvider(output, event.getLookupProvider()));
 	}
 
 	private static <T extends ModelBuilder<T>> void addProvider(String modid, String folder, Consumer<ModelProvider<T>> consumer, BiFunction<ResourceLocation, ExistingFileHelper, T> builderFromModId, DataGenerator generator, ExistingFileHelper existingFileHelper, boolean includeClient) {

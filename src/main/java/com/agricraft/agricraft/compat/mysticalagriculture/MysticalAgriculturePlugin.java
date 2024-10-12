@@ -35,7 +35,7 @@ public class MysticalAgriculturePlugin {
 	public static void registerItemColors(RegisterColorHandlersEvent.Block event) {
 		event.register((state, level, pos, tintIndex) -> {
 			Optional<AgriCrop> optional = AgriApi.get().getCrop(level, pos);
-			if (optional.isPresent()) {
+			if (optional.isPresent() && optional.get().hasPlant()) {
 				String species = optional.get().getGenome().species().trait();
 				Crop crop = MysticalAgricultureAPI.getCropRegistry().getCropById(ResourceLocation.parse(species));
 				if (crop != null && crop.isFlowerColored()) {
