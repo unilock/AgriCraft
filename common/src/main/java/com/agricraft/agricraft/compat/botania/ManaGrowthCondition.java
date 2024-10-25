@@ -58,8 +58,9 @@ public class ManaGrowthCondition extends AgriGrowthConditionRegistry.BaseGrowthC
 					return AgriGrowthResponse.FERTILE;
 				}
 			}
+			return AgriGrowthResponse.INFERTILE;
 		}
-		return AgriGrowthResponse.INFERTILE;
+		return AgriGrowthResponse.FERTILE;
 	}
 
 	@Override

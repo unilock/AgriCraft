@@ -13,9 +13,7 @@ public record ManaPlantModifier(int cost) implements IAgriPlantModifier {
 	public void onGrowth(AgriCrop crop) {
 		ManaPool pool = ManaGrowthCondition.getPool(crop.getBlockPos(), crop.getLevel());
 		if (pool.isOutputtingPower()) {
-			System.out.println("mana was: " + pool.getCurrentMana());
 			pool.receiveMana(-cost);
-			System.out.println("mana is now: " + pool.getCurrentMana());
 		}
 		BotaniaAPI.instance().sparkleFX(crop.getLevel(),
 				crop.getBlockPos().getX() + 0.5 + 0.5 * Math.random(),
