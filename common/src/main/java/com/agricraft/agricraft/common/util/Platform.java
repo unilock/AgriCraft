@@ -1,7 +1,9 @@
 package com.agricraft.agricraft.common.util;
 
 import com.agricraft.agricraft.api.AgriApi;
+import com.agricraft.agricraft.common.block.entity.CropBlockEntity;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.particles.ParticleType;
@@ -17,6 +19,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 
 import java.util.List;
@@ -76,6 +79,8 @@ public abstract class Platform {
 	public abstract <T> PlatformRegistry<T> createRegistry(Registry<T> registry, String modid);
 
 	public abstract AgriSeedItem createAgriSeedItem(Item.Properties properties);
+
+	public abstract CropBlockEntity createCropBlockEntity(BlockPos pos, BlockState state);
 
 	public abstract CreativeModeTab createMainCreativeTab();
 

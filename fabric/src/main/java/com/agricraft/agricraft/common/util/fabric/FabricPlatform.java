@@ -3,6 +3,7 @@ package com.agricraft.agricraft.common.util.fabric;
 import com.agricraft.agricraft.AgriCraft;
 import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.plant.AgriPlant;
+import com.agricraft.agricraft.common.block.entity.CropBlockEntity;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
 import com.agricraft.agricraft.common.registry.ModItems;
 import com.agricraft.agricraft.common.util.ExtraDataMenuProvider;
@@ -15,6 +16,7 @@ import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
@@ -38,6 +40,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,6 +63,11 @@ public class FabricPlatform extends Platform {
 	@Override
 	public AgriSeedItem createAgriSeedItem(Item.Properties properties) {
 		return new AgriSeedItem(properties);
+	}
+
+	@Override
+	public CropBlockEntity createCropBlockEntity(BlockPos pos, BlockState state) {
+		return new CropBlockEntity(pos, state);
 	}
 
 	@Override

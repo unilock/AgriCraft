@@ -3,6 +3,8 @@ package com.agricraft.agricraft.common.util.forge;
 import com.agricraft.agricraft.AgriCraft;
 import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.plant.AgriPlant;
+import com.agricraft.agricraft.common.block.entity.CropBlockEntity;
+import com.agricraft.agricraft.common.forge.block.entity.ForgeCropBlockEntity;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
 import com.agricraft.agricraft.common.item.forge.ForgeAgriSeedItem;
 import com.agricraft.agricraft.common.registry.ModCreativeTabs;
@@ -11,6 +13,7 @@ import com.agricraft.agricraft.common.util.ExtraDataMenuProvider;
 import com.agricraft.agricraft.common.util.Platform;
 import com.agricraft.agricraft.common.util.PlatformRegistry;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.particles.ParticleType;
@@ -29,6 +32,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.fml.loading.FMLLoader;
@@ -53,6 +57,11 @@ public class ForgePlatform extends Platform {
 	@Override
 	public AgriSeedItem createAgriSeedItem(Item.Properties properties) {
 		return new ForgeAgriSeedItem(properties);
+	}
+
+	@Override
+	public CropBlockEntity createCropBlockEntity(BlockPos pos, BlockState state) {
+		return new ForgeCropBlockEntity(pos, state);
 	}
 
 	@Override

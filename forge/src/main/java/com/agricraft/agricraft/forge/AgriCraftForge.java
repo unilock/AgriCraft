@@ -11,8 +11,8 @@ import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.plant.AgriWeed;
 import com.agricraft.agricraft.common.commands.DumpRegistriesCommand;
 import com.agricraft.agricraft.common.commands.GiveSeedCommand;
+import com.agricraft.agricraft.common.handler.DenyBonemeal;
 import com.agricraft.agricraft.common.handler.VanillaSeedConversion;
-import com.agricraft.agricraft.common.plugin.SereneSeasonPlugin;
 import com.agricraft.agricraft.common.util.Platform;
 import com.agricraft.agricraft.common.util.forge.ForgePlatform;
 import com.agricraft.agricraft.compat.botania.BotaniaPlugin;
@@ -58,6 +58,7 @@ public class AgriCraftForge {
 		bus.addListener(AgriCraftForge::onAddPackFinders);
 		MinecraftForge.EVENT_BUS.addListener(AgriCraftForge::onRegisterCommands);
 		MinecraftForge.EVENT_BUS.addListener(AgriCraftForge::onRightClick);
+		MinecraftForge.EVENT_BUS.addListener(AgriCraftForge::onRightClickBonemeal);
 	}
 
 	public static void onCommonSetup(FMLCommonSetupEvent event) {
@@ -89,6 +90,13 @@ public class AgriCraftForge {
 	public static void onRightClick(PlayerInteractEvent.RightClickBlock event) {
 		InteractionResult result = VanillaSeedConversion.onRightClick(event.getEntity(), event.getHand(), event.getPos(), event.getHitVec());
 		if (result != InteractionResult.PASS) {
+			event.setUseItem(Event.Result.DENY);
+			event.setCanceled(true);
+		}
+	}
+
+	public static void onRightClickBonemeal(PlayerInteractEvent.RightClickBlock event) {
+		if (DenyBonemeal.denyBonemeal(event.getEntity(), event.getHand(), event.getPos(), event.getLevel())) {
 			event.setUseItem(Event.Result.DENY);
 			event.setCanceled(true);
 		}

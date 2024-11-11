@@ -9,12 +9,16 @@ import com.agricraft.agricraft.api.config.CoreConfig;
 import com.agricraft.agricraft.api.fertilizer.AgriFertilizer;
 import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.plant.AgriWeed;
+import com.agricraft.agricraft.common.block.entity.CropBlockEntity;
 import com.agricraft.agricraft.common.commands.DumpRegistriesCommand;
 import com.agricraft.agricraft.common.commands.GiveSeedCommand;
+import com.agricraft.agricraft.common.handler.DenyBonemeal;
 import com.agricraft.agricraft.common.handler.VanillaSeedConversion;
 import com.agricraft.agricraft.common.plugin.FabricSeasonPlugin;
+import com.agricraft.agricraft.common.registry.ModBlockEntityTypes;
 import com.agricraft.agricraft.common.util.Platform;
 import com.agricraft.agricraft.common.util.fabric.FabricPlatform;
+import com.agricraft.agricraft.compat.botania.AgriHornHarvestable;
 import com.agricraft.agricraft.compat.botania.BotaniaPlugin;
 import com.agricraft.agricraft.compat.botania.ManaGrowthCondition;
 import com.agricraft.agricraft.plugin.minecraft.MinecraftPlugin;
@@ -28,6 +32,8 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.InteractionResult;
+import vazkii.botania.api.BotaniaFabricCapabilities;
 import vazkii.botania.api.mana.ManaBlockType;
 import vazkii.botania.api.mana.ManaNetworkAction;
 import vazkii.botania.api.mana.ManaNetworkCallback;
@@ -51,6 +57,13 @@ public class AgriCraftFabric implements ModInitializer {
 			DumpRegistriesCommand.register(dispatcher, registryAccess);
 		});
 		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> VanillaSeedConversion.onRightClick(player, hand, hitResult.getBlockPos(), hitResult));
+		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+			if (DenyBonemeal.denyBonemeal(player, hand, hitResult.getBlockPos(), world)) {
+				return InteractionResult.FAIL;
+			}
+			return InteractionResult.PASS;
+		});
+
 		MinecraftPlugin.init();
 		FabricSeasonPlugin.init();
 
@@ -71,6 +84,12 @@ public class AgriCraftFabric implements ModInitializer {
 					ManaGrowthCondition.removePoll(manaReceiver);
 				}
 			});
+			BotaniaFabricCapabilities.HORN_HARVEST.registerForBlockEntities((blockEntity, context) -> {
+				if (blockEntity instanceof CropBlockEntity) {
+					return AgriHornHarvestable.INSTANCE;
+				}
+				return null;
+			}, ModBlockEntityTypes.CROP.get());
 		}
 	}
 

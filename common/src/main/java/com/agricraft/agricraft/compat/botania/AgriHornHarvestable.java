@@ -12,6 +12,10 @@ import vazkii.botania.api.block.HornHarvestable;
 
 public class AgriHornHarvestable implements HornHarvestable {
 
+	public static final AgriHornHarvestable INSTANCE = new AgriHornHarvestable();
+
+	private AgriHornHarvestable() {}
+
 	@Override
 	public boolean canHornHarvest(Level level, BlockPos pos, ItemStack stack, EnumHornType hornType, @Nullable LivingEntity user) {
 		return hornType == EnumHornType.WILD && AgriApi.getCrop(level, pos).map(AgriCrop::canBeHarvested).orElse(false);

@@ -19,6 +19,13 @@ public class FertilizersDatagen {
 		);
 	}
 
+	private static void mysticalagriculture(BootstapContext<AgriFertilizer> context, String fertilizerId, AgriFertilizer fertilizer) {
+		context.register(
+				ResourceKey.create(AgriApi.AGRIFERTILIZERS, new ResourceLocation("mysticalagriculture", fertilizerId)),
+				fertilizer
+		);
+	}
+
 	public static void registerFertilizers(BootstapContext<AgriFertilizer> context) {
 		mc(context, "bone_meal", new AgriFertilizer.Builder()
 				.variants(new AgriFertilizerVariant.Builder().item("minecraft:bone_meal").build())
@@ -71,7 +78,7 @@ public class FertilizersDatagen {
 	}
 
 	public static void registerMysticalAgriculture(BootstapContext<AgriFertilizer> context) {
-		mc(context, "mystical_fertilizer", new AgriFertilizer.Builder()
+		mysticalagriculture(context, "mystical_fertilizer", new AgriFertilizer.Builder()
 				.potency(5)
 				.triggerMutation(false)
 				.triggerWeeds(false)
@@ -82,4 +89,5 @@ public class FertilizersDatagen {
 						new AgriFertilizerParticle("minecraft:smoke", 0.6, 0.4, 0.6, 2, List.of("negative")))
 				.build());
 	}
+
 }
