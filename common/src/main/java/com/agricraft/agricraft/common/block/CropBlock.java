@@ -276,7 +276,9 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 					InteractionResult result = fertilizer.applyFertilizer(level, pos, crop, heldItem, level.random, player);
 					if (result == InteractionResult.CONSUME || result == InteractionResult.SUCCESS) {
 						crop.onApplyFertilizer(fertilizer, level.random);
-						crop.getPlant().onFertilized(crop, heldItem, level.random);
+						if (crop.hasPlant()) {
+							crop.getPlant().onFertilized(crop, heldItem, level.random);
+						}
 					}
 					return result;
 				}
