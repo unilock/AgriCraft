@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.20.1-4.0.4
+
+- FIXED: server crash because client only code is called
+- FIXED: crash when fertilizing empty crop sticks
+
 ## 1.20.1-4.0.3
 
 - ADDED: Config option to toggle enabling Agricraft's mod compatibility datapacks/resourcepacks by default (unilock)
