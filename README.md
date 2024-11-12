@@ -17,5 +17,6 @@ We also have a [Discord server](https://discord.gg/vyrdwWc) where you can ask fo
 | 1.11    | Unsupported |
 | 1.12    | Unsupported |
 | 1.16    | Unsupported |
-| 1.18    | Supported   |
+| 1.18    | Unsupported |
+| 1.20.1  | Supported   |
 
