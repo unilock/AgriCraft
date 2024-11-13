@@ -1,12 +1,13 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/agricraft",
   "promos": {
-    "1.20.1-latest": "1.20.1-4.0.4",
-    "1.20.1-recommended": "1.20.1-4.0.4",
+    "1.20.1-latest": "1.20.1-4.0.5",
+    "1.20.1-recommended": "1.20.1-4.0.5",
     "1.18.2-latest": "1.18.2-3.1.6",
     "1.18.2-recommended": "1.18.2-3.1.6"
   },
   "1.20.1": {
+    "1.20.1-4.0.5": "Seed CHANGELOG.md",
     "1.20.1-4.0.4": "Seed CHANGELOG.md",
     "1.20.1-4.0.3": "Seed CHANGELOG.md"
   },

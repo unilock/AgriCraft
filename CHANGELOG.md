@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.20.1-4.0.5
+
+- FIXED: crash when mystical agriculture is not present
+
 ## 1.20.1-4.0.4
 
 - FIXED: server crash because client only code is called

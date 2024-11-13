@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.Optional;
@@ -21,7 +22,7 @@ public class MysticalAgriculturePlugin {
 
 	@SubscribeEvent
 	public static void registerItemColors(RegisterColorHandlersEvent.Item event) {
-		if (CompatConfig.enableMysticalAgriculture) {
+		if (ModList.get().isLoaded("mysticalagriculture") && CompatConfig.enableMysticalAgriculture) {
 			event.register((stack, tintIndex) -> {
 				String species = AgriSeedItem.getSpecies(stack);
 				if (species != null && !species.equals("agricraft:unknown")) {
@@ -37,7 +38,7 @@ public class MysticalAgriculturePlugin {
 
 	@SubscribeEvent
 	public static void registerBlockColors(RegisterColorHandlersEvent.Block event) {
-		if (CompatConfig.enableMysticalAgriculture) {
+		if (ModList.get().isLoaded("mysticalagriculture") && CompatConfig.enableMysticalAgriculture) {
 			event.register((state, level, pos, tintIndex) -> {
 				Optional<AgriCrop> optional = AgriApi.getCrop(level, pos);
 				if (optional.isPresent() && optional.get().hasPlant()) {
