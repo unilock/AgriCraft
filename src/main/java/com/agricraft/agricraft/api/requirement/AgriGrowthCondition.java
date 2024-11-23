@@ -1,8 +1,8 @@
 package com.agricraft.agricraft.api.requirement;
 
 import com.agricraft.agricraft.api.AgriApi;
-import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.crop.AgriCrop;
+import com.agricraft.agricraft.api.plant.AgriPlant;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;

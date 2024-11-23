@@ -3,7 +3,6 @@ package com.agricraft.agricraft.common.block;
 import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.config.AgriCraftConfig;
 import com.agricraft.agricraft.api.crop.AgriCrop;
-import com.agricraft.agricraft.api.fertilizer.IAgriFertilizable;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
 import com.agricraft.agricraft.client.ClientUtil;
 import com.agricraft.agricraft.common.block.entity.CropBlockEntity;
