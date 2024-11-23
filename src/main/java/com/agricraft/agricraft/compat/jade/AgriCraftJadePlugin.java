@@ -6,7 +6,6 @@ import com.agricraft.agricraft.api.codecs.AgriSoil;
 import com.agricraft.agricraft.api.crop.AgriCrop;
 import com.agricraft.agricraft.api.requirement.AgriGrowthResponse;
 import com.agricraft.agricraft.common.block.CropBlock;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
@@ -44,7 +43,7 @@ public class AgriCraftJadePlugin implements IWailaPlugin {
 			if (blockAccessor.getBlockEntity() instanceof AgriCrop crop) {
 				if (crop.hasPlant()) {
 					iTooltip.add(Component.translatable("agricraft.tooltip.jade.growth", crop.getGrowthPercent() * 100));
-					if (Minecraft.getInstance().player.isShiftKeyDown()) {
+					if (blockAccessor.getPlayer().isShiftKeyDown()) {
 						iTooltip.add(Component.translatable("agricraft.tooltip.jade.species")
 								.append(LangUtils.plantName(crop.getGenome().species().trait()))
 						);
@@ -62,7 +61,7 @@ public class AgriCraftJadePlugin implements IWailaPlugin {
 				}
 				if (crop.hasWeeds()) {
 					iTooltip.add(Component.translatable("agricraft.tooltip.magnifying.weeds").append(LangUtils.weedName(crop.getWeedId().toString())));
-					if (Minecraft.getInstance().player.isShiftKeyDown()) {
+					if (blockAccessor.getPlayer().isShiftKeyDown()) {
 						iTooltip.add(Component.literal("  ").append(Component.translatable("agricraft.tooltip.magnifying.growth", crop.getWeedGrowthStage().index() + 1, crop.getWeedGrowthStage().total())));
 					}
 				}
@@ -88,7 +87,7 @@ public class AgriCraftJadePlugin implements IWailaPlugin {
 		@Override
 		public void appendTooltip(ITooltip iTooltip, BlockAccessor accessor, IPluginConfig iPluginConfig) {
 			Optional<AgriSoil> soil = AgriApi.get().getSoil(accessor.getLevel(), accessor.getPosition(), accessor.getLevel().registryAccess());
-			if (soil.isPresent() && Minecraft.getInstance().player.isShiftKeyDown()) {
+			if (soil.isPresent() && accessor.getPlayer().isShiftKeyDown()) {
 				AgriSoil soil1 = soil.get();
 				iTooltip.add(Component.translatable("agricraft.tooltip.magnifying.soil.humidity")
 						.append(Component.translatable("agricraft.soil.humidity." + soil1.humidity().name().toLowerCase())));

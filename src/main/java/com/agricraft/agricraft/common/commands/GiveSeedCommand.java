@@ -71,6 +71,9 @@ public class GiveSeedCommand {
 	}
 
 	public static int giveSeed(CommandSourceStack source, ResourceLocation plant) {
+		if (!source.isPlayer()) {
+			return 0;
+		}
 		Optional<AgriPlant> optional = AgriApi.get().getPlant(plant, source.getLevel().registryAccess());
 		if (optional.isEmpty()) {
 			return 0;
@@ -84,6 +87,9 @@ public class GiveSeedCommand {
 	}
 
 	public static int giveSeed(CommandSourceStack source, ResourceLocation plant, int value) {
+		if (!source.isPlayer()) {
+			return 0;
+		}
 		List<Chromosome<?>> chromosomes = new ArrayList<>();
 		chromosomes.add(AgriCraftGenes.SPECIES.get().chromosome(plant.toString()));
 		AgriApi.get().getStatRegistry().stream()
@@ -101,6 +107,9 @@ public class GiveSeedCommand {
 	}
 
 	private static int giveSeed(CommandSourceStack source, ResourceLocation plant, String distincts) {
+		if (!source.isPlayer()) {
+			return 0;
+		}
 		List<GeneStat> genes = AgriApi.get().getStatRegistry().stream()
 				.sorted(Comparator.comparing(AgriStat::getId))
 				.map(AgriStat::getGene)

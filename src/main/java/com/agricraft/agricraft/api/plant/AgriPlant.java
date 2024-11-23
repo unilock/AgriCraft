@@ -50,13 +50,13 @@ public class AgriPlant {
 			Codec.DOUBLE.fieldOf("growth_bonus").forGetter(plant -> plant.growthBonus),
 			Codec.BOOL.fieldOf("cloneable").forGetter(plant -> plant.cloneable),
 			Codec.DOUBLE.fieldOf("spread_chance").forGetter(plant -> plant.spreadChance),
-			Codec.DOUBLE.optionalFieldOf("seed_drop_chance").forGetter(plant -> plant.seedDropChance == 1.0 ? Optional.empty() : Optional.of(plant.seedDropChance)),
-			Codec.DOUBLE.optionalFieldOf("seed_drop_bonus").forGetter(plant -> plant.seedDropBonus == 0.0 ? Optional.empty() : Optional.of(plant.seedDropBonus)),
-			AgriProduct.CODEC.listOf().optionalFieldOf("products").forGetter(plant -> plant.products.isEmpty() ? Optional.empty() : Optional.of(plant.products)),
-			AgriProduct.CODEC.listOf().optionalFieldOf("clipProducts").forGetter(plant -> plant.clipProducts.isEmpty() ? Optional.empty() : Optional.of(plant.clipProducts)),
+			Codec.DOUBLE.optionalFieldOf("seed_drop_chance", 1.0).forGetter(plant -> plant.seedDropChance),
+			Codec.DOUBLE.optionalFieldOf("seed_drop_bonus", 0.0).forGetter(plant -> plant.seedDropBonus),
+			AgriProduct.CODEC.listOf().optionalFieldOf("products", List.of()).forGetter(plant -> plant.products),
+			AgriProduct.CODEC.listOf().optionalFieldOf("clipProducts", List.of()).forGetter(plant -> plant.clipProducts),
 			AgriRequirement.CODEC.fieldOf("requirement").forGetter(plant -> plant.requirement),
-			AgriPlantModifierInfo.CODEC.listOf().optionalFieldOf("modifiers").forGetter(plant -> plant.modifierInfos.isEmpty() ? Optional.empty() : Optional.of(plant.modifierInfos)),
-			AgriParticleEffect.CODEC.listOf().optionalFieldOf("particle_effects").forGetter(plant -> plant.particleEffects.isEmpty() ? Optional.empty() : Optional.of(plant.particleEffects))
+			AgriPlantModifierInfo.CODEC.listOf().optionalFieldOf("modifiers", List.of()).forGetter(plant -> plant.modifierInfos),
+			AgriParticleEffect.CODEC.listOf().optionalFieldOf("particle_effects", List.of()).forGetter(plant -> plant.particleEffects)
 	).apply(instance, AgriPlant::new));
 
 	public static final AgriPlant NO_PLANT = new AgriPlant.Builder().harvest(0).chances(0, 0, 0).build();
