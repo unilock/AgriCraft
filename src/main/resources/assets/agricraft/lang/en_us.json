@@ -166,6 +166,7 @@
   "agricraft.command.seed_distinct": "Gave %s as a seed with stats %s",
 
   "agricraft.configuration.core": "Core",
+  "agricraft.configuration.register_packs_by_default": "Register mod compatibility packs by default",
   "agricraft.configuration.plant_off_crop_sticks": "Plant outside crop sticks",
   "agricraft.configuration.crop_sticks_collide": "Crop sticks collide",
   "agricraft.configuration.only_fertile_crops_spread": "Only fertile crops spread/mutate",

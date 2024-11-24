@@ -106,7 +106,7 @@ public class AgriCraft {
 			}
 		} catch (IOException ignored) {
 		}
-		Pack pack = Pack.readMetaAndCreate(packLocationInfo, resources, packType, new PackSelectionConfig(false, Pack.Position.TOP, false));
+		Pack pack = Pack.readMetaAndCreate(packLocationInfo, resources, packType, new PackSelectionConfig(AgriCraftConfig.REGISTER_PACKS_BY_DEFAULT.get(), Pack.Position.TOP, false));
 		if (pack != null) {
 			event.addRepositorySource(packConsumer -> packConsumer.accept(pack));
 		}

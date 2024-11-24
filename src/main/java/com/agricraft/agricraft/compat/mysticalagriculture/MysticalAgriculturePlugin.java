@@ -8,6 +8,7 @@ import com.agricraft.agricraft.common.registry.AgriItems;
 import com.blakebr0.mysticalagriculture.api.MysticalAgricultureAPI;
 import com.blakebr0.mysticalagriculture.api.crop.Crop;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -15,7 +16,7 @@ import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 
 import java.util.Optional;
 
-@EventBusSubscriber(modid = AgriApi.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = AgriApi.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class MysticalAgriculturePlugin {
 
 	@SubscribeEvent
