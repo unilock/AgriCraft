@@ -80,7 +80,7 @@ public class GiveSeedCommand {
 		}
 		ItemStack itemStack = AgriSeedItem.toStack(optional.get());
 		if (giveItemStack(itemStack, source.getPlayer(), source.getLevel())) {
-			source.sendSuccess(() -> Component.translatable("agricraft.command.seed_default", plant), true);
+			source.sendSuccess(() -> Component.translatable("agricraft.command.seed_default", plant.toString()), true);
 			return 1;
 		}
 		return 0;
@@ -100,7 +100,7 @@ public class GiveSeedCommand {
 		AgriGenome genome = new AgriGenome(chromosomes);
 		ItemStack itemStack = AgriSeedItem.toStack(genome);
 		if (giveItemStack(itemStack, source.getPlayer(), source.getLevel())) {
-			source.sendSuccess(() -> Component.translatable("agricraft.command.seed_all", plant, value), true);
+			source.sendSuccess(() -> Component.translatable("agricraft.command.seed_all", plant.toString(), value), true);
 			return 1;
 		}
 		return 0;
