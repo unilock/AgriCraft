@@ -13,7 +13,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -88,10 +87,19 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 				.noOcclusion()
 				.forceSolidOff()
 				.noTerrainParticles()
-				.lightLevel(blockState -> blockState.getValue(LIGHT))
+				.lightLevel(blockState -> {
+					int light = blockState.getValue(LIGHT);
+					if (blockState.getValue(LAVALOGGED)) {
+						int lava = Blocks.LAVA.defaultBlockState().getLightEmission();
+						if (lava > light) {
+							return lava;
+						}
+					}
+					return light;
+				})
 				.sound(SoundType.CROP));
-		this.registerDefaultState(this.stateDefinition.any().setValue(SimpleFluidloggedBlock.LAVALOGGED, false)
-				.setValue(SimpleFluidloggedBlock.WATERLOGGED, false)
+		this.registerDefaultState(this.stateDefinition.any().setValue(LAVALOGGED, false)
+				.setValue(WATERLOGGED, false)
 				.setValue(STICK_VARIANT, CropStickVariant.WOODEN)
 				.setValue(CROP_STATE, CropState.SINGLE_STICKS)
 				.setValue(LIGHT, 0));
@@ -152,8 +160,8 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(SimpleFluidloggedBlock.LAVALOGGED);
-		builder.add(SimpleFluidloggedBlock.WATERLOGGED);
+		builder.add(LAVALOGGED);
+		builder.add(WATERLOGGED);
 		builder.add(STICK_VARIANT);
 		builder.add(CROP_STATE);
 		builder.add(LIGHT);
@@ -194,9 +202,9 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 	public BlockState getStateForPlacement(BlockPlaceContext context) {
 		BlockState state = this.defaultBlockState();
 		if (context.getLevel().getFluidState(context.getClickedPos()).is(Fluids.LAVA)) {
-			state = state.setValue(SimpleFluidloggedBlock.LAVALOGGED, true);
+			state = state.setValue(LAVALOGGED, true);
 		} else if (context.getLevel().getFluidState(context.getClickedPos()).is(Fluids.WATER)) {
-			state = state.setValue(SimpleFluidloggedBlock.WATERLOGGED, true);
+			state = state.setValue(WATERLOGGED, true);
 		}
 		ItemStack stack = context.getItemInHand();
 		if (stack.getItem() instanceof CropSticksItem) {
@@ -221,10 +229,10 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 	@Override
 	@NotNull
 	public FluidState getFluidState(BlockState pState) {
-		if (pState.getValue(SimpleFluidloggedBlock.LAVALOGGED)) {
+		if (pState.getValue(LAVALOGGED)) {
 			return Fluids.LAVA.getSource(false);
 		}
-		if (pState.getValue(SimpleFluidloggedBlock.WATERLOGGED)) {
+		if (pState.getValue(WATERLOGGED)) {
 			return Fluids.WATER.getSource(false);
 		}
 		return super.getFluidState(pState);
@@ -360,16 +368,16 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 
 	@Override
 	public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
-		if (state.getValue(SimpleFluidloggedBlock.LAVALOGGED)) {
+		if (state.getValue(LAVALOGGED)) {
 			level.scheduleTick(pos, Fluids.LAVA, Fluids.LAVA.getTickDelay(level));
-		} else if (state.getValue(SimpleFluidloggedBlock.WATERLOGGED)) {
+		} else if (state.getValue(WATERLOGGED)) {
 			level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
 		}
 		if (!state.canSurvive(level, pos)) {
 			this.spawnDestroyParticles(level, state, pos);
-			if (state.getValue(SimpleFluidloggedBlock.LAVALOGGED)) {
+			if (state.getValue(LAVALOGGED)) {
 				return Fluids.LAVA.defaultFluidState().createLegacyBlock();
-			} else if (state.getValue(SimpleFluidloggedBlock.WATERLOGGED)) {
+			} else if (state.getValue(WATERLOGGED)) {
 				return Fluids.WATER.defaultFluidState().createLegacyBlock();
 			}
 			return Blocks.AIR.defaultBlockState();
@@ -404,7 +412,7 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 
 	@Override
 	public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-		if (state.getValue(STICK_VARIANT) == CropStickVariant.WOODEN && level.getFluidState(pos).is(FluidTags.LAVA)) {
+		if (state.getValue(STICK_VARIANT) == CropStickVariant.WOODEN && level.getFluidState(pos).is(Fluids.LAVA)) {
 			this.spawnDestroyParticles(level, state, pos);
 			level.destroyBlock(pos, true);
 			return;
@@ -498,11 +506,6 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 			}
 			return 0;
 		}).orElse(0) : 0;
-	}
-
-	@Override
-	public int getLightEmission(BlockState state, BlockGetter level, BlockPos pos) {
-		return state.getValue(SimpleFluidloggedBlock.LAVALOGGED) ? Blocks.LAVA.getLightEmission(state, level, pos) : super.getLightEmission(state, level, pos);
 	}
 
 	private void spawnDestroyParticles(LevelAccessor level, BlockState state, BlockPos pos) {
