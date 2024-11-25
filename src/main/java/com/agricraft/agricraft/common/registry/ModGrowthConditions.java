@@ -44,7 +44,7 @@ public interface ModGrowthConditions {
 			int lower = requirement.minLight() - (int) (requirement.lightToleranceFactor() * strength);
 			int upper = requirement.maxLight() + (int) (requirement.lightToleranceFactor() * strength);
 			return lower <= value && value <= upper ? AgriGrowthResponse.FERTILE : AgriGrowthResponse.INFERTILE;
-		}, LevelReader::getMaxLocalRawBrightness));
+		}, (level, blockPos) -> level.getMaxLocalRawBrightness(blockPos.above())));
 		AgriCraftGrowthConditions.BLOCK = GROWTH_CONDITIONS.register("block", () -> new BaseGrowthCondition<>("block", (plant, strength, blockstate) -> {
 			List<AgriBlockCondition> blockConditions = plant.getGrowthRequirements().blockConditions();
 			if (blockConditions.isEmpty()) {
@@ -68,7 +68,7 @@ public interface ModGrowthConditions {
 				return AgriGrowthResponse.INFERTILE;
 			}
 			return AgriGrowthResponse.FERTILE;
-		}, (level, blockPos) -> level.getBlockState(blockPos.below().below())));
+		}, (level, blockPos) -> level.getBlockState(blockPos.below(2))));
 		AgriCraftGrowthConditions.BIOME = GROWTH_CONDITIONS.register("biome", () -> new BaseGrowthCondition<>("biome", (plant, strength, biome) -> {
 			AgriListCondition listCondition = plant.getGrowthRequirements().biomes();
 			if (strength >= listCondition.ignoreFromStrength() || (listCondition.blacklist() && listCondition.isEmpty())) {
@@ -127,7 +127,7 @@ public interface ModGrowthConditions {
 					Set<String> list = fluid.getValues().entrySet().stream().map(StateHolder.PROPERTY_ENTRY_TO_STRING_FUNCTION).collect(Collectors.toSet());
 					return list.containsAll(fluidCondition.states()) ? AgriGrowthResponse.FERTILE : AgriGrowthResponse.LETHAL;
 				}
-				return fluid.is(Fluids.LAVA) ? AgriGrowthResponse.FERTILE : AgriGrowthResponse.LETHAL;
+				return fluid.is(Fluids.LAVA) ? AgriGrowthResponse.KILL_IT_WITH_FIRE : AgriGrowthResponse.LETHAL;
 			}
 		}, Level::getFluidState));
 	}
