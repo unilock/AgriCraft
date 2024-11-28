@@ -3,6 +3,7 @@ package com.agricraft.agricraft.compat.emi;
 import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
 import com.agricraft.agricraft.common.registry.ModItems;
+import dev.emi.emi.api.EmiEntrypoint;
 import dev.emi.emi.api.EmiInitRegistry;
 import dev.emi.emi.api.EmiPlugin;
 import dev.emi.emi.api.EmiRegistry;
@@ -17,6 +18,7 @@ import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 
+@EmiEntrypoint
 public class AgriCraftEmiPlugin implements EmiPlugin {
 
 	public static final EmiStack WOODEN_CROP_STICK = EmiStack.of(ModItems.WOODEN_CROP_STICKS.get());
