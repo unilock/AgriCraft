@@ -493,11 +493,17 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 			// we handle the break particles ourselves to mimic the used model and spawn their particles instead of ours
 			CropState cropState = state.getValue(CROP_STATE);
 			if (cropState.hasSticks()) {
-				ClientUtil.spawnParticlesForSticks(state.getValue(STICK_VARIANT), level, state, pos);
+				if (cropState == CropState.DOUBLE_STICKS) {
+					ClientUtil.spawnParticlesForSticks(state.getValue(STICK_VARIANT), level, state, pos, CROSS_STICKS);
+				} else {
+					ClientUtil.spawnParticlesForSticks(state.getValue(STICK_VARIANT), level, state, pos, SINGLE_STICKS);
+				}
 			}
 			if (crop.hasPlant()) {
 				String plantModelId = crop.getPlantId().replace(":", ":crop/") + "_stage" + crop.getGrowthStage().index();
-				ClientUtil.spawnParticlesForPlant(plantModelId, level, state, pos);
+				if (level.getBlockEntity(pos) instanceof CropBlockEntity cbe) {
+					ClientUtil.spawnParticlesForPlant(plantModelId, level, state, pos, cbe.getShape());
+				}
 			}
 		}
 	}
