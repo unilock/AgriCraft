@@ -1,6 +1,7 @@
 package com.agricraft.agricraft.common.plugin.industrialforegoing;
 
 import com.agricraft.agricraft.api.AgriApi;
+import com.agricraft.agricraft.api.config.CompatConfig;
 import com.buuz135.industrial.registry.IFRegistries;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -12,7 +13,7 @@ import net.minecraftforge.registries.RegisterEvent;
 public class IndustrialForegoingPlugin {
     @SubscribeEvent
     public static void registerAgriCraftPlantRecollectable(RegisterEvent event) {
-        if (ModList.get().isLoaded("industrialforegoing")) {
+        if (ModList.get().isLoaded("industrialforegoing") && CompatConfig.enableIndustrialForegoing) {
             event.register(IFRegistries.PLANT_RECOLLECTABLES_REGISTRY_KEY,
                     helper -> helper.register("agricraft", new AgriCraftPlantRecollectable())
             );
