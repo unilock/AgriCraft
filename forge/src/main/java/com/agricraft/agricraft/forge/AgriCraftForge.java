@@ -43,6 +43,7 @@ import vazkii.botania.api.mana.ManaNetworkAction;
 import vazkii.botania.api.mana.ManaNetworkEvent;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Function;
 
@@ -123,20 +124,17 @@ public class AgriCraftForge {
 
 	public static void addPack(String type, String modid, PackType packType, AddPackFindersEvent event) {
 		Path resourcePath = ModList.get().getModFileById(AgriApi.MOD_ID).getFile().findResource(type, modid);
+		if (!Files.exists(resourcePath)) return;
 		String id = "builtin/agricraft_" + type + "_" + modid;
 		Function<String, PackResources> onName = path -> new PathPackResources(path, resourcePath, true);
-		Pack.ResourcesSupplier resources = new Pack.ResourcesSupplier() {
-			@Override
-			public PackResources open(String string) {
-				return onName.apply(id);
-			}
-		};
+		Pack.ResourcesSupplier resources = string -> onName.apply(id);
 		try (PackResources packresources = resources.open(id)) {
 			PackMetadataSection packmetadatasection = packresources.getMetadataSection(PackMetadataSection.TYPE);
 			if (packmetadatasection == null) {
 				return;
 			}
 		} catch (IOException ignored) {
+			return;
 		}
 		Pack pack = Pack.readMetaAndCreate(id, Component.translatable("agricraft." + type + "." + modid), CoreConfig.enablePacksByDefault, resources, packType, Pack.Position.TOP, PackSource.BUILT_IN);
 		if (pack != null) {
