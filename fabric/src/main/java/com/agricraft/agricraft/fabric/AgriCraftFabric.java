@@ -9,17 +9,14 @@ import com.agricraft.agricraft.api.config.CoreConfig;
 import com.agricraft.agricraft.api.fertilizer.AgriFertilizer;
 import com.agricraft.agricraft.api.plant.AgriPlant;
 import com.agricraft.agricraft.api.plant.AgriWeed;
-import com.agricraft.agricraft.common.block.entity.CropBlockEntity;
 import com.agricraft.agricraft.common.commands.DumpRegistriesCommand;
 import com.agricraft.agricraft.common.commands.GiveSeedCommand;
 import com.agricraft.agricraft.common.handler.DenyBonemeal;
 import com.agricraft.agricraft.common.handler.VanillaSeedConversion;
+import com.agricraft.agricraft.common.plugin.BotaniaFabricPlugin;
 import com.agricraft.agricraft.common.plugin.FabricSeasonPlugin;
-import com.agricraft.agricraft.common.registry.ModBlockEntityTypes;
 import com.agricraft.agricraft.common.util.Platform;
 import com.agricraft.agricraft.common.util.fabric.FabricPlatform;
-import com.agricraft.agricraft.compat.botania.AgriHornHarvestable;
-import com.agricraft.agricraft.compat.botania.BotaniaPlugin;
 import com.agricraft.agricraft.compat.botania.ManaGrowthCondition;
 import com.agricraft.agricraft.plugin.minecraft.MinecraftPlugin;
 import net.fabricmc.api.ModInitializer;
@@ -33,7 +30,6 @@ import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.InteractionResult;
-import vazkii.botania.api.BotaniaFabricCapabilities;
 import vazkii.botania.api.mana.ManaBlockType;
 import vazkii.botania.api.mana.ManaNetworkAction;
 import vazkii.botania.api.mana.ManaNetworkCallback;
@@ -78,18 +74,12 @@ public class AgriCraftFabric implements ModInitializer {
 			}
 		});
 		if (FabricLoader.getInstance().isModLoaded("botania") && CompatConfig.enableBotania) {
-			BotaniaPlugin.init();
+			BotaniaFabricPlugin.init();
 			ManaNetworkCallback.EVENT.register((manaReceiver, manaBlockType, manaNetworkAction) -> {
 				if (manaNetworkAction == ManaNetworkAction.REMOVE && manaBlockType == ManaBlockType.POOL) {
 					ManaGrowthCondition.removePoll(manaReceiver);
 				}
 			});
-			BotaniaFabricCapabilities.HORN_HARVEST.registerForBlockEntities((blockEntity, context) -> {
-				if (blockEntity instanceof CropBlockEntity) {
-					return AgriHornHarvestable.INSTANCE;
-				}
-				return null;
-			}, ModBlockEntityTypes.CROP.get());
 		}
 	}
 

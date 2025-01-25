@@ -3,13 +3,13 @@ package com.agricraft.agricraft.common.block;
 import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.config.CoreConfig;
 import com.agricraft.agricraft.api.crop.AgriCrop;
-import com.agricraft.agricraft.api.fertilizer.IAgriFertilizable;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
 import com.agricraft.agricraft.client.ClientUtil;
 import com.agricraft.agricraft.common.block.entity.CropBlockEntity;
 import com.agricraft.agricraft.common.item.AgriSeedItem;
 import com.agricraft.agricraft.common.item.CropSticksItem;
 import com.agricraft.agricraft.common.registry.ModItems;
+import com.agricraft.agricraft.common.util.Platform;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -230,7 +230,7 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 	@Override
 	@Nullable
 	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-		return new CropBlockEntity(pos, state);
+		return Platform.get().createCropBlockEntity(pos, state);
 	}
 
 	@Override
