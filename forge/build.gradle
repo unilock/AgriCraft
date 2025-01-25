@@ -27,6 +27,7 @@ loom {
 			programArgs "--existing-mod", "botania"
 			programArgs "--existing-mod", "cucumber"
 			programArgs "--existing-mod", "farmersdelight"
+			programArgs "--existing-mod", "glitchcore"
 			programArgs "--existing-mod", "immersiveengineering"
 			programArgs "--existing-mod", "mysticalagriculture"
 			programArgs "--existing-mod", "pamhc2crops"
@@ -68,6 +69,7 @@ dependencies {
 
 	modLocalRuntime "curse.maven:resourceful-config-714059:5020441"
 	modLocalRuntime "curse.maven:biomesoplenty-220318:6028852"  // Biomes O' Plenty 1.20.1-18.0.0.592
+	modLocalRuntime "curse.maven:glitchcore-955399:5787839"
 	modLocalRuntime "curse.maven:terrablender-563928:5378180"  // TerraBlender Forge 1.20.1-3.0.1.7
 	modLocalRuntime "curse.maven:pamhc2crops-361385:4687624"  // pamhc2crops 1.20-1.0.3
 	modLocalRuntime "curse.maven:immersive-engineering-231951:5224387"
