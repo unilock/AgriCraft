@@ -71,9 +71,13 @@ public class AgriCraftFabric implements ModInitializer {
 			for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
 				String modid = mod.getMetadata().getId();
 				if (!modid.equals("agricraft") && !modid.equals("minecraft") && agricraft.findPath("datapacks/"+modid).isPresent() && agricraft.findPath("resourcepacks/"+modid).isPresent()) {
-					// let's not use Fabric API internals and say we did!
-					ResourceManagerHelper.registerBuiltinResourcePack(new ResourceLocation("builtin", "agricraft_datapacks_" + modid), "datapacks/" + modid, agricraft, CoreConfig.enablePacksByDefault);
-					ResourceManagerHelper.registerBuiltinResourcePack(new ResourceLocation("builtin", "agricraft_resourcepacks_" + modid), "resourcepacks/" + modid, agricraft, CoreConfig.enablePacksByDefault);
+					// deprecated methods are used to avoid using Fabric API internals
+					if (agricraft.findPath("datapacks/"+modid).isPresent()) {
+						ResourceManagerHelper.registerBuiltinResourcePack(new ResourceLocation("builtin", "agricraft_datapacks_" + modid), "datapacks/" + modid, agricraft, CoreConfig.enablePacksByDefault);
+					}
+					if (agricraft.findPath("resourcepacks/"+modid).isPresent()) {
+						ResourceManagerHelper.registerBuiltinResourcePack(new ResourceLocation("builtin", "agricraft_resourcepacks_" + modid), "resourcepacks/" + modid, agricraft, CoreConfig.enablePacksByDefault);
+					}
 				}
 			}
 		});
