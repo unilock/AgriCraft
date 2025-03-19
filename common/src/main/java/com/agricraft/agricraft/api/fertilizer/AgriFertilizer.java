@@ -125,12 +125,12 @@ public class AgriFertilizer {
 	 * @param level        The world in which the fertilizable is placed
 	 * @param pos          The position of the fertilizable in the world
 	 * @param fertilizable The fertilizable object to which the fertilizer was applied.
-	 * @param stack        The stack that the player was holding that triggered the fertilizer to be applied.
+	 * @param stack        The stack that the player was holding that triggered the fertilizer to be applied (can be null if fertilized through automation)
 	 * @param random       A random for use in generating probabilities.
 	 * @param entity       The entity applying the fertilizer (can be null if fertilized through automation)
 	 * @return the result to handle the item use call chain
 	 */
-	public InteractionResult applyFertilizer(Level level, BlockPos pos, IAgriFertilizable fertilizable, ItemStack stack, RandomSource random, @Nullable LivingEntity entity) {
+	public InteractionResult applyFertilizer(Level level, BlockPos pos, IAgriFertilizable fertilizable, @Nullable ItemStack stack, RandomSource random, @Nullable LivingEntity entity) {
 		if (fertilizable instanceof AgriCrop crop) {
 			String type = "neutral";
 			for (int i = 0; i < this.potency; i++) {
@@ -163,7 +163,7 @@ public class AgriFertilizer {
 				}
 			}
 			this.spawnParticles(level, pos, type, random);
-			if ((entity instanceof Player) && !(((Player) entity).isCreative())) {
+			if (stack != null && (entity instanceof Player) && !(((Player) entity).isCreative())) {
 				stack.shrink(1);
 			}
 			return InteractionResult.SUCCESS;

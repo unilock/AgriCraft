@@ -3,6 +3,7 @@ package com.agricraft.agricraft.common.block;
 import com.agricraft.agricraft.api.AgriApi;
 import com.agricraft.agricraft.api.config.CoreConfig;
 import com.agricraft.agricraft.api.crop.AgriCrop;
+import com.agricraft.agricraft.api.fertilizer.AgriFertilizer;
 import com.agricraft.agricraft.api.genetic.AgriGenome;
 import com.agricraft.agricraft.client.ClientUtil;
 import com.agricraft.agricraft.common.block.entity.CropBlockEntity;
@@ -19,6 +20,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -276,20 +278,8 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 		if (heldItem.is(ModItems.CLIPPER.get()) || heldItem.is(ModItems.IRON_RAKE.get()) || heldItem.is(ModItems.WOODEN_RAKE.get())) {
 			return InteractionResult.PASS;
 		}
-		if (AgriApi.getFertilizerAdapter(heldItem).isPresent()) {
-			return AgriApi.getFertilizerAdapter(heldItem).get().valueOf(heldItem).map(fertilizer -> {
-				if (crop.acceptsFertilizer(fertilizer)) {
-					InteractionResult result = fertilizer.applyFertilizer(level, pos, crop, heldItem, level.random, player);
-					if (result == InteractionResult.CONSUME || result == InteractionResult.SUCCESS) {
-						crop.onApplyFertilizer(fertilizer, level.random);
-						if (crop.hasPlant()) {
-							crop.getPlant().onFertilized(crop, heldItem, level.random);
-						}
-					}
-					return result;
-				}
-				return InteractionResult.CONSUME;
-			}).orElse(InteractionResult.PASS);
+		if (!heldItem.is(Items.BONE_MEAL) && AgriApi.getFertilizerAdapter(heldItem).isPresent()) {
+			return AgriApi.getFertilizerAdapter(heldItem).get().valueOf(heldItem).map(fertilizer -> this.applyFertilizer(crop, fertilizer, heldItem, player)).orElse(InteractionResult.PASS);
 		}
 		// placement of crop sticks or creation of cross crop
 		if (heldItem.getItem() instanceof CropSticksItem) {
@@ -376,21 +366,25 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 
 	@Override
 	public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state, boolean isClient) {
-		return AgriApi.getCrop(level, pos).map(crop -> crop.hasPlant() && crop.isFertile() && !crop.isFullyGrown()).orElse(false);
+		// transfer the right click with bone meal to the block entity
+		return AgriApi.getFertilizer(BONE_MEAL).flatMap(fertilizer ->
+				AgriApi.getCrop(level, pos).map(crop -> crop.acceptsFertilizer(fertilizer))
+		).orElse(false);
 	}
 
 	@Override
 	public boolean isBonemealSuccess(Level level, RandomSource random, BlockPos pos, BlockState state) {
+		// transfer the right click with bone meal to the block entity
 		return AgriApi.getFertilizer(BONE_MEAL).flatMap(fertilizer ->
-				AgriApi.getCrop(level, pos).map(crop -> !crop.isFullyGrown() && crop.acceptsFertilizer(fertilizer))
+				AgriApi.getCrop(level, pos).map(crop -> crop.acceptsFertilizer(fertilizer))
 		).orElse(false);
 	}
 
 	@Override
 	public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state) {
-		// transfert the right click with a bonemeal to the block entity
+		// transfer the right click with bone meal to the block entity
 		AgriApi.getFertilizer(BONE_MEAL).ifPresent(fertilizer ->
-				AgriApi.getCrop(level, pos).ifPresent(crop -> fertilizer.applyFertilizer(level, pos, crop, BONE_MEAL, random, null))
+				AgriApi.getCrop(level, pos).ifPresent(crop -> this.applyFertilizer(crop, fertilizer, null, null))
 		);
 	}
 
@@ -506,6 +500,20 @@ public class CropBlock extends Block implements EntityBlock, BonemealableBlock, 
 				}
 			}
 		}
+	}
+
+	private InteractionResult applyFertilizer(AgriCrop crop, AgriFertilizer fertilizer, @Nullable ItemStack heldItem, @Nullable LivingEntity player) {
+		if (crop.acceptsFertilizer(fertilizer)) {
+			InteractionResult result = fertilizer.applyFertilizer(crop.getLevel(), crop.getBlockPos(), crop, heldItem, crop.getLevel().getRandom(), player);
+			if (result == InteractionResult.CONSUME || result == InteractionResult.SUCCESS) {
+				crop.onApplyFertilizer(fertilizer, crop.getLevel().getRandom());
+				if (crop.hasPlant()) {
+					crop.getPlant().onFertilized(crop, heldItem, crop.getLevel().getRandom());
+				}
+			}
+			return result;
+		}
+		return InteractionResult.CONSUME;
 	}
 
 }
